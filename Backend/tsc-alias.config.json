@@ -1,0 +1,53 @@
+{
+  "resolveFullPaths": true,
+  "replacers": [
+    {
+      "alias": "@",
+      "path": "./src"
+    },
+    {
+      "alias": "@config",
+      "path": "./src/config"
+    },
+    {
+      "alias": "@constants",
+      "path": "./src/constants"
+    },
+    {
+      "alias": "@database",
+      "path": "./src/database"
+    },
+    {
+      "alias": "@logger",
+      "path": "./src/logger"
+    },
+    {
+      "alias": "@middlewares",
+      "path": "./src/middlewares"
+    },
+    {
+      "alias": "@helpers",
+      "path": "./src/helpers"
+    },
+    {
+      "alias": "@utils",
+      "path": "./src/utils"
+    },
+    {
+      "alias": "@interfaces",
+      "path": "./src/interfaces"
+    },
+    {
+      "alias": "@types",
+      "path": "./src/types"
+    },
+    {
+      "alias": "@shared",
+      "path": "./src/shared"
+    },
+    {
+      "alias": "@modules",
+      "path": "./src/modules"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model MeetingNote {
+  id          String   @id @default(cuid())
+  title       String
+  content     String
+  source      String   @default("manual") // manual | upload | ongoing
+  fileName    String?
+  fileSize    Int?
+  status      String   @default("draft") // draft | summarized
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  summary     Summary?
+  actionItems ActionItem[]
+}
+
+model Summary {
+  id           String   @id @default(cuid())
+  noteId       String   @unique
+  note         MeetingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  content      String
+  keyPoints    String   // JSON string of string[]
+  decisions    String   // JSON string of string[]
+  participants String?  // JSON string of string[]
+  sentiment    String   @default("neutral") // positive | neutral | negative
+  wordCount    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model ActionItem {
+  id         String   @id @default(cuid())
+  noteId     String?
+  note       MeetingNote? @relation(fields: [noteId], references: [id], onDelete: SetNull)
+  title      String
+  assignee   String?
+  dueDate    String?
+  priority   String   @default("medium") // low | medium | high
+  status     String   @default("pending") // pending | in_progress | completed
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
