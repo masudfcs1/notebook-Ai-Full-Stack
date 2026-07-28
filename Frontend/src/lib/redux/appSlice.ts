@@ -79,12 +79,12 @@ const appSlice = createSlice({
           action.payload === "landing"
             ? "/"
             : action.payload === "login"
-            ? "/login"
-            : action.payload === "signup"
-            ? "/signup"
-            : action.payload === "dashboard"
-            ? "/dashboard"
-            : `/dashboard/${action.payload}`
+              ? "/login"
+              : action.payload === "signup"
+                ? "/signup"
+                : action.payload === "dashboard"
+                  ? "/dashboard"
+                  : `/dashboard/${action.payload}`
         if (window.location.pathname !== targetPath) {
           window.history.pushState(null, "", targetPath)
         }

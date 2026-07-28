@@ -17,7 +17,9 @@ export const metadata: Metadata = {
   keywords: ["AI", "Meeting Notes", "Summarizer", "Action Items", "SaaS"],
   authors: [{ name: "NoteFlow AI" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
