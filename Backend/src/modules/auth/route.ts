@@ -29,8 +29,8 @@ const router = Router();
 // Public routes
 router.post(
   '/register',
-  // authRateLimiter,
-  // validate(RegisterSchema),
+  authRateLimiter,
+  validate(RegisterSchema),
   authController.register
 );
 

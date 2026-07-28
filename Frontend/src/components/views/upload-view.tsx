@@ -13,6 +13,7 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { apiService } from "@/services/apiService"
 import { toast } from "sonner"
 import { cn } from "@/lib/utils"
 
@@ -98,20 +99,14 @@ export function UploadView() {
     setSummarizing(true)
     dispatch(setGenerating(true))
     try {
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: file.name.replace(/\.[^.]+$/, ""),
-          content: file.content,
-          persist: true,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed")
+      const data = await apiService.summarizeNotes(
+        file.name.replace(/\.[^.]+$/, ""),
+        file.content
+      )
+      const noteId = data.noteId || `note-${Date.now()}`
 
       dispatch(addNote({
-        id: data.noteId,
+        id: noteId,
         title: file.name.replace(/\.[^.]+$/, ""),
         content: file.content,
         source: "upload",
@@ -123,7 +118,7 @@ export function UploadView() {
       }))
       dispatch(addSummary({
         id: `sum-${Date.now()}`,
-        noteId: data.noteId,
+        noteId: noteId,
         content: data.summary.content,
         keyPoints: data.summary.keyPoints,
         decisions: data.summary.decisions,
@@ -135,7 +130,7 @@ export function UploadView() {
       data.actionItems.forEach((a: any) => {
         dispatch(addTask({
           id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          noteId: data.noteId,
+          noteId: noteId,
           title: a.title,
           assignee: a.assignee || undefined,
           dueDate: a.dueDate || undefined,
@@ -144,7 +139,7 @@ export function UploadView() {
           createdAt: new Date().toISOString(),
         }))
       })
-      dispatch(setActiveNote(data.noteId))
+      dispatch(setActiveNote(noteId))
       dispatch(pushNotification({
         title: "Summary ready",
         description: `“${file.name}” was summarized.`,
@@ -168,20 +163,13 @@ export function UploadView() {
     setSummarizing(true)
     dispatch(setGenerating(true))
     try {
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: manualTitle.trim() || "Untitled Meeting",
-          content: manualContent,
-          persist: true,
-        }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed")
+      const title = manualTitle.trim() || "Untitled Meeting"
+      const data = await apiService.summarizeNotes(title, manualContent)
+      const noteId = data.noteId || `note-${Date.now()}`
+
       dispatch(addNote({
-        id: data.noteId,
-        title: manualTitle.trim() || "Untitled Meeting",
+        id: noteId,
+        title: title,
         content: manualContent,
         source: "manual",
         status: "summarized",
@@ -190,7 +178,7 @@ export function UploadView() {
       }))
       dispatch(addSummary({
         id: `sum-${Date.now()}`,
-        noteId: data.noteId,
+        noteId: noteId,
         content: data.summary.content,
         keyPoints: data.summary.keyPoints,
         decisions: data.summary.decisions,
@@ -202,7 +190,7 @@ export function UploadView() {
       data.actionItems.forEach((a: any) => {
         dispatch(addTask({
           id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          noteId: data.noteId,
+          noteId: noteId,
           title: a.title,
           assignee: a.assignee || undefined,
           dueDate: a.dueDate || undefined,
@@ -211,7 +199,7 @@ export function UploadView() {
           createdAt: new Date().toISOString(),
         }))
       })
-      dispatch(setActiveNote(data.noteId))
+      dispatch(setActiveNote(noteId))
       dispatch(pushNotification({
         title: "Summary ready",
         description: `“${manualTitle || "Untitled Meeting"}” was summarized.`,

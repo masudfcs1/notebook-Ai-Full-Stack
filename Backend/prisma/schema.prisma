@@ -55,6 +55,7 @@ model User {
 
   loginHistory LoginHistory[]
   tokens       RefreshToken[]
+  notes        MeetingNote[]
 
   @@index([email])
   @@index([uuid])
@@ -95,3 +96,55 @@ model LoginHistory {
   @@index([userId])
   @@map("login_history")
 }
+
+model MeetingNote {
+  id          String   @id @default(cuid())
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  title       String
+  content     String
+  source      String   @default("manual") // manual | upload | ongoing
+  fileName    String?
+  fileSize    Int?
+  status      String   @default("draft") // draft | summarized
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  summary     Summary?
+  actionItems ActionItem[]
+
+  @@index([userId])
+  @@map("meeting_notes")
+}
+
+model Summary {
+  id           String      @id @default(cuid())
+  noteId       String      @unique
+  note         MeetingNote @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  content      String
+  keyPoints    String      // JSON string of string[]
+  decisions    String      // JSON string of string[]
+  participants String?     // JSON string of string[]
+  sentiment    String      @default("neutral") // positive | neutral | negative
+  wordCount    Int         @default(0)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("summaries")
+}
+
+model ActionItem {
+  id         String       @id @default(cuid())
+  noteId     String?
+  note       MeetingNote? @relation(fields: [noteId], references: [id], onDelete: SetNull)
+  title      String
+  assignee   String?
+  dueDate    String?
+  priority   String       @default("medium") // low | medium | high
+  status     String       @default("pending") // pending | in_progress | completed
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@map("action_items")
+}
+

@@ -12,6 +12,7 @@ import { addSummary, addTask, setGenerating } from "@/lib/redux/dataSlice"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { apiService } from "@/services/apiService"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
@@ -43,13 +44,7 @@ export function SummaryView() {
     if (!note) return
     dispatch(setGenerating(true))
     try {
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ noteId: note.id, title: note.title, content: note.content, persist: false }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed")
+      const data = await apiService.summarizeNotes(note.title, note.content)
       dispatch(addSummary({
         id: `sum-${Date.now()}`,
         noteId: note.id,

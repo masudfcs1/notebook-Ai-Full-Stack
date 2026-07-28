@@ -17,6 +17,7 @@ import { cn } from "@/lib/utils"
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { apiService } from "@/services/apiService"
 
 export function OngoingView() {
   const dispatch = useAppDispatch()
@@ -98,14 +99,7 @@ export function OngoingView() {
     setSummarizing(true)
     dispatch(setGenerating(true))
     try {
-      const res = await fetch("/api/summarize", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, content, persist: true }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Failed to summarize")
-
+      const data = await apiService.summarizeNotes(title, content)
       const noteId = data.noteId || `note-${Date.now()}`
       dispatch(addNote({
         id: noteId,

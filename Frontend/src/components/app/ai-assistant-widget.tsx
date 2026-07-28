@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setAiWidget } from "@/lib/redux/appSlice"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { apiService } from "@/services/apiService"
 
 interface Msg {
   role: "user" | "assistant"
@@ -45,13 +46,8 @@ export function AiAssistantWidget() {
     setMessages(next)
     setLoading(true)
     try {
-      const res = await fetch("/api/ai-assistant", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: trimmed }),
-      })
-      const data = await res.json()
-      setMessages([...next, { role: "assistant", content: data.reply || "Sorry, I couldn't process that." }])
+      const reply = await apiService.askAiAssistant(trimmed)
+      setMessages([...next, { role: "assistant", content: reply }])
     } catch {
       setMessages([
         ...next,
