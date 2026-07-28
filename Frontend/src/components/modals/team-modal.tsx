@@ -1,44 +1,50 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Users, X, Plus, Shield, UserPlus } from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { addTeam, addTeamMember } from "@/lib/redux/dataSlice"
-import { pushNotification } from "@/lib/redux/appSlice"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Users, X, Plus, Shield, UserPlus } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { addTeam, addTeamMember } from "@/lib/redux/dataSlice";
+import { pushNotification } from "@/lib/redux/appSlice";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Props {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
-const TEAM_ICONS = ["💻", "🎨", "🚀", "📊", "⚡", "🔬", "🛠️", "🎯"]
+const TEAM_ICONS = ["💻", "🎨", "🚀", "📊", "⚡", "🔬", "🛠️", "🎯"];
 
 export function TeamModal({ open, onClose }: Props) {
-  const dispatch = useAppDispatch()
-  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId)
-  const currentWs = useAppSelector((s) => s.data.workspaces.find((w) => w.id === activeWorkspaceId))
+  const dispatch = useAppDispatch();
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+  const currentWs = useAppSelector((s) =>
+    s.data.workspaces.find((w) => w.id === activeWorkspaceId),
+  );
 
-  const [name, setName] = useState("")
-  const [key, setKey] = useState("")
-  const [icon, setIcon] = useState("💻")
-  const [memberName, setMemberName] = useState("")
-  const [memberEmail, setMemberEmail] = useState("")
-  const [memberRole, setMemberRole] = useState<"OWNER" | "LEAD" | "MEMBER">("MEMBER")
+  const [name, setName] = useState("");
+  const [key, setKey] = useState("");
+  const [icon, setIcon] = useState("💻");
+  const [memberName, setMemberName] = useState("");
+  const [memberEmail, setMemberEmail] = useState("");
+  const [memberRole, setMemberRole] = useState<"OWNER" | "LEAD" | "MEMBER">(
+    "MEMBER",
+  );
 
-  if (!open) return null
+  if (!open) return null;
 
   function handleCreateTeam(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!name.trim()) {
-      toast.error("Team name is required")
-      return
+      toast.error("Team name is required");
+      return;
     }
 
-    const generatedKey = key.trim() ? key.trim().toUpperCase() : name.trim().slice(0, 3).toUpperCase()
-    const teamId = `team-${Date.now()}`
+    const generatedKey = key.trim()
+      ? key.trim().toUpperCase()
+      : name.trim().slice(0, 3).toUpperCase();
+    const teamId = `team-${Date.now()}`;
 
     const newTeam = {
       id: teamId,
@@ -46,29 +52,34 @@ export function TeamModal({ open, onClose }: Props) {
       name: name.trim(),
       key: generatedKey,
       icon,
-      members: memberName.trim() && memberEmail.trim() ? [
-        {
-          id: `mem-${Date.now()}`,
-          teamId,
-          name: memberName.trim(),
-          email: memberEmail.trim(),
-          role: memberRole,
-        },
-      ] : [],
-    }
+      members:
+        memberName.trim() && memberEmail.trim()
+          ? [
+              {
+                id: `mem-${Date.now()}`,
+                teamId,
+                name: memberName.trim(),
+                email: memberEmail.trim(),
+                role: memberRole,
+              },
+            ]
+          : [],
+    };
 
-    dispatch(addTeam(newTeam))
-    dispatch(pushNotification({
-      title: "Team created",
-      description: `Created new team "${name.trim()}" (${generatedKey}).`,
-      type: "success",
-    }))
-    toast.success(`Team "${name.trim()}" created!`)
-    setName("")
-    setKey("")
-    setMemberName("")
-    setMemberEmail("")
-    onClose()
+    dispatch(addTeam(newTeam));
+    dispatch(
+      pushNotification({
+        title: "Team created",
+        description: `Created new team "${name.trim()}" (${generatedKey}).`,
+        type: "success",
+      }),
+    );
+    toast.success(`Team "${name.trim()}" created!`);
+    setName("");
+    setKey("");
+    setMemberName("");
+    setMemberEmail("");
+    onClose();
   }
 
   return (
@@ -93,8 +104,12 @@ export function TeamModal({ open, onClose }: Props) {
                 <Users className="h-5 w-5" />
               </div>
               <div>
-                <h2 className="text-lg font-bold">Create Team in {currentWs?.name || "Workspace"}</h2>
-                <p className="text-xs text-muted-foreground">Teams group members, task identifiers, and action items</p>
+                <h2 className="text-lg font-bold">
+                  Create Team in {currentWs?.name || "Workspace"}
+                </h2>
+                <p className="text-xs text-muted-foreground">
+                  Teams group members, task identifiers, and action items
+                </p>
               </div>
             </div>
             <button
@@ -181,10 +196,18 @@ export function TeamModal({ open, onClose }: Props) {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="rounded-xl"
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg">
+              <Button
+                type="submit"
+                className="gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+              >
                 <Plus className="h-4 w-4" />
                 Create Team
               </Button>
@@ -193,5 +216,5 @@ export function TeamModal({ open, onClose }: Props) {
         </motion.div>
       </div>
     </AnimatePresence>
-  )
+  );
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import {
   PanelLeftClose,
   PanelLeft,
@@ -50,9 +50,10 @@ export function Sidebar() {
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0]
   const teams = activeWorkspace?.teams || []
 
-  // Modal triggers
+  // Modal & section collapse triggers
   const [wsModalOpen, setWsModalOpen] = useState(false)
   const [teamModalOpen, setTeamModalOpen] = useState(false)
+  const [teamsCollapsed, setTeamsCollapsed] = useState(true)
 
   return (
     <>
@@ -144,11 +145,25 @@ export function Sidebar() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Teams Selector Pill list in Sidebar */}
+          {/* Teams Selector Pill list in Sidebar (Collapsible) */}
           {!collapsed && (
             <div className="mt-2.5 space-y-1">
               <div className="flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-                <span>Teams</span>
+                <button
+                  onClick={() => setTeamsCollapsed(!teamsCollapsed)}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                  title={teamsCollapsed ? "Expand Teams" : "Collapse Teams"}
+                >
+                  {teamsCollapsed ? (
+                    <ChevronRight className="h-3 w-3 text-indigo-400" />
+                  ) : (
+                    <ChevronDown className="h-3 w-3 text-indigo-400" />
+                  )}
+                  <span>Teams</span>
+                  <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.2 text-muted-foreground ml-0.5">
+                    {teams.length}
+                  </span>
+                </button>
                 <button
                   onClick={() => setTeamModalOpen(true)}
                   className="text-indigo-400 hover:text-indigo-300 transition-colors"
@@ -158,39 +173,51 @@ export function Sidebar() {
                 </button>
               </div>
 
-              <button
-                onClick={() => dispatch(setActiveTeam(null))}
-                className={cn(
-                  "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
-                  activeTeamId === null
-                    ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                )}
-              >
-                <span className="text-xs">🌐</span>
-                <span className="truncate">All Teams</span>
-              </button>
+              <AnimatePresence initial={false}>
+                {!teamsCollapsed && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    className="space-y-1 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => dispatch(setActiveTeam(null))}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
+                        activeTeamId === null
+                          ? "bg-indigo-500/15 font-semibold text-indigo-400"
+                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                      )}
+                    >
+                      <span className="text-xs">🌐</span>
+                      <span className="truncate">All Teams</span>
+                    </button>
 
-              {teams.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => dispatch(setActiveTeam(t.id))}
-                  className={cn(
-                    "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
-                    activeTeamId === t.id
-                      ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                      : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
-                  )}
-                >
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-xs">{t.icon || "💬"}</span>
-                    <span className="truncate">{t.name}</span>
-                  </div>
-                  <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
-                    {t.key}
-                  </span>
-                </button>
-              ))}
+                    {teams.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => dispatch(setActiveTeam(t.id))}
+                        className={cn(
+                          "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                          activeTeamId === t.id
+                            ? "bg-indigo-500/15 font-semibold text-indigo-400"
+                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                        )}
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span className="text-xs">{t.icon || "💬"}</span>
+                          <span className="truncate">{t.name}</span>
+                        </div>
+                        <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
+                          {t.key}
+                        </span>
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
         </div>

@@ -1,103 +1,183 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from "react"
+import { useState, useMemo } from "react";
 import {
-  DndContext, DragOverlay, PointerSensor, useSensor, useSensors,
-  type DragStartEvent, type DragEndEvent, useDroppable, useDraggable,
-} from "@dnd-kit/core"
-import { motion, AnimatePresence } from "framer-motion"
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragStartEvent,
+  type DragEndEvent,
+  useDroppable,
+  useDraggable,
+} from "@dnd-kit/core";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  CheckSquare, Clock, Loader2, Plus, User, Calendar, Flame,
-  ArrowUp, Minus, Circle, LayoutGrid, List, Search, Filter,
-  Building2, Users, MoreHorizontal, CheckCircle2, ChevronRight, X,
-} from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { addTask, updateTaskStatus, deleteTask, updateTask } from "@/lib/redux/dataSlice"
-import { setView, pushNotification } from "@/lib/redux/appSlice"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
-import { EmptyState } from "@/components/app/empty-state"
+  CheckSquare,
+  Clock,
+  Loader2,
+  Plus,
+  User,
+  Calendar,
+  Flame,
+  ArrowUp,
+  Minus,
+  Circle,
+  LayoutGrid,
+  List,
+  Search,
+  Filter,
+  Building2,
+  Users,
+  MoreHorizontal,
+  CheckCircle2,
+  ChevronRight,
+  X,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import type { ActionItem, PriorityLevel, TaskStatus } from "@/types"
+  addTask,
+  updateTaskStatus,
+  deleteTask,
+  updateTask,
+} from "@/lib/redux/dataSlice";
+import { setView, pushNotification } from "@/lib/redux/appSlice";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/app/empty-state";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type { ActionItem, PriorityLevel, TaskStatus } from "@/types";
 
 // Linear-style Columns
 const LINEAR_COLUMNS: {
-  id: TaskStatus
-  label: string
-  color: string
-  border: string
-  bg: string
+  id: TaskStatus;
+  label: string;
+  color: string;
+  border: string;
+  bg: string;
 }[] = [
-  { id: "backlog", label: "Backlog", color: "text-slate-400", border: "border-slate-500/30", bg: "bg-slate-500/10" },
-  { id: "todo", label: "To Do", color: "text-sky-400", border: "border-sky-500/30", bg: "bg-sky-500/10" },
-  { id: "in_progress", label: "In Progress", color: "text-amber-400", border: "border-amber-500/30", bg: "bg-amber-500/10" },
-  { id: "done", label: "Done", color: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10" },
-]
+  {
+    id: "backlog",
+    label: "Backlog",
+    color: "text-slate-400",
+    border: "border-slate-500/30",
+    bg: "bg-slate-500/10",
+  },
+  {
+    id: "todo",
+    label: "To Do",
+    color: "text-sky-400",
+    border: "border-sky-500/30",
+    bg: "bg-sky-500/10",
+  },
+  {
+    id: "in_progress",
+    label: "In Progress",
+    color: "text-amber-400",
+    border: "border-amber-500/30",
+    bg: "bg-amber-500/10",
+  },
+  {
+    id: "done",
+    label: "Done",
+    color: "text-emerald-400",
+    border: "border-emerald-500/30",
+    bg: "bg-emerald-500/10",
+  },
+];
 
-const PRIORITY_META: Record<PriorityLevel, { label: string; icon: typeof Flame; style: string }> = {
-  urgent: { label: "Urgent", icon: Flame, style: "bg-rose-500/20 text-rose-400 border-rose-500/40" },
-  high: { label: "High", icon: ArrowUp, style: "bg-amber-500/20 text-amber-400 border-amber-500/40" },
-  medium: { label: "Medium", icon: Minus, style: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40" },
-  low: { label: "Low", icon: Circle, style: "bg-slate-500/20 text-slate-400 border-slate-500/40" },
-}
+const PRIORITY_META: Record<
+  PriorityLevel,
+  { label: string; icon: typeof Flame; style: string }
+> = {
+  urgent: {
+    label: "Urgent",
+    icon: Flame,
+    style: "bg-rose-500/20 text-rose-400 border-rose-500/40",
+  },
+  high: {
+    label: "High",
+    icon: ArrowUp,
+    style: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+  },
+  medium: {
+    label: "Medium",
+    icon: Minus,
+    style: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
+  },
+  low: {
+    label: "Low",
+    icon: Circle,
+    style: "bg-slate-500/20 text-slate-400 border-slate-500/40",
+  },
+};
 
 export function ActionItemsView() {
-  const dispatch = useAppDispatch()
-  const tasks = useAppSelector((s) => s.data.tasks)
-  const workspaces = useAppSelector((s) => s.data.workspaces)
-  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId)
-  const activeTeamId = useAppSelector((s) => s.data.activeTeamId)
+  const dispatch = useAppDispatch();
+  const tasks = useAppSelector((s) => s.data.tasks);
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+  const activeTeamId = useAppSelector((s) => s.data.activeTeamId);
 
-  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0]
-  const teams = activeWorkspace?.teams || []
+  const activeWorkspace =
+    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  const teams = activeWorkspace?.teams || [];
 
   // UI state
-  const [viewMode, setViewMode] = useState<"board" | "list">("board")
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(activeTeamId)
-  const [search, setSearch] = useState("")
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
+    activeTeamId,
+  );
+  const [search, setSearch] = useState("");
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
-  )
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+  );
 
   // Filter tasks by active workspace and team
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
-      const matchWs = !t.workspaceId || t.workspaceId === activeWorkspaceId
-      const matchTeam = !selectedTeamId || t.teamId === selectedTeamId
+      const matchWs = !t.workspaceId || t.workspaceId === activeWorkspaceId;
+      const matchTeam = !selectedTeamId || t.teamId === selectedTeamId;
       const matchSearch =
         !search.trim() ||
         t.title.toLowerCase().includes(search.toLowerCase()) ||
         t.identifier?.toLowerCase().includes(search.toLowerCase()) ||
-        t.assignee?.toLowerCase().includes(search.toLowerCase())
-      return matchWs && matchTeam && matchSearch
-    })
-  }, [tasks, activeWorkspaceId, selectedTeamId, search])
+        t.assignee?.toLowerCase().includes(search.toLowerCase());
+      return matchWs && matchTeam && matchSearch;
+    });
+  }, [tasks, activeWorkspaceId, selectedTeamId, search]);
 
-  const activeTask = tasks.find((t) => t.id === activeId) ?? null
+  const activeTask = tasks.find((t) => t.id === activeId) ?? null;
 
   function handleDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id))
+    setActiveId(String(e.active.id));
   }
 
   function handleDragEnd(e: DragEndEvent) {
-    setActiveId(null)
-    const over = e.over
-    if (!over) return
-    const targetStatus = over.id as TaskStatus
-    const task = tasks.find((t) => t.id === e.active.id)
+    setActiveId(null);
+    const over = e.over;
+    if (!over) return;
+    const targetStatus = over.id as TaskStatus;
+    const task = tasks.find((t) => t.id === e.active.id);
     if (task && task.status !== targetStatus) {
-      dispatch(updateTaskStatus({ id: task.id, status: targetStatus }))
-      toast.success(`Task status updated to ${targetStatus.replace("_", " ").toUpperCase()}`)
+      dispatch(updateTaskStatus({ id: task.id, status: targetStatus }));
+      toast.success(
+        `Task status updated to ${targetStatus.replace("_", " ").toUpperCase()}`,
+      );
     }
   }
 
@@ -112,9 +192,14 @@ export function ActionItemsView() {
               <CheckSquare className="h-4 w-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold tracking-tight">Team Action Items</h2>
+              <h2 className="text-base font-bold tracking-tight">
+                Team Action Items
+              </h2>
               <p className="text-xs text-muted-foreground">
-                Workspace: <span className="font-semibold text-foreground">{activeWorkspace?.name}</span>
+                Workspace:{" "}
+                <span className="font-semibold text-foreground">
+                  {activeWorkspace?.name}
+                </span>
               </p>
             </div>
           </div>
@@ -127,13 +212,13 @@ export function ActionItemsView() {
                 "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
                 selectedTeamId === null
                   ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <span>🌐</span> All Teams ({tasks.length})
             </button>
             {teams.map((t) => {
-              const teamCount = tasks.filter((x) => x.teamId === t.id).length
+              const teamCount = tasks.filter((x) => x.teamId === t.id).length;
               return (
                 <button
                   key={t.id}
@@ -142,12 +227,14 @@ export function ActionItemsView() {
                     "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
                     selectedTeamId === t.id
                       ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
-                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <span>{t.icon || "💻"}</span>
                   <span>{t.name}</span>
-                  <span className="font-mono text-[10px] opacity-70">({teamCount})</span>
+                  <span className="font-mono text-[10px] opacity-70">
+                    ({teamCount})
+                  </span>
                 </button>
               );
             })}
@@ -173,7 +260,9 @@ export function ActionItemsView() {
               onClick={() => setViewMode("board")}
               className={cn(
                 "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all",
-                viewMode === "board" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                viewMode === "board"
+                  ? "bg-muted text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Board
@@ -182,7 +271,9 @@ export function ActionItemsView() {
               onClick={() => setViewMode("list")}
               className={cn(
                 "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all",
-                viewMode === "list" ? "bg-muted text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
+                viewMode === "list"
+                  ? "bg-muted text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <List className="h-3.5 w-3.5" /> List
@@ -200,26 +291,33 @@ export function ActionItemsView() {
 
       {/* Board vs List View */}
       {viewMode === "board" ? (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext
+          sensors={sensors}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
           <div className="grid gap-4 md:grid-cols-4">
             {LINEAR_COLUMNS.map((col) => {
               const colTasks = filteredTasks.filter(
-                (t) => t.status === col.id || (col.id === "todo" && t.status === "pending") || (col.id === "done" && t.status === "completed")
-              )
+                (t) =>
+                  t.status === col.id ||
+                  (col.id === "todo" && t.status === "pending") ||
+                  (col.id === "done" && t.status === "completed"),
+              );
               return (
                 <LinearColumn
                   key={col.id}
                   col={col}
                   tasks={colTasks}
                   onDelete={(id) => {
-                    dispatch(deleteTask(id))
-                    toast.success("Action item deleted")
+                    dispatch(deleteTask(id));
+                    toast.success("Action item deleted");
                   }}
                   onStatusChange={(id, status) => {
-                    dispatch(updateTaskStatus({ id, status }))
+                    dispatch(updateTaskStatus({ id, status }));
                   }}
                 />
-              )
+              );
             })}
           </div>
 
@@ -235,7 +333,9 @@ export function ActionItemsView() {
         <LinearListView
           tasks={filteredTasks}
           onDelete={(id) => dispatch(deleteTask(id))}
-          onStatusChange={(id, status) => dispatch(updateTaskStatus({ id, status }))}
+          onStatusChange={(id, status) =>
+            dispatch(updateTaskStatus({ id, status }))
+          }
         />
       )}
 
@@ -247,25 +347,32 @@ export function ActionItemsView() {
         activeWorkspaceId={activeWorkspaceId}
       />
     </div>
-  )
+  );
 }
 
 function LinearColumn({
-  col, tasks, onDelete, onStatusChange,
+  col,
+  tasks,
+  onDelete,
+  onStatusChange,
 }: {
-  col: typeof LINEAR_COLUMNS[number]
-  tasks: ActionItem[]
-  onDelete: (id: string) => void
-  onStatusChange: (id: string, status: TaskStatus) => void
+  col: (typeof LINEAR_COLUMNS)[number];
+  tasks: ActionItem[];
+  onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: TaskStatus) => void;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: col.id })
+  const { setNodeRef, isOver } = useDroppable({ id: col.id });
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <span className={cn("h-2.5 w-2.5 rounded-full", col.bg, col.border)} />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{col.label}</h3>
+          <span
+            className={cn("h-2.5 w-2.5 rounded-full", col.bg, col.border)}
+          />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+            {col.label}
+          </h3>
           <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
             {tasks.length}
           </span>
@@ -276,7 +383,9 @@ function LinearColumn({
         ref={setNodeRef}
         className={cn(
           "min-h-[460px] space-y-2.5 rounded-2xl border p-2.5 transition-colors",
-          isOver ? "border-indigo-500 bg-indigo-500/5" : "border-white/5 bg-background/30 backdrop-blur-md"
+          isOver
+            ? "border-indigo-500 bg-indigo-500/5"
+            : "border-white/5 bg-background/30 backdrop-blur-md",
         )}
       >
         {tasks.length === 0 ? (
@@ -295,39 +404,52 @@ function LinearColumn({
         )}
       </div>
     </div>
-  )
+  );
 }
 
 function DraggableLinearTaskCard({
-  task, onDelete, onStatusChange,
+  task,
+  onDelete,
+  onStatusChange,
 }: {
-  task: ActionItem
-  onDelete: (id: string) => void
-  onStatusChange: (id: string, status: TaskStatus) => void
+  task: ActionItem;
+  onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: TaskStatus) => void;
 }) {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: task.id })
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: task.id,
+  });
 
   return (
     <div
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      className={cn("cursor-grab active:cursor-grabbing", isDragging && "opacity-30")}
+      className={cn(
+        "cursor-grab active:cursor-grabbing",
+        isDragging && "opacity-30",
+      )}
     >
-      <LinearTaskCard task={task} onDelete={onDelete} onStatusChange={onStatusChange} />
+      <LinearTaskCard
+        task={task}
+        onDelete={onDelete}
+        onStatusChange={onStatusChange}
+      />
     </div>
-  )
+  );
 }
 
 function LinearTaskCard({
-  task, onDelete, onStatusChange,
+  task,
+  onDelete,
+  onStatusChange,
 }: {
-  task: ActionItem
-  onDelete?: (id: string) => void
-  onStatusChange?: (id: string, status: TaskStatus) => void
+  task: ActionItem;
+  onDelete?: (id: string) => void;
+  onStatusChange?: (id: string, status: TaskStatus) => void;
 }) {
-  const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium
-  const PriorityIcon = PriorityMeta.icon
+  const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium;
+  const PriorityIcon = PriorityMeta.icon;
 
   return (
     <Card className="group relative border-white/10 bg-card/80 p-3.5 backdrop-blur-md transition-all hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10">
@@ -344,10 +466,25 @@ function LinearTaskCard({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onStatusChange?.(task.id, "todo")}>Mark To Do</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onStatusChange?.(task.id, "in_progress")}>Mark In Progress</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onStatusChange?.(task.id, "done")}>Mark Done</DropdownMenuItem>
-              <DropdownMenuItem className="text-rose-400" onClick={() => onDelete(task.id)}>
+              <DropdownMenuItem
+                onClick={() => onStatusChange?.(task.id, "todo")}
+              >
+                Mark To Do
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange?.(task.id, "in_progress")}
+              >
+                Mark In Progress
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => onStatusChange?.(task.id, "done")}
+              >
+                Mark Done
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-rose-400"
+                onClick={() => onDelete(task.id)}
+              >
                 Delete Issue
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -355,14 +492,24 @@ function LinearTaskCard({
         )}
       </div>
 
-      <p className="mt-1.5 text-xs font-semibold leading-relaxed text-foreground">{task.title}</p>
+      <p className="mt-1.5 text-xs font-semibold leading-relaxed text-foreground">
+        {task.title}
+      </p>
       {task.description && (
-        <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground/80">{task.description}</p>
+        <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground/80">
+          {task.description}
+        </p>
       )}
 
       <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-2.5">
         <div className="flex items-center gap-1.5">
-          <Badge variant="outline" className={cn("gap-1 px-1.5 py-0 text-[9px] font-semibold", PriorityMeta.style)}>
+          <Badge
+            variant="outline"
+            className={cn(
+              "gap-1 px-1.5 py-0 text-[9px] font-semibold",
+              PriorityMeta.style,
+            )}
+          >
             <PriorityIcon className="h-2.5 w-2.5" /> {PriorityMeta.label}
           </Badge>
           {task.teamName && (
@@ -373,7 +520,10 @@ function LinearTaskCard({
         </div>
 
         {task.assignee && (
-          <div className="flex items-center gap-1.5" title={`Assigned to ${task.assignee}`}>
+          <div
+            className="flex items-center gap-1.5"
+            title={`Assigned to ${task.assignee}`}
+          >
             <Avatar className="h-5 w-5 border border-white/20">
               <AvatarImage src={task.assigneeAvatar} />
               <AvatarFallback className="bg-indigo-500/20 text-[9px] font-bold text-indigo-300">
@@ -384,22 +534,24 @@ function LinearTaskCard({
         )}
       </div>
     </Card>
-  )
+  );
 }
 
 function LinearListView({
-  tasks, onDelete, onStatusChange,
+  tasks,
+  onDelete,
+  onStatusChange,
 }: {
-  tasks: ActionItem[]
-  onDelete: (id: string) => void
-  onStatusChange: (id: string, status: TaskStatus) => void
+  tasks: ActionItem[];
+  onDelete: (id: string) => void;
+  onStatusChange: (id: string, status: TaskStatus) => void;
 }) {
   if (tasks.length === 0) {
     return (
       <div className="rounded-2xl border border-white/10 p-8 text-center text-xs text-muted-foreground">
         No action items match the active team filter.
       </div>
-    )
+    );
   }
 
   return (
@@ -414,11 +566,15 @@ function LinearListView({
 
       <div className="divide-y divide-white/5">
         {tasks.map((task) => {
-          const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium
-          const PriorityIcon = PriorityMeta.icon
+          const PriorityMeta =
+            PRIORITY_META[task.priority] || PRIORITY_META.medium;
+          const PriorityIcon = PriorityMeta.icon;
 
           return (
-            <div key={task.id} className="grid grid-cols-12 items-center px-4 py-3 text-xs hover:bg-white/5">
+            <div
+              key={task.id}
+              className="grid grid-cols-12 items-center px-4 py-3 text-xs hover:bg-white/5"
+            >
               <div className="col-span-2 font-mono font-bold text-indigo-400">
                 {task.identifier || "ENG-100"}
               </div>
@@ -426,7 +582,10 @@ function LinearListView({
                 {task.title}
               </div>
               <div className="col-span-2">
-                <Badge variant="outline" className={cn("gap-1 text-[9px]", PriorityMeta.style)}>
+                <Badge
+                  variant="outline"
+                  className={cn("gap-1 text-[9px]", PriorityMeta.style)}
+                >
                   <PriorityIcon className="h-2.5 w-2.5" /> {PriorityMeta.label}
                 </Badge>
               </div>
@@ -439,7 +598,9 @@ function LinearListView({
                         {task.assignee.slice(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="truncate text-muted-foreground">{task.assignee}</span>
+                    <span className="truncate text-muted-foreground">
+                      {task.assignee}
+                    </span>
                   </>
                 ) : (
                   <span className="text-muted-foreground/50">Unassigned</span>
@@ -451,68 +612,75 @@ function LinearListView({
                 </Badge>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
-  )
+  );
 }
 
 function CreateTaskModal({
-  open, onClose, teams, activeWorkspaceId,
+  open,
+  onClose,
+  teams,
+  activeWorkspaceId,
 }: {
-  open: boolean
-  onClose: () => void
-  teams: any[]
-  activeWorkspaceId: string
+  open: boolean;
+  onClose: () => void;
+  teams: any[];
+  activeWorkspaceId: string;
 }) {
-  const dispatch = useAppDispatch()
-  const [title, setTitle] = useState("")
-  const [description, setDescription] = useState("")
-  const [teamId, setTeamId] = useState(teams[0]?.id || "")
-  const [priority, setPriority] = useState<PriorityLevel>("high")
-  const [status, setStatus] = useState<TaskStatus>("todo")
-  const [assignee, setAssignee] = useState("")
+  const dispatch = useAppDispatch();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [teamId, setTeamId] = useState(teams[0]?.id || "");
+  const [priority, setPriority] = useState<PriorityLevel>("high");
+  const [status, setStatus] = useState<TaskStatus>("todo");
+  const [assignee, setAssignee] = useState("");
 
-  if (!open) return null
+  if (!open) return null;
 
-  const activeTeam = teams.find((t) => t.id === teamId) || teams[0]
+  const activeTeam = teams.find((t) => t.id === teamId) || teams[0];
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!title.trim()) {
-      toast.error("Task title is required")
-      return
+      toast.error("Task title is required");
+      return;
     }
 
-    const key = activeTeam?.key || "ACT"
-    const randomNum = Math.floor(100 + Math.random() * 900)
-    const identifier = `${key}-${randomNum}`
+    const key = activeTeam?.key || "ACT";
+    const randomNum = Math.floor(100 + Math.random() * 900);
+    const identifier = `${key}-${randomNum}`;
 
-    dispatch(addTask({
-      id: `task-${Date.now()}`,
-      identifier,
-      workspaceId: activeWorkspaceId,
-      teamId: activeTeam?.id,
-      teamName: activeTeam?.name,
-      title: title.trim(),
-      description: description.trim() || undefined,
-      assignee: assignee.trim() || undefined,
-      priority,
-      status,
-      createdAt: new Date().toISOString(),
-    }))
+    dispatch(
+      addTask({
+        id: `task-${Date.now()}`,
+        identifier,
+        workspaceId: activeWorkspaceId,
+        teamId: activeTeam?.id,
+        teamName: activeTeam?.name,
+        title: title.trim(),
+        description: description.trim() || undefined,
+        assignee: assignee.trim() || undefined,
+        priority,
+        status,
+        createdAt: new Date().toISOString(),
+      }),
+    );
 
-    dispatch(pushNotification({
-      title: "Action Item Created",
-      description: `Created issue ${identifier} "${title.trim()}".`,
-      type: "success",
-    }))
+    dispatch(
+      pushNotification({
+        title: "Action Item Created",
+        description: `Created issue ${identifier} "${title.trim()}".`,
+        type: "success",
+      }),
+    );
 
-    toast.success(`Issue ${identifier} created!`)
-    setTitle("")
-    setDescription("")
-    onClose()
+    toast.success(`Issue ${identifier} created!`);
+    setTitle("");
+    setDescription("");
+    onClose();
   }
 
   return (
@@ -538,10 +706,15 @@ function CreateTaskModal({
               </div>
               <div>
                 <h2 className="text-base font-bold">New Linear Action Item</h2>
-                <p className="text-xs text-muted-foreground">Assign to team & priority level</p>
+                <p className="text-xs text-muted-foreground">
+                  Assign to team & priority level
+                </p>
               </div>
             </div>
-            <button onClick={onClose} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted">
+            <button
+              onClick={onClose}
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"
+            >
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -641,10 +814,18 @@ function CreateTaskModal({
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="rounded-xl"
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg">
+              <Button
+                type="submit"
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg"
+              >
                 <Plus className="h-4 w-4" /> Create Issue
               </Button>
             </div>
@@ -652,5 +833,5 @@ function CreateTaskModal({
         </motion.div>
       </div>
     </AnimatePresence>
-  )
+  );
 }
