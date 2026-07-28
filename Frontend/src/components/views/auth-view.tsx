@@ -129,7 +129,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
         <div className="mb-6 grid grid-cols-2 rounded-2xl border border-indigo-500/20 bg-muted/40 p-1">
           <button
             type="button"
-            onClick={() => setMode("login")}
+            onClick={() => {
+              setMode("login")
+              dispatch(setView("login"))
+            }}
             className={`relative rounded-xl py-2 text-xs font-semibold transition-all duration-300 ${
               mode === "login"
                 ? "bg-background text-foreground shadow-md shadow-indigo-500/10 border border-indigo-500/30"
@@ -140,7 +143,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           </button>
           <button
             type="button"
-            onClick={() => setMode("signup")}
+            onClick={() => {
+              setMode("signup")
+              dispatch(setView("signup"))
+            }}
             className={`relative rounded-xl py-2 text-xs font-semibold transition-all duration-300 ${
               mode === "signup"
                 ? "bg-background text-foreground shadow-md shadow-indigo-500/10 border border-indigo-500/30"

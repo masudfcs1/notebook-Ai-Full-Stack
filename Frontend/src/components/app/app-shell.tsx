@@ -1,6 +1,8 @@
 'use client'
 
-import { useAppSelector } from "@/lib/redux/hooks"
+import { useEffect } from "react"
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
+import { setView, type ViewKey } from "@/lib/redux/appSlice"
 import { Sidebar } from "./sidebar"
 import { Topbar } from "./topbar"
 import { MobileNav } from "./mobile-nav"
@@ -27,8 +29,20 @@ const VIEWS = {
   settings: SettingsView,
 } as const
 
-export function AppShell() {
+export function AppShell({ initialView }: { initialView?: ViewKey }) {
+  const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
+
+  useEffect(() => {
+    if (initialView) {
+      dispatch(setView(initialView))
+    } else if (typeof window !== "undefined") {
+      const path = window.location.pathname
+      if (path === "/login") dispatch(setView("login"))
+      else if (path === "/signup") dispatch(setView("signup"))
+      else if (path === "/dashboard") dispatch(setView("dashboard"))
+    }
+  }, [dispatch, initialView])
 
   if (view === "landing") {
     return (
