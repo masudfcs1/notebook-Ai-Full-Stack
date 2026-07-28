@@ -122,7 +122,12 @@ export function Sidebar() {
               {workspaces.map((ws) => (
                 <DropdownMenuItem
                   key={ws.id}
-                  onClick={() => dispatch(setActiveWorkspace(ws.id))}
+                  onClick={() => {
+                    dispatch(setActiveWorkspace(ws.id))
+                    if (typeof window !== "undefined") {
+                      window.history.pushState(null, "", `/${ws.slug}`)
+                    }
+                  }}
                   className="flex items-center justify-between py-2 cursor-pointer"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -183,7 +188,12 @@ export function Sidebar() {
                     className="space-y-1 overflow-hidden"
                   >
                     <button
-                      onClick={() => dispatch(setActiveTeam(null))}
+                      onClick={() => {
+                        dispatch(setActiveTeam(null))
+                        if (typeof window !== "undefined" && activeWorkspace) {
+                          window.history.pushState(null, "", `/${activeWorkspace.slug}`)
+                        }
+                      }}
                       className={cn(
                         "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
                         activeTeamId === null
@@ -198,7 +208,13 @@ export function Sidebar() {
                     {teams.map((t) => (
                       <button
                         key={t.id}
-                        onClick={() => dispatch(setActiveTeam(t.id))}
+                        onClick={() => {
+                          dispatch(setActiveTeam(t.id))
+                          dispatch(setView("team"))
+                          if (typeof window !== "undefined" && activeWorkspace) {
+                            window.history.pushState(null, "", `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`)
+                          }
+                        }}
                         className={cn(
                           "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
                           activeTeamId === t.id

@@ -8,6 +8,7 @@ export type ViewKey =
   | "login"
   | "signup"
   | "dashboard"
+  | "team"
   | "ongoing"
   | "upload"
   | "summary"
@@ -31,6 +32,7 @@ export interface Team {
   id: string
   workspaceId: string
   name: string
+  slug: string // e.g. engineering, product-design
   key: string // e.g. ENG, PRD, DES
   icon?: string
   members: TeamMember[]

@@ -1,8 +1,10 @@
 'use client'
 
 import { useEffect } from "react"
+import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, type ViewKey } from "@/lib/redux/appSlice"
+import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataSlice"
 import { Sidebar, Topbar, MobileNav, MobileSidebar } from "@/features/navigation"
 import { AuthView } from "@/features/auth"
 import { LandingView } from "@/components/views/landing-view"
@@ -13,11 +15,13 @@ import { SummaryView } from "@/components/views/summary-view"
 import { ActionItemsView } from "@/components/views/action-items-view"
 import { HistoryView } from "@/components/views/history-view"
 import { SettingsView } from "@/components/views/settings-view"
+import { TeamView } from "@/components/views/team-view"
 import { AiAssistantWidget } from "@/components/app/ai-assistant-widget"
 import { AnimatePresence, motion } from "framer-motion"
 
-const VIEWS = {
+const VIEW_COMPONENT_REGISTRY = {
   dashboard: DashboardView,
+  team: TeamView,
   ongoing: OngoingView,
   upload: UploadView,
   summary: SummaryView,
@@ -26,37 +30,38 @@ const VIEWS = {
   settings: SettingsView,
 } as const
 
-export function AppShell({ initialView }: { initialView?: ViewKey }) {
+interface AppShellProps {
+  initialView?: ViewKey
+  workspaceSlug?: string
+  teamSlug?: string
+}
+
+export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps) {
   const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
+  const pathname = usePathname()
 
+  // Sync workspace and team from URL slugs
+  useEffect(() => {
+    if (workspaceSlug) {
+      dispatch(setActiveWorkspaceBySlug(workspaceSlug))
+    }
+    if (teamSlug !== undefined) {
+      dispatch(setActiveTeamBySlug(teamSlug || null))
+      if (teamSlug) {
+        dispatch(setView("team"))
+      }
+    }
+  }, [dispatch, workspaceSlug, teamSlug])
+
+  // Sync view if specified
   useEffect(() => {
     if (initialView) {
       dispatch(setView(initialView))
-    } else if (typeof window !== "undefined") {
-      const path = window.location.pathname
-      if (path === "/") dispatch(setView("landing"))
-      else if (path === "/login") dispatch(setView("login"))
-      else if (path === "/signup") dispatch(setView("signup"))
-      else if (path === "/dashboard") dispatch(setView("dashboard"))
-      else if (path.startsWith("/dashboard/")) {
-        const item = path.replace("/dashboard/", "") as ViewKey
-        const validDashboardItems: ViewKey[] = [
-          "ongoing",
-          "upload",
-          "summary",
-          "action-items",
-          "history",
-          "settings",
-        ]
-        if (validDashboardItems.includes(item)) {
-          dispatch(setView(item))
-        }
-      }
     }
   }, [dispatch, initialView])
 
-  if (view === "landing") {
+  if (view === "landing" && !workspaceSlug) {
     return (
       <>
         <LandingView />
@@ -74,7 +79,7 @@ export function AppShell({ initialView }: { initialView?: ViewKey }) {
     )
   }
 
-  const Current = VIEWS[view] ?? DashboardView
+  const ActiveViewComponent = VIEW_COMPONENT_REGISTRY[view] ?? DashboardView
 
   return (
     <div className="relative flex min-h-screen bg-mesh">
@@ -92,7 +97,7 @@ export function AppShell({ initialView }: { initialView?: ViewKey }) {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             >
-              <Current />
+              <ActiveViewComponent />
             </motion.div>
           </AnimatePresence>
         </main>

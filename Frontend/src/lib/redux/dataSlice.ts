@@ -57,6 +57,7 @@ const seedWorkspaces: Workspace[] = [
         id: "team-eng",
         workspaceId: "ws-1",
         name: "Engineering",
+        slug: "engineering",
         key: "ENG",
         icon: "💻",
         members: [
@@ -69,6 +70,7 @@ const seedWorkspaces: Workspace[] = [
         id: "team-prd",
         workspaceId: "ws-1",
         name: "Product Design",
+        slug: "product-design",
         key: "PRD",
         icon: "🎨",
         members: [
@@ -80,6 +82,7 @@ const seedWorkspaces: Workspace[] = [
         id: "team-mkt",
         workspaceId: "ws-1",
         name: "Growth & Marketing",
+        slug: "growth-marketing",
         key: "MKT",
         icon: "🚀",
         members: [
@@ -100,6 +103,7 @@ const seedWorkspaces: Workspace[] = [
         id: "team-ai",
         workspaceId: "ws-2",
         name: "Core Intelligence",
+        slug: "core-intelligence",
         key: "AI",
         icon: "⚡",
         members: [
@@ -263,6 +267,13 @@ const dataSlice = createSlice({
       state.activeWorkspaceId = action.payload
       state.activeTeamId = null
     },
+    setActiveWorkspaceBySlug(state, action: PayloadAction<string>) {
+      const ws = state.workspaces.find((w) => w.slug === action.payload)
+      if (ws) {
+        state.activeWorkspaceId = ws.id
+        state.activeTeamId = null
+      }
+    },
     addWorkspace(state, action: PayloadAction<Workspace>) {
       state.workspaces.push(action.payload)
       state.activeWorkspaceId = action.payload.id
@@ -273,10 +284,35 @@ const dataSlice = createSlice({
     setActiveTeam(state, action: PayloadAction<string | null>) {
       state.activeTeamId = action.payload
     },
+    setActiveTeamBySlug(state, action: PayloadAction<string | null>) {
+      if (!action.payload) {
+        state.activeTeamId = null
+        return
+      }
+      const activeWs = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
+      const team = activeWs?.teams.find((t) => t.slug === action.payload)
+      if (team) {
+        state.activeTeamId = team.id
+      }
+    },
     addTeam(state, action: PayloadAction<Team>) {
       const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
       if (ws) {
         ws.teams.push(action.payload)
+      }
+    },
+    updateTeam(state, action: PayloadAction<{ teamId: string; name?: string; key?: string; icon?: string }>) {
+      for (const ws of state.workspaces) {
+        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        if (team) {
+          if (action.payload.name) {
+            team.name = action.payload.name
+            team.slug = action.payload.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+          }
+          if (action.payload.key) team.key = action.payload.key.toUpperCase()
+          if (action.payload.icon) team.icon = action.payload.icon
+          break
+        }
       }
     },
     addTeamMember(state, action: PayloadAction<{ teamId: string; member: TeamMember }>) {
@@ -284,6 +320,38 @@ const dataSlice = createSlice({
         const team = ws.teams.find((t) => t.id === action.payload.teamId)
         if (team) {
           team.members.push(action.payload.member)
+          break
+        }
+      }
+    },
+    updateTeamMember(
+      state,
+      action: PayloadAction<{
+        teamId: string
+        memberId: string
+        name?: string
+        email?: string
+        role?: "OWNER" | "LEAD" | "MEMBER"
+      }>
+    ) {
+      for (const ws of state.workspaces) {
+        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        if (team) {
+          const mem = team.members.find((m) => m.id === action.payload.memberId)
+          if (mem) {
+            if (action.payload.name) mem.name = action.payload.name
+            if (action.payload.email) mem.email = action.payload.email
+            if (action.payload.role) mem.role = action.payload.role
+          }
+          break
+        }
+      }
+    },
+    removeTeamMember(state, action: PayloadAction<{ teamId: string; memberId: string }>) {
+      for (const ws of state.workspaces) {
+        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        if (team) {
+          team.members = team.members.filter((m) => m.id !== action.payload.memberId)
           break
         }
       }
@@ -353,10 +421,15 @@ const dataSlice = createSlice({
 
 export const {
   setActiveWorkspace,
+  setActiveWorkspaceBySlug,
   addWorkspace,
   setActiveTeam,
+  setActiveTeamBySlug,
   addTeam,
+  updateTeam,
   addTeamMember,
+  updateTeamMember,
+  removeTeamMember,
   addNote,
   updateNote,
   deleteNote,
