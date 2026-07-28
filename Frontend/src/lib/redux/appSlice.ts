@@ -1,16 +1,7 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { type ViewKey } from "@/types"
 
-export type ViewKey =
-  | "landing"
-  | "login"
-  | "signup"
-  | "dashboard"
-  | "ongoing"
-  | "upload"
-  | "summary"
-  | "action-items"
-  | "history"
-  | "settings"
+export type { ViewKey }
 
 export interface NotificationItem {
   id: string

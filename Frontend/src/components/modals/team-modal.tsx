@@ -44,12 +44,19 @@ export function TeamModal({ open, onClose }: Props) {
     const generatedKey = key.trim()
       ? key.trim().toUpperCase()
       : name.trim().slice(0, 3).toUpperCase();
+    const slug =
+      name
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") || "team";
     const teamId = `team-${Date.now()}`;
 
     const newTeam = {
       id: teamId,
       workspaceId: activeWorkspaceId,
       name: name.trim(),
+      slug,
       key: generatedKey,
       icon,
       members:

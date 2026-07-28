@@ -33,6 +33,7 @@ export const VIEW_METADATA: Record<ViewKey, ViewMetadata> = {
   "action-items": { title: "Action Items", subtitle: "Automated task tracking matrix", sysCode: "SYS.ACTION_BOARD" },
   history: { title: "History", subtitle: "Archive search & telemetry query", sysCode: "SYS.HISTORY_DB" },
   settings: { title: "Settings", subtitle: "Profile parameters & digital preferences", sysCode: "SYS.CONFIG" },
+  team: { title: "Teams", subtitle: "Manage workspace team members & permissions", sysCode: "SYS.TEAM_MGMT" },
 }
 
 export const NAVIGATION_GROUPS = [

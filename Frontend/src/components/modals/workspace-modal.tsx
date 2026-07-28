@@ -43,6 +43,7 @@ export function WorkspaceModal({ open, onClose }: Props) {
           id: `team-${Date.now()}-general`,
           workspaceId: `ws-${Date.now()}`,
           name: "General",
+          slug: "general",
           key: "GEN",
           icon: "🌐",
           members: [
