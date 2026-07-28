@@ -34,23 +34,24 @@ export function AppShell({ initialView }: { initialView?: ViewKey }) {
     if (initialView) {
       dispatch(setView(initialView))
     } else if (typeof window !== "undefined") {
-      const rawPath = window.location.pathname.replace(/^\//, "")
-      const validViews: ViewKey[] = [
-        "landing",
-        "login",
-        "signup",
-        "dashboard",
-        "ongoing",
-        "upload",
-        "summary",
-        "action-items",
-        "history",
-        "settings",
-      ]
-      if (rawPath === "") {
-        dispatch(setView("landing"))
-      } else if (validViews.includes(rawPath as ViewKey)) {
-        dispatch(setView(rawPath as ViewKey))
+      const path = window.location.pathname
+      if (path === "/") dispatch(setView("landing"))
+      else if (path === "/login") dispatch(setView("login"))
+      else if (path === "/signup") dispatch(setView("signup"))
+      else if (path === "/dashboard") dispatch(setView("dashboard"))
+      else if (path.startsWith("/dashboard/")) {
+        const item = path.replace("/dashboard/", "") as ViewKey
+        const validDashboardItems: ViewKey[] = [
+          "ongoing",
+          "upload",
+          "summary",
+          "action-items",
+          "history",
+          "settings",
+        ]
+        if (validDashboardItems.includes(item)) {
+          dispatch(setView(item))
+        }
       }
     }
   }, [dispatch, initialView])

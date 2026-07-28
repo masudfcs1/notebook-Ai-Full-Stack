@@ -75,7 +75,16 @@ const appSlice = createSlice({
       state.mobileNavOpen = false
       if (typeof window !== "undefined") {
         window.scrollTo({ top: 0, behavior: "smooth" })
-        const targetPath = action.payload === "landing" ? "/" : `/${action.payload}`
+        const targetPath =
+          action.payload === "landing"
+            ? "/"
+            : action.payload === "login"
+            ? "/login"
+            : action.payload === "signup"
+            ? "/signup"
+            : action.payload === "dashboard"
+            ? "/dashboard"
+            : `/dashboard/${action.payload}`
         if (window.location.pathname !== targetPath) {
           window.history.pushState(null, "", targetPath)
         }
