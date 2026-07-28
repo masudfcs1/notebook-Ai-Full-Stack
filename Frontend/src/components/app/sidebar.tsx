@@ -240,7 +240,12 @@ export function Sidebar() {
             {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /> Collapse</>}
           </Button>
           {!collapsed && (
-            <Button variant="ghost" size="sm" className="h-8 gap-1.5 px-2 text-xs text-muted-foreground">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => dispatch(setView("login"))}
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground"
+            >
               <LogOut className="h-3.5 w-3.5" /> Sign out
             </Button>
           )}

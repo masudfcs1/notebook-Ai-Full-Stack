@@ -2,6 +2,8 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
 
 export type ViewKey =
   | "landing"
+  | "login"
+  | "signup"
   | "dashboard"
   | "ongoing"
   | "upload"

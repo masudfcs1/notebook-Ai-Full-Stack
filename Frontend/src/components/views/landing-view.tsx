@@ -83,6 +83,24 @@ export function LandingView() {
 
             <Button
               variant="ghost"
+              size="sm"
+              onClick={() => dispatch(setView("login"))}
+              className="hidden h-9 px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 md:flex rounded-xl"
+            >
+              Log In
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => dispatch(setView("signup"))}
+              className="hidden h-9 px-3 text-xs font-semibold border-indigo-500/30 bg-indigo-500/5 text-indigo-600 hover:bg-indigo-500/15 hover:border-indigo-500/60 dark:text-indigo-300 sm:flex rounded-xl"
+            >
+              Sign Up
+            </Button>
+
+            <Button
+              variant="ghost"
               size="icon"
               className="h-9 w-9 rounded-xl border border-border/60 bg-background/50 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-500"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}

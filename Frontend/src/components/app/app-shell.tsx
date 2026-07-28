@@ -15,6 +15,7 @@ import { SummaryView } from "@/components/views/summary-view"
 import { ActionItemsView } from "@/components/views/action-items-view"
 import { HistoryView } from "@/components/views/history-view"
 import { SettingsView } from "@/components/views/settings-view"
+import { AuthView } from "@/components/views/auth-view"
 
 const VIEWS = {
   dashboard: DashboardView,
@@ -33,6 +34,15 @@ export function AppShell() {
     return (
       <>
         <LandingView />
+        <AiAssistantWidget />
+      </>
+    )
+  }
+
+  if (view === "login" || view === "signup") {
+    return (
+      <>
+        <AuthView initialMode={view} />
         <AiAssistantWidget />
       </>
     )
