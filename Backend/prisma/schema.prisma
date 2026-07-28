@@ -1,5 +1,5 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// Backend Prisma Schema
+// Note: Multi-Workspace, Multi-Team, TeamMember, MeetingNote, Summary, ActionItem, User
 
 generator client {
   provider = "prisma-client-js"
@@ -56,6 +56,7 @@ model User {
   loginHistory LoginHistory[]
   tokens       RefreshToken[]
   notes        MeetingNote[]
+  memberships  TeamMember[]
 
   @@index([email])
   @@index([uuid])
@@ -97,23 +98,78 @@ model LoginHistory {
   @@map("login_history")
 }
 
-model MeetingNote {
+model Workspace {
   id          String   @id @default(cuid())
-  userId      Int?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
-  title       String
-  content     String
-  source      String   @default("manual") // manual | upload | ongoing
-  fileName    String?
-  fileSize    Int?
-  status      String   @default("draft") // draft | summarized
+  name        String
+  slug        String   @unique
+  icon        String?
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  teams       Team[]
+  notes       MeetingNote[]
+
+  @@map("workspaces")
+}
+
+model Team {
+  id          String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  name        String
+  key         String   // e.g. ENG, PRD, DES
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members     TeamMember[]
+  actionItems ActionItem[]
+  notes       MeetingNote[]
+
+  @@index([workspaceId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id        String   @id @default(cuid())
+  teamId    String
+  team      Team     @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  userId    Int?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  name      String
+  email     String
+  avatar    String?
+  role      String   @default("MEMBER") // OWNER | LEAD | MEMBER
+  createdAt DateTime @default(now())
+
+  @@index([teamId])
+  @@map("team_members")
+}
+
+model MeetingNote {
+  id          String     @id @default(cuid())
+  userId      Int?
+  user        User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspaceId String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+  teamId      String?
+  team        Team?      @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  title       String
+  content     String
+  source      String     @default("manual") // manual | upload | ongoing
+  fileName    String?
+  fileSize    Int?
+  status      String     @default("draft") // draft | summarized
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   summary     Summary?
   actionItems ActionItem[]
 
   @@index([userId])
+  @@index([workspaceId])
+  @@index([teamId])
   @@map("meeting_notes")
 }
 
@@ -134,17 +190,20 @@ model Summary {
 }
 
 model ActionItem {
-  id         String       @id @default(cuid())
-  noteId     String?
-  note       MeetingNote? @relation(fields: [noteId], references: [id], onDelete: SetNull)
-  title      String
-  assignee   String?
-  dueDate    String?
-  priority   String       @default("medium") // low | medium | high
-  status     String       @default("pending") // pending | in_progress | completed
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  id          String       @id @default(cuid())
+  noteId      String?
+  note        MeetingNote? @relation(fields: [noteId], references: [id], onDelete: SetNull)
+  teamId      String?
+  team        Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  assignee    String?
+  dueDate     String?
+  priority    String       @default("medium") // urgent | high | medium | low
+  status      String       @default("todo") // backlog | todo | in_progress | done
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
+  @@index([teamId])
   @@map("action_items")
 }
-

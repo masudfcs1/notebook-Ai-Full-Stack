@@ -15,6 +15,54 @@ export type ViewKey =
   | "history"
   | "settings"
 
+export type PriorityLevel = "urgent" | "high" | "medium" | "low"
+export type TaskStatus = "backlog" | "todo" | "in_progress" | "done" | "pending" | "completed"
+
+export interface TeamMember {
+  id: string
+  teamId: string
+  name: string
+  email: string
+  avatar?: string
+  role: "OWNER" | "LEAD" | "MEMBER"
+}
+
+export interface Team {
+  id: string
+  workspaceId: string
+  name: string
+  key: string // e.g. ENG, PRD, DES
+  icon?: string
+  members: TeamMember[]
+}
+
+export interface Workspace {
+  id: string
+  name: string
+  slug: string
+  icon?: string
+  description?: string
+  teams: Team[]
+}
+
+export interface ActionItem {
+  id: string
+  identifier?: string // e.g. ENG-104
+  noteId?: string
+  workspaceId?: string
+  teamId?: string
+  teamName?: string
+  title: string
+  description?: string
+  assignee?: string
+  assigneeAvatar?: string
+  dueDate?: string
+  priority: PriorityLevel
+  status: TaskStatus
+  createdAt: string
+  updatedAt?: string
+}
+
 export type NotificationType = "info" | "success" | "warning" | "error"
 
 export interface NotificationItem {
