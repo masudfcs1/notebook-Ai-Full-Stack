@@ -54,12 +54,13 @@ export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps
     }
   }, [dispatch, workspaceSlug, teamSlug])
 
-  // Sync view if specified
+  // Sync view on initial mount if specified
   useEffect(() => {
     if (initialView) {
       dispatch(setView(initialView))
     }
-  }, [dispatch, initialView])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (view === "landing" && !workspaceSlug) {
     return (

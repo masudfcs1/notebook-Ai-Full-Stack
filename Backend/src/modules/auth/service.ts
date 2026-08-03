@@ -37,11 +37,13 @@ export class AuthService {
     const hashedPassword = await hashPassword(data.password);
 
     const user = await authRepository.create({
-      name: data.name,
+      name: data.name || undefined,
       username: data.username || generateUUID().split('-')[0],
       email: data.email,
       password: hashedPassword,
-      phone: data.phone,
+      phone: data.phone || undefined,
+      status: USER_STATUS.ACTIVE,
+      isVerified: true,
     });
 
     logger.info({ userId: user.id, email: user.email }, 'User registered');

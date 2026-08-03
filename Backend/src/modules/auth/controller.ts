@@ -39,7 +39,11 @@ export class AuthController {
     setAccessTokenCookie(res, result.accessToken);
     setRefreshTokenCookie(res, result.refreshToken);
 
-    return sendSuccess(res, MESSAGES.LOGIN_SUCCESS, result.user);
+    return sendSuccess(res, MESSAGES.LOGIN_SUCCESS, {
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+      user: result.user,
+    });
   });
 
   logout = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {

@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import {
   Mail,
   Lock,
   User,
-  Building,
   ArrowRight,
   Eye,
   EyeOff,
@@ -14,9 +14,13 @@ import {
   Github,
   Sun,
   Moon,
+  CheckCircle2,
 } from "lucide-react"
+import { toast } from "react-hot-toast"
 import { useAppDispatch } from "@/lib/redux/hooks"
 import { setView, pushNotification } from "@/lib/redux/appSlice"
+import { setCredentials } from "@/lib/redux/authSlice"
+import { useLoginMutation, useRegisterMutation } from "@/lib/redux/api/authApiSlice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Logo, Wordmark } from "@/features/navigation"
@@ -28,19 +32,26 @@ interface AuthViewProps {
 
 export function AuthView({ initialMode = "login" }: AuthViewProps) {
   const dispatch = useAppDispatch()
+  const router = useRouter()
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [mode, setMode] = useState<"login" | "signup">(initialMode)
+
+  // API Mutations
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation()
+  const [register, { isLoading: isRegisterLoading }] = useRegisterMutation()
 
   // Form State
   const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [name, setName] = useState("")
-  const [company, setCompany] = useState("")
   const [rememberMe, setRememberMe] = useState(true)
   const [agreeTerms, setAgreeTerms] = useState(true)
-  const [isLoading, setIsLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+
+  const isLoading = isLoginLoading || isRegisterLoading
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -48,27 +59,113 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
   }, [])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(initialMode)
   }, [initialMode])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    setFieldErrors({})
 
-    setTimeout(() => {
-      setIsLoading(false)
-      dispatch(
-        pushNotification({
-          title: mode === "login" ? "Welcome back!" : "Account created!",
-          description:
-            mode === "login"
-              ? "Successfully authenticated to NoteFlow AI."
-              : "Your workspace has been provisioned.",
-          type: "success",
-        })
-      )
-      dispatch(setView("dashboard"))
-    }, 1000)
+    if (mode === "login") {
+      const toastId = toast.loading("Authenticating user...")
+      try {
+        const response = await login({ email, password, rememberMe }).unwrap()
+
+        if (response.success && response.data) {
+          const { user, accessToken } = response.data
+          dispatch(setCredentials({ user, token: accessToken }))
+          dispatch(
+            pushNotification({
+              title: "Welcome back!",
+              description: `Authenticated as ${user.email}`,
+              type: "success",
+            })
+          )
+          toast.success(`Welcome back, ${user.name || user.email}!`, { id: toastId })
+          dispatch(setView("dashboard"))
+          router.push("/dashboard")
+        } else {
+          toast.error(response.message || "Failed to log in", { id: toastId })
+        }
+      } catch (err: any) {
+        const errorMsg =
+          err?.data?.message || err?.error || "Login failed. Please check your credentials."
+        toast.error(errorMsg, { id: toastId })
+      }
+    } else {
+      if (password !== confirmPassword) {
+        setFieldErrors({ confirmPassword: "Passwords do not match" })
+        return
+      }
+
+      if (password.length < 6) {
+        setFieldErrors({ password: "Password must be at least 6 characters long" })
+        return
+      }
+
+      const toastId = toast.loading("Creating your account...")
+      try {
+        const username = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") + Math.floor(Math.random() * 1000)
+        const response = await register({
+          name: name.trim() ? name.trim() : undefined,
+          email: email.trim(),
+          password,
+          confirmPassword,
+          username,
+        }).unwrap()
+
+        if (response.success) {
+          // Auto-login user after successful registration
+          try {
+            const loginRes = await login({ email: email.trim(), password, rememberMe: true }).unwrap()
+            if (loginRes.success && loginRes.data) {
+              const { user, accessToken } = loginRes.data
+              dispatch(setCredentials({ user, token: accessToken }))
+              toast.success("Account created successfully! Welcome to NoteFlow AI.", { id: toastId })
+              dispatch(setView("dashboard"))
+              router.push("/dashboard")
+              return
+            }
+          } catch {
+            // Fallback to sign-in view if auto-login fails
+          }
+
+          toast.success(
+            response.message || "Account created successfully! Please sign in with your credentials.",
+            { id: toastId, duration: 5000 }
+          )
+          setMode("login")
+          dispatch(setView("login"))
+          router.push("/login")
+        } else {
+          toast.error(response.message || "Registration failed", { id: toastId })
+        }
+      } catch (err: any) {
+        if (err?.data?.errors && Array.isArray(err.data.errors)) {
+          const errors: Record<string, string> = {}
+          err.data.errors.forEach((e: any) => {
+            if (e.field && e.message) {
+              const fieldName = e.field.split(".").pop() || e.field
+              errors[fieldName] = e.message
+            }
+          })
+          setFieldErrors(errors)
+          toast.error("Please fix the errors in the form", { id: toastId })
+          return
+        }
+
+        const backendMsg = err?.data?.message || err?.error || ""
+        if (backendMsg.toLowerCase().includes("email")) {
+          setFieldErrors({ email: backendMsg })
+          toast.error("Please check your email address", { id: toastId })
+          return
+        }
+
+        const errorMsg = backendMsg || "Registration failed. Please try again."
+        toast.error(errorMsg, { id: toastId })
+      }
+    }
   }
 
   return (
@@ -189,46 +286,63 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                       required
                       placeholder="Alex Mercer"
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 pl-9 text-xs transition-all focus:border-indigo-500/60 focus:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                      onChange={(e) => {
+                        setName(e.target.value)
+                        if (fieldErrors.name) setFieldErrors({ ...fieldErrors, name: "" })
+                      }}
+                      className={`h-10 rounded-xl border bg-background/50 pl-9 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
+                        fieldErrors.name
+                          ? "border-red-500/50 focus:border-red-500"
+                          : "border-indigo-500/20 focus:border-indigo-500/60"
+                      }`}
                     />
                   </div>
+                  {fieldErrors.name && (
+                    <motion.p
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="mt-1.5 text-[10px] text-red-400"
+                    >
+                      {fieldErrors.name}
+                    </motion.p>
+                  )}
                 </div>
 
-                <div>
-                  <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Company / Organization
-                  </label>
-                  <div className="relative">
-                    <Building className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500/70" />
-                    <Input
-                      type="text"
-                      placeholder="Acme Corp"
-                      value={company}
-                      onChange={(e) => setCompany(e.target.value)}
-                      className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 pl-9 text-xs transition-all focus:border-indigo-500/60 focus:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
-                    />
-                  </div>
-                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
           <div>
             <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-              Work Email
+              Email Address
             </label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500/70" />
               <Input
                 type="email"
                 required
-                placeholder="alex@company.com"
+                placeholder="alex@gmail.com"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 pl-9 text-xs transition-all focus:border-indigo-500/60 focus:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: "" })
+                }}
+                className={`h-10 rounded-xl border bg-background/50 pl-9 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
+                  fieldErrors.email
+                    ? "border-red-500/50 focus:border-red-500"
+                    : "border-indigo-500/20 focus:border-indigo-500/60"
+                }`}
               />
             </div>
+            {fieldErrors.email && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-1.5 text-[10px] text-red-400"
+              >
+                {fieldErrors.email}
+              </motion.p>
+            )}
           </div>
 
           <div>
@@ -241,13 +355,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                   href="#"
                   onClick={(e) => {
                     e.preventDefault()
-                    dispatch(
-                      pushNotification({
-                        title: "Password Reset",
-                        description: "Check your email for reset instructions.",
-                        type: "info",
-                      })
-                    )
+                    toast("Password reset instructions sent to your email.", {
+                      icon: "ℹ️",
+                    })
                   }}
                   className="text-[11px] font-medium text-indigo-500 hover:underline"
                 >
@@ -262,8 +372,15 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 required
                 placeholder="••••••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 pl-9 pr-10 text-xs transition-all focus:border-indigo-500/60 focus:shadow-[0_0_15px_rgba(99,102,241,0.2)]"
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                  if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: "" })
+                }}
+                className={`h-10 rounded-xl border bg-background/50 pl-9 pr-10 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
+                  fieldErrors.password
+                    ? "border-red-500/50 focus:border-red-500"
+                    : "border-indigo-500/20 focus:border-indigo-500/60"
+                }`}
               />
               <button
                 type="button"
@@ -273,7 +390,52 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
+            {fieldErrors.password && (
+              <motion.p
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="mt-1.5 text-[10px] text-red-400"
+              >
+                {fieldErrors.password}
+              </motion.p>
+            )}
           </div>
+
+          {/* Confirm Password field for Signup */}
+          {mode === "signup" && (
+            <div>
+              <label className="mb-1.5 block font-mono text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500/70" />
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="••••••••••••"
+                  value={confirmPassword}
+                  onChange={(e) => {
+                    setConfirmPassword(e.target.value)
+                    if (fieldErrors.confirmPassword) setFieldErrors({ ...fieldErrors, confirmPassword: "" })
+                  }}
+                  className={`h-10 rounded-xl border bg-background/50 pl-9 pr-10 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
+                    fieldErrors.confirmPassword
+                      ? "border-red-500/50 focus:border-red-500"
+                      : "border-indigo-500/20 focus:border-indigo-500/60"
+                  }`}
+                />
+              </div>
+              {fieldErrors.confirmPassword && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mt-1.5 text-[10px] text-red-400"
+                >
+                  {fieldErrors.confirmPassword}
+                </motion.p>
+              )}
+            </div>
+          )}
 
           {/* Options Checkboxes */}
           {mode === "login" ? (
@@ -309,12 +471,12 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 mt-2"
+            className="w-full h-11 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 mt-2 cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center gap-2 text-xs">
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                Authenticating...
+                Processing...
               </span>
             ) : (
               <>
@@ -339,8 +501,8 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
-            className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10"
+            onClick={() => toast("Social authentication is coming soon!", { icon: "🚀" })}
+            className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
               <path
@@ -366,8 +528,8 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => handleSubmit({ preventDefault: () => {} } as React.FormEvent)}
-            className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10"
+            onClick={() => toast("Social authentication is coming soon!", { icon: "🚀" })}
+            className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer"
           >
             <Github className="h-4 w-4" />
             GitHub

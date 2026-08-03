@@ -1,9 +1,12 @@
 import rateLimit from 'express-rate-limit';
 import { HTTP_STATUS, MESSAGES } from '@/constants';
 
+const isDev = process.env.NODE_ENV === 'development';
+
 export const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: isDev ? 10000 : 100, // Limit each IP to 100 requests per windowMs
+  skip: () => isDev,
   message: {
     success: false,
     message: MESSAGES.RATE_LIMIT_EXCEEDED,
@@ -15,7 +18,8 @@ export const rateLimiter = rateLimit({
 
 export const authRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 auth requests per windowMs
+  max: isDev ? 1000 : 10, // Limit each IP to 10 auth requests per windowMs
+  skip: () => isDev,
   message: {
     success: false,
     message: MESSAGES.RATE_LIMIT_EXCEEDED,
@@ -27,7 +31,8 @@ export const authRateLimiter = rateLimit({
 
 export const loginRateLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 5, // Limit each IP to 5 login attempts per windowMs
+  max: isDev ? 1000 : 5, // Limit each IP to 5 login attempts per windowMs
+  skip: () => isDev,
   message: {
     success: false,
     message: 'Too many login attempts, please try again later',
@@ -39,7 +44,8 @@ export const loginRateLimiter = rateLimit({
 
 export const passwordResetRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
-  max: 3, // Limit each IP to 3 password reset requests per hour
+  max: isDev ? 1000 : 3, // Limit each IP to 3 password reset requests per hour
+  skip: () => isDev,
   message: {
     success: false,
     message: 'Too many password reset requests, please try again later',
@@ -51,7 +57,8 @@ export const passwordResetRateLimiter = rateLimit({
 
 export const otpRateLimiter = rateLimit({
   windowMs: 5 * 60 * 1000, // 5 minutes
-  max: 3, // Limit each IP to 3 OTP requests per windowMs
+  max: isDev ? 1000 : 3, // Limit each IP to 3 OTP requests per windowMs
+  skip: () => isDev,
   message: {
     success: false,
     message: 'Too many OTP requests, please try again later',

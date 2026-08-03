@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { Toaster as HotToaster } from "react-hot-toast";
 import { Providers } from "@/components/providers";
 
 const inter = Inter({
@@ -37,6 +38,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <SonnerToaster position="bottom-right" richColors />
+          <HotToaster position="top-right" reverseOrder={false} />
         </Providers>
       </body>
     </html>
