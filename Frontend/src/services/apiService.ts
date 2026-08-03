@@ -36,7 +36,7 @@ class ApiService {
     this.baseUrl =
       typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL
         ? process.env.NEXT_PUBLIC_BACKEND_URL
-        : "http://localhost:5000/api/v1"
+        : "http://localhost:5015/api/v1"
   }
 
   /**

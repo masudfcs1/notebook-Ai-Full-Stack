@@ -31,7 +31,7 @@ export interface LoginResponseData {
 }
 
 const getBaseUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/v1";
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5015/api/v1";
 };
 
 export const authApi = createApi({
