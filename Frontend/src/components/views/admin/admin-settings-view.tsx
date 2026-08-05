@@ -1,20 +1,20 @@
-'use client'
+"use client";
 
-import { motion } from "framer-motion"
-import { Settings, Shield, Globe, Bell } from "lucide-react"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { useAppSelector } from "@/lib/redux/hooks"
-import { getUserDisplayName } from "@/lib/utils"
+import { motion } from "framer-motion";
+import { Settings, Shield, Globe, Bell } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useAppSelector } from "@/lib/redux/hooks";
+import { getUserDisplayName } from "@/lib/utils";
 
 export function AdminSettingsView() {
-  const user = useAppSelector((s) => s.auth.user)
-  const displayName = getUserDisplayName(user, "Admin")
-  const displayEmail = user?.email || ""
+  const user = useAppSelector((s) => s.auth.user);
+  const displayName = getUserDisplayName(user, "Admin");
+  const displayEmail = user?.email || "";
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
@@ -38,7 +38,9 @@ export function AdminSettingsView() {
         <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-5">
             <Shield className="h-4 w-4 text-rose-400" />
-            <h3 className="text-sm font-semibold text-foreground">Admin Profile</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              Admin Profile
+            </h3>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
@@ -78,34 +80,52 @@ export function AdminSettingsView() {
         <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-5">
             <Settings className="h-4 w-4 text-rose-400" />
-            <h3 className="text-sm font-semibold text-foreground">System Configuration</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              System Configuration
+            </h3>
           </div>
           <div className="space-y-5">
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">User Registration</p>
-                <p className="text-[10px] text-muted-foreground">Allow new users to register on the platform</p>
+                <p className="text-xs font-semibold text-foreground">
+                  User Registration
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Allow new users to register on the platform
+                </p>
               </div>
               <Switch defaultChecked />
             </div>
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">Email Verification Required</p>
-                <p className="text-[10px] text-muted-foreground">Require email verification before account activation</p>
+                <p className="text-xs font-semibold text-foreground">
+                  Email Verification Required
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Require email verification before account activation
+                </p>
               </div>
               <Switch defaultChecked />
             </div>
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">Auto Approve Users</p>
-                <p className="text-[10px] text-muted-foreground">Automatically set new users to ACTIVE status</p>
+                <p className="text-xs font-semibold text-foreground">
+                  Auto Approve Users
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Automatically set new users to ACTIVE status
+                </p>
               </div>
               <Switch />
             </div>
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">Maintenance Mode</p>
-                <p className="text-[10px] text-muted-foreground">Restrict access to admin users only</p>
+                <p className="text-xs font-semibold text-foreground">
+                  Maintenance Mode
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Restrict access to admin users only
+                </p>
               </div>
               <Switch />
             </div>
@@ -122,29 +142,39 @@ export function AdminSettingsView() {
         <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-5">
             <Bell className="h-4 w-4 text-rose-400" />
-            <h3 className="text-sm font-semibold text-foreground">Admin Notifications</h3>
+            <h3 className="text-sm font-semibold text-foreground">
+              Admin Notifications
+            </h3>
           </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">New User Alerts</p>
-                <p className="text-[10px] text-muted-foreground">Get notified when new users register</p>
+                <p className="text-xs font-semibold text-foreground">
+                  New User Alerts
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Get notified when new users register
+                </p>
               </div>
               <Switch defaultChecked />
             </div>
             <div className="flex items-center justify-between rounded-xl border border-border/60 bg-card/70 p-4">
               <div>
-                <p className="text-xs font-semibold text-foreground">Security Alerts</p>
-                <p className="text-[10px] text-muted-foreground">Failed login attempts and suspicious activity</p>
+                <p className="text-xs font-semibold text-foreground">
+                  Security Alerts
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Failed login attempts and suspicious activity
+                </p>
               </div>
               <Switch defaultChecked />
             </div>
           </div>
-          <Button className="mt-5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer">
+          <Button className="mt-5 rounded-xl  from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer">
             Save Settings
           </Button>
         </Card>
       </motion.div>
     </div>
-  )
+  );
 }

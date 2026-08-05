@@ -1,19 +1,33 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Users, Search, Plus, ChevronLeft, ChevronRight,
-  MoreHorizontal, Trash2, Shield, UserCog, Filter,
-} from "lucide-react"
-import { useGetUsersQuery, useCreateUserMutation, useUpdateUserRoleMutation, useUpdateUserStatusMutation, useDeleteUserMutation } from "@/lib/redux/api/adminApiSlice"
-import type { GetUsersParams } from "@/lib/redux/api/adminApiSlice"
-import { Card } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Skeleton } from "@/components/ui/skeleton"
+  Users,
+  Search,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  MoreHorizontal,
+  Trash2,
+  Shield,
+  UserCog,
+  Filter,
+} from "lucide-react";
+import {
+  useGetUsersQuery,
+  useCreateUserMutation,
+  useUpdateUserRoleMutation,
+  useUpdateUserStatusMutation,
+  useDeleteUserMutation,
+} from "@/lib/redux/api/adminApiSlice";
+import type { GetUsersParams } from "@/lib/redux/api/adminApiSlice";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +38,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -32,14 +46,14 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogDescription,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -49,13 +63,13 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import { Label } from "@/components/ui/label"
-import { getRoleConfig, getStatusConfig, ADMIN_ROLES } from "@/constants/admin"
-import { getAvatarUrl } from "@/lib/utils"
+} from "@/components/ui/alert-dialog";
+import { Label } from "@/components/ui/label";
+import { getRoleConfig, getStatusConfig, ADMIN_ROLES } from "@/constants/admin";
+import { getAvatarUrl } from "@/lib/utils";
 
-const ROLE_OPTIONS = ["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"]
-const STATUS_OPTIONS = ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"]
+const ROLE_OPTIONS = ["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"];
+const STATUS_OPTIONS = ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"];
 
 export function AdminUsersView() {
   const [params, setParams] = useState<GetUsersParams>({
@@ -63,38 +77,53 @@ export function AdminUsersView() {
     limit: 10,
     sortBy: "createdAt",
     sortOrder: "desc",
-  })
-  const [searchInput, setSearchInput] = useState("")
-  const [createOpen, setCreateOpen] = useState(false)
-  const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
+  });
+  const [searchInput, setSearchInput] = useState("");
+  const [createOpen, setCreateOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   // Form state for create user
-  const [formName, setFormName] = useState("")
-  const [formEmail, setFormEmail] = useState("")
-  const [formPassword, setFormPassword] = useState("")
-  const [formRole, setFormRole] = useState("USER")
-  const [formStatus, setFormStatus] = useState("ACTIVE")
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPassword, setFormPassword] = useState("");
+  const [formRole, setFormRole] = useState("USER");
+  const [formStatus, setFormStatus] = useState("ACTIVE");
 
-  const { data: usersResponse, isLoading, isFetching } = useGetUsersQuery(params)
-  const [createUser, { isLoading: isCreating }] = useCreateUserMutation()
-  const [updateRole] = useUpdateUserRoleMutation()
-  const [updateStatus] = useUpdateUserStatusMutation()
-  const [deleteUser] = useDeleteUserMutation()
+  const {
+    data: usersResponse,
+    isLoading,
+    isFetching,
+  } = useGetUsersQuery(params);
+  const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
+  const [updateRole] = useUpdateUserRoleMutation();
+  const [updateStatus] = useUpdateUserStatusMutation();
+  const [deleteUser] = useDeleteUserMutation();
 
-  const users = usersResponse?.data || []
-  const meta = usersResponse?.meta
+  const users = usersResponse?.data || [];
+  const meta = usersResponse?.meta;
 
   const handleSearch = () => {
-    setParams((p) => ({ ...p, page: 1, search: searchInput || undefined }))
-  }
+    setParams((p) => ({ ...p, page: 1, search: searchInput || undefined }));
+  };
 
   const handleRoleFilter = (role: string) => {
-    setParams((p) => ({ ...p, page: 1, role: role === "ALL" ? undefined : role }))
-  }
+    setParams((p) => ({
+      ...p,
+      page: 1,
+      role: role === "ALL" ? undefined : role,
+    }));
+  };
 
   const handleStatusFilter = (status: string) => {
-    setParams((p) => ({ ...p, page: 1, status: status === "ALL" ? undefined : status }))
-  }
+    setParams((p) => ({
+      ...p,
+      page: 1,
+      status: status === "ALL" ? undefined : status,
+    }));
+  };
 
   const handleCreateUser = async () => {
     try {
@@ -104,27 +133,27 @@ export function AdminUsersView() {
         password: formPassword,
         role: formRole,
         status: formStatus,
-      }).unwrap()
-      setCreateOpen(false)
-      setFormName("")
-      setFormEmail("")
-      setFormPassword("")
-      setFormRole("USER")
-      setFormStatus("ACTIVE")
+      }).unwrap();
+      setCreateOpen(false);
+      setFormName("");
+      setFormEmail("");
+      setFormPassword("");
+      setFormRole("USER");
+      setFormStatus("ACTIVE");
     } catch {
       // Error handled by RTK Query
     }
-  }
+  };
 
   const handleDeleteUser = async () => {
-    if (!deleteTarget) return
+    if (!deleteTarget) return;
     try {
-      await deleteUser(deleteTarget.id).unwrap()
-      setDeleteTarget(null)
+      await deleteUser(deleteTarget.id).unwrap();
+      setDeleteTarget(null);
     } catch {
       // Error handled by RTK Query
     }
-  }
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
@@ -135,20 +164,24 @@ export function AdminUsersView() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+          <h1 className="text-2xl font-bold text-foreground">
+            User Management
+          </h1>
           <p className="text-sm text-muted-foreground">
             Manage all platform users, assign roles, and control access
           </p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 hover:opacity-90 transition-opacity cursor-pointer">
+            <Button className="gap-2 rounded-xl  from-rose-500 to-amber-500 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 hover:opacity-90 transition-opacity cursor-pointer">
               <Plus className="h-4 w-4" /> Create User
             </Button>
           </DialogTrigger>
           <DialogContent className="bg-popover border-border sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-foreground">Create New User</DialogTitle>
+              <DialogTitle className="text-foreground">
+                Create New User
+              </DialogTitle>
               <DialogDescription className="text-muted-foreground">
                 Add a new user to the platform with role and status.
               </DialogDescription>
@@ -192,7 +225,11 @@ export function AdminUsersView() {
                     </SelectTrigger>
                     <SelectContent className="bg-muted border-border">
                       {ROLE_OPTIONS.map((r) => (
-                        <SelectItem key={r} value={r} className="text-foreground">
+                        <SelectItem
+                          key={r}
+                          value={r}
+                          className="text-foreground"
+                        >
                           {getRoleConfig(r).label}
                         </SelectItem>
                       ))}
@@ -207,7 +244,11 @@ export function AdminUsersView() {
                     </SelectTrigger>
                     <SelectContent className="bg-muted border-border">
                       {STATUS_OPTIONS.map((s) => (
-                        <SelectItem key={s} value={s} className="text-foreground">
+                        <SelectItem
+                          key={s}
+                          value={s}
+                          className="text-foreground"
+                        >
                           {getStatusConfig(s).label}
                         </SelectItem>
                       ))}
@@ -218,7 +259,7 @@ export function AdminUsersView() {
               <Button
                 onClick={handleCreateUser}
                 disabled={!formEmail || !formPassword || isCreating}
-                className="w-full rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer"
+                className="w-full rounded-xl  from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer"
               >
                 {isCreating ? "Creating…" : "Create User"}
               </Button>
@@ -255,7 +296,9 @@ export function AdminUsersView() {
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent className="bg-muted border-border">
-                  <SelectItem value="ALL" className="text-foreground">All Roles</SelectItem>
+                  <SelectItem value="ALL" className="text-foreground">
+                    All Roles
+                  </SelectItem>
                   {ROLE_OPTIONS.map((r) => (
                     <SelectItem key={r} value={r} className="text-foreground">
                       {getRoleConfig(r).label}
@@ -271,7 +314,9 @@ export function AdminUsersView() {
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-muted border-border">
-                  <SelectItem value="ALL" className="text-foreground">All Status</SelectItem>
+                  <SelectItem value="ALL" className="text-foreground">
+                    All Status
+                  </SelectItem>
                   {STATUS_OPTIONS.map((s) => (
                     <SelectItem key={s} value={s} className="text-foreground">
                       {getStatusConfig(s).label}
@@ -301,11 +346,21 @@ export function AdminUsersView() {
         <Card className="overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
           {/* Table header */}
           <div className="hidden border-b border-border/60 px-6 py-3 md:grid md:grid-cols-12 md:gap-4">
-            <div className="col-span-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">User</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Role</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Provider</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</div>
+            <div className="col-span-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              User
+            </div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Role
+            </div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Status
+            </div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Provider
+            </div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-right">
+              Actions
+            </div>
           </div>
 
           {/* Rows */}
@@ -323,15 +378,15 @@ export function AdminUsersView() {
             ) : (
               <AnimatePresence>
                 {users.map((u, i) => {
-                  const roleConfig = getRoleConfig(u.role)
-                  const statusConfig = getStatusConfig(u.status)
-                  const avatarSrc = getAvatarUrl(u.avatar)
+                  const roleConfig = getRoleConfig(u.role);
+                  const statusConfig = getStatusConfig(u.status);
+                  const avatarSrc = getAvatarUrl(u.avatar);
                   const userInitials = (u.name || u.email)
                     .split(" ")
                     .map((w: string) => w[0])
                     .join("")
                     .toUpperCase()
-                    .slice(0, 2)
+                    .slice(0, 2);
 
                   return (
                     <motion.div
@@ -344,8 +399,12 @@ export function AdminUsersView() {
                       {/* User info */}
                       <div className="col-span-4 flex items-center gap-3">
                         <Avatar className="h-9 w-9 border border-border">
-                          {avatarSrc && <AvatarImage src={avatarSrc} alt={u.name || ""} />}
-                          <AvatarFallback className={`bg-gradient-to-br ${roleConfig.color} text-[10px] font-bold text-white`}>
+                          {avatarSrc && (
+                            <AvatarImage src={avatarSrc} alt={u.name || ""} />
+                          )}
+                          <AvatarFallback
+                            className={`bg-gradient-to-br ${roleConfig.color} text-[10px] font-bold text-white`}
+                          >
                             {userInitials}
                           </AvatarFallback>
                         </Avatar>
@@ -353,21 +412,29 @@ export function AdminUsersView() {
                           <p className="truncate text-xs font-semibold text-foreground">
                             {u.name || u.username || "Unnamed"}
                           </p>
-                          <p className="truncate text-[10px] text-muted-foreground">{u.email}</p>
+                          <p className="truncate text-[10px] text-muted-foreground">
+                            {u.email}
+                          </p>
                         </div>
                       </div>
 
                       {/* Role */}
                       <div className="col-span-2">
-                        <Badge className={`h-5 rounded-md border text-[9px] font-bold ${roleConfig.badge}`}>
+                        <Badge
+                          className={`h-5 rounded-md border text-[9px] font-bold ${roleConfig.badge}`}
+                        >
                           {roleConfig.label}
                         </Badge>
                       </div>
 
                       {/* Status */}
                       <div className="col-span-2">
-                        <Badge className={`h-5 rounded-md border text-[9px] font-bold ${statusConfig.color}`}>
-                          <span className={`mr-1 h-1.5 w-1.5 rounded-full ${statusConfig.dot} inline-block`} />
+                        <Badge
+                          className={`h-5 rounded-md border text-[9px] font-bold ${statusConfig.color}`}
+                        >
+                          <span
+                            className={`mr-1 h-1.5 w-1.5 rounded-full ${statusConfig.dot} inline-block`}
+                          />
                           {statusConfig.label}
                         </Badge>
                       </div>
@@ -391,7 +458,10 @@ export function AdminUsersView() {
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52 bg-popover border-border p-1">
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-52 bg-popover border-border p-1"
+                          >
                             <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">
                               Manage User
                             </DropdownMenuLabel>
@@ -400,23 +470,32 @@ export function AdminUsersView() {
                             {/* Change Role submenu */}
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg">
-                                <Shield className="h-3.5 w-3.5 text-violet-400" /> Change Role
+                                <Shield className="h-3.5 w-3.5 text-violet-400" />{" "}
+                                Change Role
                               </DropdownMenuSubTrigger>
                               <DropdownMenuSubContent className="bg-popover border-border p-1">
                                 {ROLE_OPTIONS.map((role) => {
-                                  const rc = getRoleConfig(role)
+                                  const rc = getRoleConfig(role);
                                   return (
                                     <DropdownMenuItem
                                       key={role}
                                       disabled={u.role === role}
                                       className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
-                                      onClick={() => updateRole({ userId: u.id, role })}
+                                      onClick={() =>
+                                        updateRole({ userId: u.id, role })
+                                      }
                                     >
-                                      <span className={`h-2 w-2 rounded-full ${rc.dot}`} />
+                                      <span
+                                        className={`h-2 w-2 rounded-full ${rc.dot}`}
+                                      />
                                       {rc.label}
-                                      {u.role === role && <span className="ml-auto text-[9px] text-emerald-400">Current</span>}
+                                      {u.role === role && (
+                                        <span className="ml-auto text-[9px] text-emerald-400">
+                                          Current
+                                        </span>
+                                      )}
                                     </DropdownMenuItem>
-                                  )
+                                  );
                                 })}
                               </DropdownMenuSubContent>
                             </DropdownMenuSub>
@@ -424,23 +503,32 @@ export function AdminUsersView() {
                             {/* Change Status submenu */}
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg">
-                                <UserCog className="h-3.5 w-3.5 text-amber-400" /> Change Status
+                                <UserCog className="h-3.5 w-3.5 text-amber-400" />{" "}
+                                Change Status
                               </DropdownMenuSubTrigger>
                               <DropdownMenuSubContent className="bg-popover border-border p-1">
                                 {STATUS_OPTIONS.map((status) => {
-                                  const sc = getStatusConfig(status)
+                                  const sc = getStatusConfig(status);
                                   return (
                                     <DropdownMenuItem
                                       key={status}
                                       disabled={u.status === status}
                                       className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
-                                      onClick={() => updateStatus({ userId: u.id, status })}
+                                      onClick={() =>
+                                        updateStatus({ userId: u.id, status })
+                                      }
                                     >
-                                      <span className={`h-2 w-2 rounded-full ${sc.dot}`} />
+                                      <span
+                                        className={`h-2 w-2 rounded-full ${sc.dot}`}
+                                      />
                                       {sc.label}
-                                      {u.status === status && <span className="ml-auto text-[9px] text-emerald-400">Current</span>}
+                                      {u.status === status && (
+                                        <span className="ml-auto text-[9px] text-emerald-400">
+                                          Current
+                                        </span>
+                                      )}
                                     </DropdownMenuItem>
-                                  )
+                                  );
                                 })}
                               </DropdownMenuSubContent>
                             </DropdownMenuSub>
@@ -448,7 +536,12 @@ export function AdminUsersView() {
                             <DropdownMenuSeparator className="bg-border" />
                             <DropdownMenuItem
                               className="gap-2 text-xs text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer rounded-lg"
-                              onClick={() => setDeleteTarget({ id: u.id, name: u.name || u.email })}
+                              onClick={() =>
+                                setDeleteTarget({
+                                  id: u.id,
+                                  name: u.name || u.email,
+                                })
+                              }
                             >
                               <Trash2 className="h-3.5 w-3.5" /> Delete User
                             </DropdownMenuItem>
@@ -456,7 +549,7 @@ export function AdminUsersView() {
                         </DropdownMenu>
                       </div>
                     </motion.div>
-                  )
+                  );
                 })}
               </AnimatePresence>
             )}
@@ -466,7 +559,9 @@ export function AdminUsersView() {
           {meta && meta.totalPages > 1 && (
             <div className="flex items-center justify-between border-t border-border/60 px-6 py-3">
               <p className="text-[10px] text-muted-foreground">
-                Showing {((meta.page - 1) * meta.limit) + 1}–{Math.min(meta.page * meta.limit, meta.total)} of {meta.total} users
+                Showing {(meta.page - 1) * meta.limit + 1}–
+                {Math.min(meta.page * meta.limit, meta.total)} of {meta.total}{" "}
+                users
               </p>
               <div className="flex items-center gap-1">
                 <Button
@@ -474,34 +569,42 @@ export function AdminUsersView() {
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                   disabled={!meta.hasPrev}
-                  onClick={() => setParams((p) => ({ ...p, page: (p.page || 1) - 1 }))}
+                  onClick={() =>
+                    setParams((p) => ({ ...p, page: (p.page || 1) - 1 }))
+                  }
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                {Array.from({ length: Math.min(meta.totalPages, 5) }).map((_, i) => {
-                  const pageNum = i + 1
-                  return (
-                    <Button
-                      key={pageNum}
-                      variant="ghost"
-                      size="icon"
-                      className={`h-8 w-8 text-xs cursor-pointer ${
-                        meta.page === pageNum
-                          ? "bg-rose-500/15 text-rose-400 font-bold"
-                          : "text-muted-foreground hover:text-foreground"
-                      }`}
-                      onClick={() => setParams((p) => ({ ...p, page: pageNum }))}
-                    >
-                      {pageNum}
-                    </Button>
-                  )
-                })}
+                {Array.from({ length: Math.min(meta.totalPages, 5) }).map(
+                  (_, i) => {
+                    const pageNum = i + 1;
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant="ghost"
+                        size="icon"
+                        className={`h-8 w-8 text-xs cursor-pointer ${
+                          meta.page === pageNum
+                            ? "bg-rose-500/15 text-rose-400 font-bold"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                        onClick={() =>
+                          setParams((p) => ({ ...p, page: pageNum }))
+                        }
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  },
+                )}
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                   disabled={!meta.hasNext}
-                  onClick={() => setParams((p) => ({ ...p, page: (p.page || 1) + 1 }))}
+                  onClick={() =>
+                    setParams((p) => ({ ...p, page: (p.page || 1) + 1 }))
+                  }
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -512,13 +615,21 @@ export function AdminUsersView() {
       </motion.div>
 
       {/* Delete confirmation dialog */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-foreground">Delete User</AlertDialogTitle>
+            <AlertDialogTitle className="text-foreground">
+              Delete User
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
-              Are you sure you want to delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span>?
-              This action cannot be undone.
+              Are you sure you want to delete{" "}
+              <span className="font-semibold text-foreground">
+                {deleteTarget?.name}
+              </span>
+              ? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -535,5 +646,5 @@ export function AdminUsersView() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }

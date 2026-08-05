@@ -1,7 +1,7 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   PanelLeftClose,
   PanelLeft,
@@ -14,16 +14,25 @@ import {
   Plus,
   Check,
   Briefcase,
-} from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setView, toggleSidebar, markAllNotificationsRead } from "@/lib/redux/appSlice"
-import { logout } from "@/lib/redux/authSlice"
-import { setActiveWorkspace, setActiveTeam } from "@/lib/redux/dataSlice"
-import { Logo, Wordmark } from "./Logo"
-import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  setView,
+  toggleSidebar,
+  markAllNotificationsRead,
+} from "@/lib/redux/appSlice";
+import { logout } from "@/lib/redux/authSlice";
+import { setActiveWorkspace, setActiveTeam } from "@/lib/redux/dataSlice";
+import { Logo, Wordmark } from "./Logo";
+import {
+  cn,
+  getUserDisplayName,
+  getUserInitials,
+  getAvatarUrl,
+} from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,36 +40,41 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { NAVIGATION_GROUPS } from "@/constants"
-import { WorkspaceModal } from "@/components/modals/workspace-modal"
-import { TeamModal } from "@/components/modals/team-modal"
+} from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { NAVIGATION_GROUPS } from "@/constants";
+import { WorkspaceModal } from "@/components/modals/workspace-modal";
+import { TeamModal } from "@/components/modals/team-modal";
 
 export function Sidebar() {
-  const dispatch = useAppDispatch()
-  const user = useAppSelector((s) => s.auth.user)
-  const view = useAppSelector((s) => s.app.view)
-  const collapsed = useAppSelector((s) => s.app.sidebarCollapsed)
-  const notifications = useAppSelector((s) => s.app.notifications)
-  const unread = notifications.filter((n) => !n.read).length
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
+  const view = useAppSelector((s) => s.app.view);
+  const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
+  const notifications = useAppSelector((s) => s.app.notifications);
+  const unread = notifications.filter((n) => !n.read).length;
 
-  const avatarSrc = getAvatarUrl(user?.avatar)
-  const displayName = getUserDisplayName(user, "User Account")
-  const displayEmail = user?.email || "user@noteflow.ai"
-  const initials = getUserInitials(user?.name, user?.email)
+  const avatarSrc = getAvatarUrl(user?.avatar);
+  const displayName = getUserDisplayName(user, "User Account");
+  const displayEmail = user?.email || "user@noteflow.ai";
+  const initials = getUserInitials(user?.name, user?.email);
 
   // Workspaces & Teams state
-  const workspaces = useAppSelector((s) => s.data.workspaces)
-  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId)
-  const activeTeamId = useAppSelector((s) => s.data.activeTeamId)
-  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0]
-  const teams = activeWorkspace?.teams || []
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+  const activeTeamId = useAppSelector((s) => s.data.activeTeamId);
+  const activeWorkspace =
+    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  const teams = activeWorkspace?.teams || [];
 
   // Modal & section collapse triggers
-  const [wsModalOpen, setWsModalOpen] = useState(false)
-  const [teamModalOpen, setTeamModalOpen] = useState(false)
-  const [teamsCollapsed, setTeamsCollapsed] = useState(true)
+  const [wsModalOpen, setWsModalOpen] = useState(false);
+  const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [teamsCollapsed, setTeamsCollapsed] = useState(true);
 
   return (
     <>
@@ -69,7 +83,7 @@ export function Sidebar() {
         animate={{ width: collapsed ? 80 : 272 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border/60 bg-sidebar/70 backdrop-blur-2xl lg:flex z-30"
+          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border/60 bg-sidebar/70 backdrop-blur-2xl lg:flex z-30",
         )}
       >
         {/* Header / Logo */}
@@ -102,7 +116,7 @@ export function Sidebar() {
               <button
                 className={cn(
                   "flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-background/50 p-2 text-left shadow-sm transition-all hover:bg-background hover:border-white/20",
-                  collapsed && "justify-center p-2"
+                  collapsed && "justify-center p-2",
                 )}
               >
                 <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-sm font-semibold">
@@ -114,11 +128,14 @@ export function Sidebar() {
                       {activeWorkspace?.name || "Select Workspace"}
                     </p>
                     <p className="truncate text-[10px] text-muted-foreground">
-                      {teams.length} {teams.length === 1 ? "team" : "teams"} active
+                      {teams.length} {teams.length === 1 ? "team" : "teams"}{" "}
+                      active
                     </p>
                   </div>
                 )}
-                {!collapsed && <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
+                {!collapsed && (
+                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                )}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" className="w-64">
@@ -130,9 +147,9 @@ export function Sidebar() {
                 <DropdownMenuItem
                   key={ws.id}
                   onClick={() => {
-                    dispatch(setActiveWorkspace(ws.id))
+                    dispatch(setActiveWorkspace(ws.id));
                     if (typeof window !== "undefined") {
-                      window.history.pushState(null, "", `/${ws.slug}`)
+                      window.history.pushState(null, "", `/${ws.slug}`);
                     }
                   }}
                   className="flex items-center justify-between py-2 cursor-pointer"
@@ -141,10 +158,14 @@ export function Sidebar() {
                     <span className="text-base">{ws.icon || "🏢"}</span>
                     <div className="truncate">
                       <p className="text-xs font-semibold">{ws.name}</p>
-                      <p className="text-[10px] text-muted-foreground">{ws.teams.length} teams</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {ws.teams.length} teams
+                      </p>
                     </div>
                   </div>
-                  {ws.id === activeWorkspaceId && <Check className="h-4 w-4 text-indigo-500" />}
+                  {ws.id === activeWorkspaceId && (
+                    <Check className="h-4 w-4 text-indigo-500" />
+                  )}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
@@ -196,16 +217,20 @@ export function Sidebar() {
                   >
                     <button
                       onClick={() => {
-                        dispatch(setActiveTeam(null))
+                        dispatch(setActiveTeam(null));
                         if (typeof window !== "undefined" && activeWorkspace) {
-                          window.history.pushState(null, "", `/${activeWorkspace.slug}`)
+                          window.history.pushState(
+                            null,
+                            "",
+                            `/${activeWorkspace.slug}`,
+                          );
                         }
                       }}
                       className={cn(
                         "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
                         activeTeamId === null
                           ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
                       )}
                     >
                       <span className="text-xs">🌐</span>
@@ -216,17 +241,24 @@ export function Sidebar() {
                       <button
                         key={t.id}
                         onClick={() => {
-                          dispatch(setActiveTeam(t.id))
-                          dispatch(setView("team"))
-                          if (typeof window !== "undefined" && activeWorkspace) {
-                            window.history.pushState(null, "", `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`)
+                          dispatch(setActiveTeam(t.id));
+                          dispatch(setView("team"));
+                          if (
+                            typeof window !== "undefined" &&
+                            activeWorkspace
+                          ) {
+                            window.history.pushState(
+                              null,
+                              "",
+                              `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
+                            );
                           }
                         }}
                         className={cn(
                           "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
                           activeTeamId === t.id
                             ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground"
+                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
                         )}
                       >
                         <div className="flex items-center gap-2 min-w-0">
@@ -255,8 +287,8 @@ export function Sidebar() {
                 </p>
               )}
               {group.items.map((item) => {
-                const active = view === item.key
-                const Icon = item.icon
+                const active = view === item.key;
+                const Icon = item.icon;
                 return (
                   <Tooltip key={item.key} delayDuration={collapsed ? 100 : 400}>
                     <TooltipTrigger asChild>
@@ -265,16 +297,20 @@ export function Sidebar() {
                         className={cn(
                           "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                           active
-                            ? "bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-sidebar-foreground"
+                            ? " from-indigo-500/15 to-violet-500/10 text-sidebar-foreground"
                             : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
-                          collapsed && "justify-center"
+                          collapsed && "justify-center",
                         )}
                       >
                         {active && (
                           <motion.span
                             layoutId="sidebar-active"
                             className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-indigo-500 to-violet-500"
-                            transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 350,
+                              damping: 30,
+                            }}
                           />
                         )}
                         <span
@@ -282,12 +318,14 @@ export function Sidebar() {
                             "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
                             active
                               ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-sidebar-accent/50 text-muted-foreground group-hover:text-sidebar-foreground"
+                              : "bg-sidebar-accent/50 text-muted-foreground group-hover:text-sidebar-foreground",
                           )}
                         >
                           <Icon className="h-4 w-4" strokeWidth={2.2} />
                         </span>
-                        {!collapsed && <span className="flex-1 text-left">{item.label}</span>}
+                        {!collapsed && (
+                          <span className="flex-1 text-left">{item.label}</span>
+                        )}
                         {!collapsed && item.badge && (
                           <Badge
                             variant="secondary"
@@ -304,7 +342,7 @@ export function Sidebar() {
                       </TooltipContent>
                     )}
                   </Tooltip>
-                )
+                );
               })}
             </div>
           ))}
@@ -312,7 +350,9 @@ export function Sidebar() {
 
         {/* Footer */}
         <div className="border-t border-sidebar-border/60 p-3">
-          <div className={cn("flex items-center gap-2", collapsed && "flex-col")}>
+          <div
+            className={cn("flex items-center gap-2", collapsed && "flex-col")}
+          >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
@@ -341,13 +381,22 @@ export function Sidebar() {
                 <DropdownMenuSeparator />
                 <div className="max-h-80 overflow-y-auto scrollbar-thin">
                   {notifications.map((n) => (
-                    <DropdownMenuItem key={n.id} className="flex flex-col items-start gap-0.5 py-2.5">
+                    <DropdownMenuItem
+                      key={n.id}
+                      className="flex flex-col items-start gap-0.5 py-2.5"
+                    >
                       <div className="flex w-full items-center justify-between gap-2">
                         <span className="text-sm font-medium">{n.title}</span>
-                        {!n.read && <span className="h-2 w-2 rounded-full bg-indigo-500" />}
+                        {!n.read && (
+                          <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                        )}
                       </div>
-                      <span className="text-xs text-muted-foreground">{n.description}</span>
-                      <span className="text-[10px] text-muted-foreground/70">{n.time}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {n.description}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground/70">
+                        {n.time}
+                      </span>
                     </DropdownMenuItem>
                   ))}
                 </div>
@@ -358,7 +407,7 @@ export function Sidebar() {
               onClick={() => dispatch(setView("settings"))}
               className={cn(
                 "flex flex-1 items-center gap-2.5 rounded-xl p-1.5 transition-all hover:bg-sidebar-accent/80 cursor-pointer",
-                collapsed && "w-full justify-center"
+                collapsed && "w-full justify-center",
               )}
             >
               <Avatar className="h-8 w-8 border border-sidebar-border shadow-sm">
@@ -369,22 +418,39 @@ export function Sidebar() {
               </Avatar>
               {!collapsed && (
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-xs font-semibold text-sidebar-foreground">{displayName}</p>
-                  <p className="truncate text-[10px] text-muted-foreground">{displayEmail}</p>
+                  <p className="truncate text-xs font-semibold text-sidebar-foreground">
+                    {displayName}
+                  </p>
+                  <p className="truncate text-[10px] text-muted-foreground">
+                    {displayEmail}
+                  </p>
                 </div>
               )}
-              {!collapsed && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
+              {!collapsed && (
+                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
             </button>
           </div>
 
-          <div className={cn("mt-2 flex items-center", collapsed ? "flex-col gap-2" : "justify-between")}>
+          <div
+            className={cn(
+              "mt-2 flex items-center",
+              collapsed ? "flex-col gap-2" : "justify-between",
+            )}
+          >
             <Button
               variant="ghost"
               size="sm"
               onClick={() => dispatch(toggleSidebar())}
               className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground cursor-pointer"
             >
-              {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /> Collapse</>}
+              {collapsed ? (
+                <PanelLeft className="h-4 w-4" />
+              ) : (
+                <>
+                  <PanelLeftClose className="h-4 w-4" /> Collapse
+                </>
+              )}
             </Button>
 
             <Tooltip delayDuration={collapsed ? 100 : 400}>
@@ -393,12 +459,12 @@ export function Sidebar() {
                   variant="ghost"
                   size="sm"
                   onClick={() => {
-                    dispatch(logout())
-                    dispatch(setView("login"))
+                    dispatch(logout());
+                    dispatch(setView("login"));
                   }}
                   className={cn(
                     "h-8 gap-1.5 px-2 text-xs text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer",
-                    collapsed && "w-8 p-0"
+                    collapsed && "w-8 p-0",
                   )}
                 >
                   <LogOut className="h-3.5 w-3.5" />
@@ -406,7 +472,10 @@ export function Sidebar() {
                 </Button>
               </TooltipTrigger>
               {collapsed && (
-                <TooltipContent side="right" className="font-medium text-xs text-rose-500">
+                <TooltipContent
+                  side="right"
+                  className="font-medium text-xs text-rose-500"
+                >
                   Sign out
                 </TooltipContent>
               )}
@@ -416,8 +485,11 @@ export function Sidebar() {
       </motion.aside>
 
       {/* Modals */}
-      <WorkspaceModal open={wsModalOpen} onClose={() => setWsModalOpen(false)} />
+      <WorkspaceModal
+        open={wsModalOpen}
+        onClose={() => setWsModalOpen(false)}
+      />
       <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
     </>
-  )
+  );
 }

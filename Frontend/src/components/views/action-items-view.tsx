@@ -282,7 +282,7 @@ export function ActionItemsView() {
 
           <Button
             onClick={() => setCreateModalOpen(true)}
-            className="h-9 gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20"
+            className="h-9 gap-1.5 rounded-xl  from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20"
           >
             <Plus className="h-4 w-4" /> New Action Item
           </Button>
@@ -824,7 +824,7 @@ function CreateTaskModal({
               </Button>
               <Button
                 type="submit"
-                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white shadow-lg"
+                className="gap-2 rounded-xl  from-indigo-500 to-violet-600 text-white shadow-lg"
               >
                 <Plus className="h-4 w-4" /> Create Issue
               </Button>

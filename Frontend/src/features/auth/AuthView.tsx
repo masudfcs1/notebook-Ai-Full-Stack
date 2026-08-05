@@ -1,8 +1,8 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { motion, AnimatePresence } from "framer-motion"
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
   Lock,
@@ -15,158 +15,179 @@ import {
   Sun,
   Moon,
   CheckCircle2,
-} from "lucide-react"
-import { toast } from "react-hot-toast"
-import { useAppDispatch } from "@/lib/redux/hooks"
-import { setView, pushNotification } from "@/lib/redux/appSlice"
-import { setCredentials } from "@/lib/redux/authSlice"
-import { useLoginMutation, useRegisterMutation } from "@/lib/redux/api/authApiSlice"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Logo, Wordmark } from "@/features/navigation"
-import { useTheme } from "next-themes"
+} from "lucide-react";
+import { toast } from "react-hot-toast";
+import { useAppDispatch } from "@/lib/redux/hooks";
+import { setView, pushNotification } from "@/lib/redux/appSlice";
+import { setCredentials } from "@/lib/redux/authSlice";
+import {
+  useLoginMutation,
+  useRegisterMutation,
+} from "@/lib/redux/api/authApiSlice";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Logo, Wordmark } from "@/features/navigation";
+import { useTheme } from "next-themes";
 
 interface AuthViewProps {
-  initialMode?: "login" | "signup"
+  initialMode?: "login" | "signup";
 }
 
 export function AuthView({ initialMode = "login" }: AuthViewProps) {
-  const dispatch = useAppDispatch()
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const [mode, setMode] = useState<"login" | "signup">(initialMode)
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
 
   // API Mutations
-  const [login, { isLoading: isLoginLoading }] = useLoginMutation()
-  const [register, { isLoading: isRegisterLoading }] = useRegisterMutation()
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
+  const [register, { isLoading: isRegisterLoading }] = useRegisterMutation();
 
   // Form State
-  const [showPassword, setShowPassword] = useState(false)
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [name, setName] = useState("")
-  const [rememberMe, setRememberMe] = useState(true)
-  const [agreeTerms, setAgreeTerms] = useState(true)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
-  const isLoading = isLoginLoading || isRegisterLoading
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
-  }, [])
+  const isLoading = isLoginLoading || isRegisterLoading;
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMode(initialMode)
-  }, [initialMode])
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMode(initialMode);
+  }, [initialMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFieldErrors({})
+    e.preventDefault();
+    setFieldErrors({});
 
     if (mode === "login") {
-      const toastId = toast.loading("Authenticating user...")
+      const toastId = toast.loading("Authenticating user...");
       try {
-        const response = await login({ email, password, rememberMe }).unwrap()
+        const response = await login({ email, password, rememberMe }).unwrap();
 
         if (response.success && response.data) {
-          const { user, accessToken } = response.data
-          dispatch(setCredentials({ user, token: accessToken }))
+          const { user, accessToken } = response.data;
+          dispatch(setCredentials({ user, token: accessToken }));
           dispatch(
             pushNotification({
               title: "Welcome back!",
               description: `Authenticated as ${user.email}`,
               type: "success",
-            })
-          )
-          toast.success(`Welcome back, ${user.name || user.email}!`, { id: toastId })
-          dispatch(setView("dashboard"))
-          router.push("/dashboard")
+            }),
+          );
+          toast.success(`Welcome back, ${user.name || user.email}!`, {
+            id: toastId,
+          });
+          dispatch(setView("dashboard"));
+          router.push("/dashboard");
         } else {
-          toast.error(response.message || "Failed to log in", { id: toastId })
+          toast.error(response.message || "Failed to log in", { id: toastId });
         }
       } catch (err: any) {
         const errorMsg =
-          err?.data?.message || err?.error || "Login failed. Please check your credentials."
-        toast.error(errorMsg, { id: toastId })
+          err?.data?.message ||
+          err?.error ||
+          "Login failed. Please check your credentials.";
+        toast.error(errorMsg, { id: toastId });
       }
     } else {
       if (password !== confirmPassword) {
-        setFieldErrors({ confirmPassword: "Passwords do not match" })
-        return
+        setFieldErrors({ confirmPassword: "Passwords do not match" });
+        return;
       }
 
       if (password.length < 6) {
-        setFieldErrors({ password: "Password must be at least 6 characters long" })
-        return
+        setFieldErrors({
+          password: "Password must be at least 6 characters long",
+        });
+        return;
       }
 
-      const toastId = toast.loading("Creating your account...")
+      const toastId = toast.loading("Creating your account...");
       try {
-        const username = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") + Math.floor(Math.random() * 1000)
+        const username =
+          email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") +
+          Math.floor(Math.random() * 1000);
         const response = await register({
           name: name.trim() ? name.trim() : undefined,
           email: email.trim(),
           password,
           confirmPassword,
           username,
-        }).unwrap()
+        }).unwrap();
 
         if (response.success) {
           // Auto-login user after successful registration
           try {
-            const loginRes = await login({ email: email.trim(), password, rememberMe: true }).unwrap()
+            const loginRes = await login({
+              email: email.trim(),
+              password,
+              rememberMe: true,
+            }).unwrap();
             if (loginRes.success && loginRes.data) {
-              const { user, accessToken } = loginRes.data
-              dispatch(setCredentials({ user, token: accessToken }))
-              toast.success("Account created successfully! Welcome to NoteFlow AI.", { id: toastId })
-              dispatch(setView("dashboard"))
-              router.push("/dashboard")
-              return
+              const { user, accessToken } = loginRes.data;
+              dispatch(setCredentials({ user, token: accessToken }));
+              toast.success(
+                "Account created successfully! Welcome to NoteFlow AI.",
+                { id: toastId },
+              );
+              dispatch(setView("dashboard"));
+              router.push("/dashboard");
+              return;
             }
           } catch {
             // Fallback to sign-in view if auto-login fails
           }
 
           toast.success(
-            response.message || "Account created successfully! Please sign in with your credentials.",
-            { id: toastId, duration: 5000 }
-          )
-          setMode("login")
-          dispatch(setView("login"))
-          router.push("/login")
+            response.message ||
+              "Account created successfully! Please sign in with your credentials.",
+            { id: toastId, duration: 5000 },
+          );
+          setMode("login");
+          dispatch(setView("login"));
+          router.push("/login");
         } else {
-          toast.error(response.message || "Registration failed", { id: toastId })
+          toast.error(response.message || "Registration failed", {
+            id: toastId,
+          });
         }
       } catch (err: any) {
         if (err?.data?.errors && Array.isArray(err.data.errors)) {
-          const errors: Record<string, string> = {}
+          const errors: Record<string, string> = {};
           err.data.errors.forEach((e: any) => {
             if (e.field && e.message) {
-              const fieldName = e.field.split(".").pop() || e.field
-              errors[fieldName] = e.message
+              const fieldName = e.field.split(".").pop() || e.field;
+              errors[fieldName] = e.message;
             }
-          })
-          setFieldErrors(errors)
-          toast.error("Please fix the errors in the form", { id: toastId })
-          return
+          });
+          setFieldErrors(errors);
+          toast.error("Please fix the errors in the form", { id: toastId });
+          return;
         }
 
-        const backendMsg = err?.data?.message || err?.error || ""
+        const backendMsg = err?.data?.message || err?.error || "";
         if (backendMsg.toLowerCase().includes("email")) {
-          setFieldErrors({ email: backendMsg })
-          toast.error("Please check your email address", { id: toastId })
-          return
+          setFieldErrors({ email: backendMsg });
+          toast.error("Please check your email address", { id: toastId });
+          return;
         }
 
-        const errorMsg = backendMsg || "Registration failed. Please try again."
-        toast.error(errorMsg, { id: toastId })
+        const errorMsg = backendMsg || "Registration failed. Please try again.";
+        toast.error(errorMsg, { id: toastId });
       }
     }
-  }
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-mesh p-4 md:p-8">
@@ -181,7 +202,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           onClick={() => dispatch(setView("landing"))}
           className="group flex items-center gap-2.5 rounded-xl border border-indigo-500/20 bg-background/50 px-3.5 py-1.5 backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-background/80"
         >
-          <Logo size={28} className="neon-glow-indigo transition-transform group-hover:scale-105" />
+          <Logo
+            size={28}
+            className="neon-glow-indigo transition-transform group-hover:scale-105"
+          />
           <Wordmark className="text-sm" />
         </button>
 
@@ -225,8 +249,8 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <button
             type="button"
             onClick={() => {
-              setMode("login")
-              dispatch(setView("login"))
+              setMode("login");
+              dispatch(setView("login"));
             }}
             className={`relative rounded-xl py-2 text-xs font-semibold transition-all duration-300 ${
               mode === "login"
@@ -239,8 +263,8 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <button
             type="button"
             onClick={() => {
-              setMode("signup")
-              dispatch(setView("signup"))
+              setMode("signup");
+              dispatch(setView("signup"));
             }}
             className={`relative rounded-xl py-2 text-xs font-semibold transition-all duration-300 ${
               mode === "signup"
@@ -255,7 +279,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
         {/* Title */}
         <div className="mb-6">
           <h2 className="text-xl font-bold tracking-tight md:text-2xl">
-            {mode === "login" ? "Access your intelligence hub" : "Start your 14-day free trial"}
+            {mode === "login"
+              ? "Access your intelligence hub"
+              : "Start your 14-day free trial"}
           </h2>
           <p className="mt-1 text-xs text-muted-foreground">
             {mode === "login"
@@ -287,8 +313,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                       placeholder="Alex Mercer"
                       value={name}
                       onChange={(e) => {
-                        setName(e.target.value)
-                        if (fieldErrors.name) setFieldErrors({ ...fieldErrors, name: "" })
+                        setName(e.target.value);
+                        if (fieldErrors.name)
+                          setFieldErrors({ ...fieldErrors, name: "" });
                       }}
                       className={`h-10 rounded-xl border bg-background/50 pl-9 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
                         fieldErrors.name
@@ -307,7 +334,6 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                     </motion.p>
                   )}
                 </div>
-
               </motion.div>
             )}
           </AnimatePresence>
@@ -324,8 +350,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 placeholder="alex@gmail.com"
                 value={email}
                 onChange={(e) => {
-                  setEmail(e.target.value)
-                  if (fieldErrors.email) setFieldErrors({ ...fieldErrors, email: "" })
+                  setEmail(e.target.value);
+                  if (fieldErrors.email)
+                    setFieldErrors({ ...fieldErrors, email: "" });
                 }}
                 className={`h-10 rounded-xl border bg-background/50 pl-9 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
                   fieldErrors.email
@@ -354,10 +381,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 <a
                   href="#"
                   onClick={(e) => {
-                    e.preventDefault()
+                    e.preventDefault();
                     toast("Password reset instructions sent to your email.", {
                       icon: "ℹ️",
-                    })
+                    });
                   }}
                   className="text-[11px] font-medium text-indigo-500 hover:underline"
                 >
@@ -373,8 +400,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => {
-                  setPassword(e.target.value)
-                  if (fieldErrors.password) setFieldErrors({ ...fieldErrors, password: "" })
+                  setPassword(e.target.value);
+                  if (fieldErrors.password)
+                    setFieldErrors({ ...fieldErrors, password: "" });
                 }}
                 className={`h-10 rounded-xl border bg-background/50 pl-9 pr-10 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
                   fieldErrors.password
@@ -387,7 +415,11 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </button>
             </div>
             {fieldErrors.password && (
@@ -415,8 +447,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                   placeholder="••••••••••••"
                   value={confirmPassword}
                   onChange={(e) => {
-                    setConfirmPassword(e.target.value)
-                    if (fieldErrors.confirmPassword) setFieldErrors({ ...fieldErrors, confirmPassword: "" })
+                    setConfirmPassword(e.target.value);
+                    if (fieldErrors.confirmPassword)
+                      setFieldErrors({ ...fieldErrors, confirmPassword: "" });
                   }}
                   className={`h-10 rounded-xl border bg-background/50 pl-9 pr-10 text-xs transition-all focus:shadow-[0_0_15px_rgba(99,102,241,0.2)] ${
                     fieldErrors.confirmPassword
@@ -447,7 +480,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 onChange={(e) => setRememberMe(e.target.checked)}
                 className="h-4 w-4 rounded border-indigo-500/30 accent-indigo-600"
               />
-              <label htmlFor="remember" className="text-xs text-muted-foreground select-none cursor-pointer">
+              <label
+                htmlFor="remember"
+                className="text-xs text-muted-foreground select-none cursor-pointer"
+              >
                 Keep me signed in on this device
               </label>
             </div>
@@ -461,7 +497,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 onChange={(e) => setAgreeTerms(e.target.checked)}
                 className="h-4 w-4 rounded border-indigo-500/30 accent-indigo-600"
               />
-              <label htmlFor="terms" className="text-xs text-muted-foreground select-none cursor-pointer">
+              <label
+                htmlFor="terms"
+                className="text-xs text-muted-foreground select-none cursor-pointer"
+              >
                 I agree to the Terms of Service & Privacy Policy
               </label>
             </div>
@@ -471,7 +510,7 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 mt-2 cursor-pointer"
+            className="w-full h-11 gap-2 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 mt-2 cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center gap-2 text-xs">
@@ -480,7 +519,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
               </span>
             ) : (
               <>
-                <span>{mode === "login" ? "Sign In to Hub" : "Create Free Account"}</span>
+                <span>
+                  {mode === "login" ? "Sign In to Hub" : "Create Free Account"}
+                </span>
                 <ArrowRight className="h-4 w-4" />
               </>
             )}
@@ -501,7 +542,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => toast("Social authentication is coming soon!", { icon: "🚀" })}
+            onClick={() =>
+              toast("Social authentication is coming soon!", { icon: "🚀" })
+            }
             className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer"
           >
             <svg className="h-4 w-4" viewBox="0 0 24 24">
@@ -528,7 +571,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => toast("Social authentication is coming soon!", { icon: "🚀" })}
+            onClick={() =>
+              toast("Social authentication is coming soon!", { icon: "🚀" })
+            }
             className="h-10 rounded-xl border border-indigo-500/20 bg-background/50 gap-2 text-xs font-semibold hover:border-indigo-500/50 hover:bg-indigo-500/10 cursor-pointer"
           >
             <Github className="h-4 w-4" />
@@ -543,5 +588,5 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

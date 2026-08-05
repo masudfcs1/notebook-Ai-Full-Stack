@@ -1,151 +1,181 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useRef, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Radio, Pause, Play, Square, Download, Sparkles, Save, FileText,
-  Clock, Users, Hash, Mic, Check, ChevronDown,
-} from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { addNote, setGenerating, addSummary, addTask } from "@/lib/redux/dataSlice"
-import { setView, setActiveNote, pushNotification } from "@/lib/redux/appSlice"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+  Radio,
+  Pause,
+  Play,
+  Square,
+  Download,
+  Sparkles,
+  Save,
+  FileText,
+  Clock,
+  Users,
+  Hash,
+  Mic,
+  Check,
+  ChevronDown,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { apiService } from "@/services/apiService"
+  addNote,
+  setGenerating,
+  addSummary,
+  addTask,
+} from "@/lib/redux/dataSlice";
+import { setView, setActiveNote, pushNotification } from "@/lib/redux/appSlice";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { apiService } from "@/services/apiService";
 
 export function OngoingView() {
-  const dispatch = useAppDispatch()
-  const [title, setTitle] = useState("Untitled Meeting")
-  const [content, setContent] = useState("")
-  const [running, setRunning] = useState(true)
-  const [seconds, setSeconds] = useState(0)
-  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle")
-  const [summarizing, setSummarizing] = useState(false)
-  const [participants, setParticipants] = useState("")
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const dispatch = useAppDispatch();
+  const [title, setTitle] = useState("Untitled Meeting");
+  const [content, setContent] = useState("");
+  const [running, setRunning] = useState(true);
+  const [seconds, setSeconds] = useState(0);
+  const [saved, setSaved] = useState<"idle" | "saving" | "saved">("idle");
+  const [summarizing, setSummarizing] = useState(false);
+  const [participants, setParticipants] = useState("");
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const saveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // timer
   useEffect(() => {
     if (running) {
-      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000)
+      timerRef.current = setInterval(() => setSeconds((s) => s + 1), 1000);
     }
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current)
-    }
-  }, [running])
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [running]);
 
   // autosave
   useEffect(() => {
-    if (!content) return
-    setSaved("saving")
-    if (saveRef.current) clearTimeout(saveRef.current)
-    saveRef.current = setTimeout(() => setSaved("saved"), 800)
+    if (!content) return;
+    setSaved("saving");
+    if (saveRef.current) clearTimeout(saveRef.current);
+    saveRef.current = setTimeout(() => setSaved("saved"), 800);
     return () => {
-      if (saveRef.current) clearTimeout(saveRef.current)
-    }
-  }, [content, title])
+      if (saveRef.current) clearTimeout(saveRef.current);
+    };
+  }, [content, title]);
 
-  const mm = String(Math.floor(seconds / 60)).padStart(2, "0")
-  const ss = String(seconds % 60).padStart(2, "0")
-  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0
+  const mm = String(Math.floor(seconds / 60)).padStart(2, "0");
+  const ss = String(seconds % 60).padStart(2, "0");
+  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
 
   function exportText(format: "txt" | "doc" | "docx") {
-    const stamp = new Date().toLocaleString()
-    const header = `${title}\nDate: ${stamp}\nDuration: ${mm}:${ss}\nParticipants: ${participants || "—"}\n${"-".repeat(40)}\n\n`
-    const body = content || "(no notes captured)"
-    const full = header + body
-    const blob = new Blob([full], { type: "text/plain;charset=utf-8" })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement("a")
-    a.href = url
-    const safe = title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "meeting"
-    a.download = `${safe}.${format}`
-    a.click()
-    URL.revokeObjectURL(url)
-    toast.success(`Exported as .${format}`)
+    const stamp = new Date().toLocaleString();
+    const header = `${title}\nDate: ${stamp}\nDuration: ${mm}:${ss}\nParticipants: ${participants || "—"}\n${"-".repeat(40)}\n\n`;
+    const body = content || "(no notes captured)";
+    const full = header + body;
+    const blob = new Blob([full], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safe = title.replace(/[^a-z0-9]+/gi, "-").toLowerCase() || "meeting";
+    a.download = `${safe}.${format}`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success(`Exported as .${format}`);
   }
 
   function saveAsNote() {
     if (!content.trim()) {
-      toast.error("Add some notes before saving.")
-      return
+      toast.error("Add some notes before saving.");
+      return;
     }
-    const id = `note-${Date.now()}`
-    dispatch(addNote({
-      id,
-      title: title.trim() || "Untitled Meeting",
-      content,
-      source: "ongoing",
-      status: "draft",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }))
-    dispatch(setActiveNote(id))
-    toast.success("Saved to your notes")
+    const id = `note-${Date.now()}`;
+    dispatch(
+      addNote({
+        id,
+        title: title.trim() || "Untitled Meeting",
+        content,
+        source: "ongoing",
+        status: "draft",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }),
+    );
+    dispatch(setActiveNote(id));
+    toast.success("Saved to your notes");
   }
 
   async function forwardToAI() {
     if (content.trim().length < 20) {
-      toast.error("Add at least a few sentences before summarizing.")
-      return
+      toast.error("Add at least a few sentences before summarizing.");
+      return;
     }
-    setSummarizing(true)
-    dispatch(setGenerating(true))
+    setSummarizing(true);
+    dispatch(setGenerating(true));
     try {
-      const data = await apiService.summarizeNotes(title, content)
-      const noteId = data.noteId || `note-${Date.now()}`
-      dispatch(addNote({
-        id: noteId,
-        title: title.trim() || "Untitled Meeting",
-        content,
-        source: "ongoing",
-        status: "summarized",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }))
-      dispatch(addSummary({
-        id: `sum-${Date.now()}`,
-        noteId,
-        content: data.summary.content,
-        keyPoints: data.summary.keyPoints,
-        decisions: data.summary.decisions,
-        participants: data.summary.participants,
-        sentiment: data.summary.sentiment,
-        wordCount: data.summary.wordCount,
-        createdAt: new Date().toISOString(),
-      }))
-      data.actionItems.forEach((a: any) => {
-        dispatch(addTask({
-          id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-          noteId,
-          title: a.title,
-          assignee: a.assignee || undefined,
-          dueDate: a.dueDate || undefined,
-          priority: a.priority,
-          status: "pending",
+      const data = await apiService.summarizeNotes(title, content);
+      const noteId = data.noteId || `note-${Date.now()}`;
+      dispatch(
+        addNote({
+          id: noteId,
+          title: title.trim() || "Untitled Meeting",
+          content,
+          source: "ongoing",
+          status: "summarized",
           createdAt: new Date().toISOString(),
-        }))
-      })
-      dispatch(setActiveNote(noteId))
-      dispatch(pushNotification({
-        title: "Summary ready",
-        description: `“${title}” was summarized by AI.`,
-        type: "success",
-      }))
-      toast.success("AI summary generated!")
-      dispatch(setView("summary"))
+          updatedAt: new Date().toISOString(),
+        }),
+      );
+      dispatch(
+        addSummary({
+          id: `sum-${Date.now()}`,
+          noteId,
+          content: data.summary.content,
+          keyPoints: data.summary.keyPoints,
+          decisions: data.summary.decisions,
+          participants: data.summary.participants,
+          sentiment: data.summary.sentiment,
+          wordCount: data.summary.wordCount,
+          createdAt: new Date().toISOString(),
+        }),
+      );
+      data.actionItems.forEach((a: any) => {
+        dispatch(
+          addTask({
+            id: `task-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            noteId,
+            title: a.title,
+            assignee: a.assignee || undefined,
+            dueDate: a.dueDate || undefined,
+            priority: a.priority,
+            status: "pending",
+            createdAt: new Date().toISOString(),
+          }),
+        );
+      });
+      dispatch(setActiveNote(noteId));
+      dispatch(
+        pushNotification({
+          title: "Summary ready",
+          description: `“${title}” was summarized by AI.`,
+          type: "success",
+        }),
+      );
+      toast.success("AI summary generated!");
+      dispatch(setView("summary"));
     } catch (err: any) {
-      toast.error(err.message || "Summarization failed")
+      toast.error(err.message || "Summarization failed");
     } finally {
-      setSummarizing(false)
-      dispatch(setGenerating(false))
+      setSummarizing(false);
+      dispatch(setGenerating(false));
     }
   }
 
@@ -155,7 +185,7 @@ export function OngoingView() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 rounded-2xl border border-rose-500/20 bg-gradient-to-r from-rose-500/10 via-orange-500/5 to-transparent p-4 backdrop-blur-sm md:flex-row md:items-center md:justify-between"
+        className="flex flex-col gap-4 rounded-2xl border border-rose-500/20  from-rose-500/10 via-orange-500/5 to-transparent p-4 backdrop-blur-sm md:flex-row md:items-center md:justify-between"
       >
         <div className="flex items-center gap-3">
           <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/30">
@@ -167,11 +197,23 @@ export function OngoingView() {
           <div>
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold">Live capture</span>
-              <Badge variant="secondary" className={cn(
-                "gap-1 text-[10px]",
-                running ? "bg-rose-500/15 text-rose-500" : "bg-muted text-muted-foreground"
-              )}>
-                <span className={cn("h-1.5 w-1.5 rounded-full", running ? "animate-pulse bg-rose-500" : "bg-muted-foreground")} />
+              <Badge
+                variant="secondary"
+                className={cn(
+                  "gap-1 text-[10px]",
+                  running
+                    ? "bg-rose-500/15 text-rose-500"
+                    : "bg-muted text-muted-foreground",
+                )}
+              >
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    running
+                      ? "animate-pulse bg-rose-500"
+                      : "bg-muted-foreground",
+                  )}
+                />
                 {running ? "Recording" : "Paused"}
               </Badge>
             </div>
@@ -189,19 +231,34 @@ export function OngoingView() {
             onClick={() => setRunning((r) => !r)}
             className="gap-1.5 rounded-xl"
           >
-            {running ? <><Pause className="h-4 w-4" /> Pause</> : <><Play className="h-4 w-4" /> Resume</>}
+            {running ? (
+              <>
+                <Pause className="h-4 w-4" /> Pause
+              </>
+            ) : (
+              <>
+                <Play className="h-4 w-4" /> Resume
+              </>
+            )}
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => { setRunning(false); toast.info("Meeting stopped") }}
+            onClick={() => {
+              setRunning(false);
+              toast.info("Meeting stopped");
+            }}
             className="gap-1.5 rounded-xl"
           >
             <Square className="h-4 w-4" /> Stop
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5 rounded-xl">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1.5 rounded-xl"
+              >
                 <Download className="h-4 w-4" /> Export
                 <ChevronDown className="h-3 w-3" />
               </Button>
@@ -240,12 +297,25 @@ export function OngoingView() {
             <div className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <AnimatePresence mode="wait">
                 {saved === "saving" && (
-                  <motion.span key="saving" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1">
-                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" /> Saving…
+                  <motion.span
+                    key="saving"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1"
+                  >
+                    <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-500" />{" "}
+                    Saving…
                   </motion.span>
                 )}
                 {saved === "saved" && (
-                  <motion.span key="saved" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1 text-emerald-500">
+                  <motion.span
+                    key="saved"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="flex items-center gap-1 text-emerald-500"
+                  >
                     <Check className="h-3 w-3" /> Auto-saved
                   </motion.span>
                 )}
@@ -290,27 +360,41 @@ Tips:
               </div>
               <div>
                 <h3 className="text-sm font-semibold">Forward to AI</h3>
-                <p className="text-[11px] text-muted-foreground">Generate summary + action items</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Generate summary + action items
+                </p>
               </div>
             </div>
             <Button
               onClick={forwardToAI}
               disabled={summarizing || content.trim().length < 20}
-              className="w-full gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25 hover:opacity-95 disabled:opacity-50"
+              className="w-full gap-2 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25 hover:opacity-95 disabled:opacity-50"
             >
               {summarizing ? (
                 <>
-                  <span className="ai-dot h-1.5 w-1.5 rounded-full bg-white" style={{ animationDelay: "0ms" }} />
-                  <span className="ai-dot h-1.5 w-1.5 rounded-full bg-white" style={{ animationDelay: "200ms" }} />
-                  <span className="ai-dot h-1.5 w-1.5 rounded-full bg-white" style={{ animationDelay: "400ms" }} />
+                  <span
+                    className="ai-dot h-1.5 w-1.5 rounded-full bg-white"
+                    style={{ animationDelay: "0ms" }}
+                  />
+                  <span
+                    className="ai-dot h-1.5 w-1.5 rounded-full bg-white"
+                    style={{ animationDelay: "200ms" }}
+                  />
+                  <span
+                    className="ai-dot h-1.5 w-1.5 rounded-full bg-white"
+                    style={{ animationDelay: "400ms" }}
+                  />
                   <span className="ml-1">Analyzing…</span>
                 </>
               ) : (
-                <><Sparkles className="h-4 w-4" /> Generate AI Summary</>
+                <>
+                  <Sparkles className="h-4 w-4" /> Generate AI Summary
+                </>
               )}
             </Button>
             <p className="mt-2 text-[11px] text-muted-foreground">
-              Ends the meeting and creates a summarized note with extracted tasks.
+              Ends the meeting and creates a summarized note with extracted
+              tasks.
             </p>
           </Card>
 
@@ -326,5 +410,5 @@ Tips:
         </div>
       </div>
     </div>
-  )
+  );
 }

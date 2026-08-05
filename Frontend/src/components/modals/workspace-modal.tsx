@@ -1,37 +1,40 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Building2, X, Plus, Sparkles, Check } from "lucide-react"
-import { useAppDispatch } from "@/lib/redux/hooks"
-import { addWorkspace } from "@/lib/redux/dataSlice"
-import { pushNotification } from "@/lib/redux/appSlice"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Building2, X, Plus, Sparkles, Check } from "lucide-react";
+import { useAppDispatch } from "@/lib/redux/hooks";
+import { addWorkspace } from "@/lib/redux/dataSlice";
+import { pushNotification } from "@/lib/redux/appSlice";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface Props {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
-const ICONS = ["⚡", "🧠", "🚀", "💻", "🎨", "🔥", "🌐", "💎"]
+const ICONS = ["⚡", "🧠", "🚀", "💻", "🎨", "🔥", "🌐", "💎"];
 
 export function WorkspaceModal({ open, onClose }: Props) {
-  const dispatch = useAppDispatch()
-  const [name, setName] = useState("")
-  const [description, setDescription] = useState("")
-  const [icon, setIcon] = useState("⚡")
+  const dispatch = useAppDispatch();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [icon, setIcon] = useState("⚡");
 
-  if (!open) return null
+  if (!open) return null;
 
   function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
+    e.preventDefault();
     if (!name.trim()) {
-      toast.error("Workspace name is required")
-      return
+      toast.error("Workspace name is required");
+      return;
     }
 
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+    const slug = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
     const newWs = {
       id: `ws-${Date.now()}`,
       name: name.trim(),
@@ -57,18 +60,20 @@ export function WorkspaceModal({ open, onClose }: Props) {
           ],
         },
       ],
-    }
+    };
 
-    dispatch(addWorkspace(newWs))
-    dispatch(pushNotification({
-      title: "Workspace created",
-      description: `Created new workspace "${name.trim()}".`,
-      type: "success",
-    }))
-    toast.success(`Workspace "${name.trim()}" created!`)
-    setName("")
-    setDescription("")
-    onClose()
+    dispatch(addWorkspace(newWs));
+    dispatch(
+      pushNotification({
+        title: "Workspace created",
+        description: `Created new workspace "${name.trim()}".`,
+        type: "success",
+      }),
+    );
+    toast.success(`Workspace "${name.trim()}" created!`);
+    setName("");
+    setDescription("");
+    onClose();
   }
 
   return (
@@ -94,7 +99,9 @@ export function WorkspaceModal({ open, onClose }: Props) {
               </div>
               <div>
                 <h2 className="text-lg font-bold">Create New Workspace</h2>
-                <p className="text-xs text-muted-foreground">Workspaces isolate teams, notes, and action items</p>
+                <p className="text-xs text-muted-foreground">
+                  Workspaces isolate teams, notes, and action items
+                </p>
               </div>
             </div>
             <button
@@ -156,10 +163,18 @@ export function WorkspaceModal({ open, onClose }: Props) {
             </div>
 
             <div className="flex items-center justify-end gap-3 pt-2">
-              <Button type="button" variant="outline" onClick={onClose} className="rounded-xl">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                className="rounded-xl"
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg">
+              <Button
+                type="submit"
+                className="gap-2 rounded-xl  from-indigo-500 to-cyan-500 text-white shadow-lg"
+              >
                 <Plus className="h-4 w-4" />
                 Create Workspace
               </Button>
@@ -168,5 +183,5 @@ export function WorkspaceModal({ open, onClose }: Props) {
         </motion.div>
       </div>
     </AnimatePresence>
-  )
+  );
 }

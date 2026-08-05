@@ -1,16 +1,33 @@
-'use client'
+"use client";
 
 import {
-  Search, Menu, Sun, Moon, Command, Plus, Sparkles, X, ChevronDown,
-  LayoutDashboard, Settings, LogOut, User as UserIcon, Shield,
-} from "lucide-react"
-import { useTheme } from "next-themes"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setMobileNav, setView, toggleAiWidget, setSearchQuery } from "@/lib/redux/appSlice"
-import { logout } from "@/lib/redux/authSlice"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+  Search,
+  Menu,
+  Sun,
+  Moon,
+  Command,
+  Plus,
+  Sparkles,
+  X,
+  ChevronDown,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+  User as UserIcon,
+  Shield,
+} from "lucide-react";
+import { useTheme } from "next-themes";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  setMobileNav,
+  setView,
+  toggleAiWidget,
+  setSearchQuery,
+} from "@/lib/redux/appSlice";
+import { logout } from "@/lib/redux/authSlice";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,44 +35,44 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { motion } from "framer-motion"
-import { useEffect, useState } from "react"
-import { VIEW_METADATA } from "@/constants"
-import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
+import { VIEW_METADATA } from "@/constants";
+import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils";
 
 export function Topbar() {
-  const dispatch = useAppDispatch()
-  const view = useAppSelector((s) => s.app.view)
-  const searchQuery = useAppSelector((s) => s.app.searchQuery)
-  const user = useAppSelector((s) => s.auth.user)
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const [digitalTime, setDigitalTime] = useState("")
+  const dispatch = useAppDispatch();
+  const view = useAppSelector((s) => s.app.view);
+  const searchQuery = useAppSelector((s) => s.app.searchQuery);
+  const user = useAppSelector((s) => s.auth.user);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const [digitalTime, setDigitalTime] = useState("");
 
-  const avatarSrc = getAvatarUrl(user?.avatar)
-  const displayName = getUserDisplayName(user, "Account")
-  const displayEmail = user?.email || ""
-  const initials = getUserInitials(user?.name, user?.email)
-  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN"
+  const avatarSrc = getAvatarUrl(user?.avatar);
+  const displayName = getUserDisplayName(user, "Account");
+  const displayEmail = user?.email || "";
+  const initials = getUserInitials(user?.name, user?.email);
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true)
+    setMounted(true);
     const updateClock = () => {
-      const now = new Date()
-      const hrs = String(now.getHours()).padStart(2, "0")
-      const mins = String(now.getMinutes()).padStart(2, "0")
-      const secs = String(now.getSeconds()).padStart(2, "0")
-      setDigitalTime(`${hrs}:${mins}:${secs}`)
-    }
-    updateClock()
-    const timer = setInterval(updateClock, 1000)
-    return () => clearInterval(timer)
-  }, [])
+      const now = new Date();
+      const hrs = String(now.getHours()).padStart(2, "0");
+      const mins = String(now.getMinutes()).padStart(2, "0");
+      const secs = String(now.getSeconds()).padStart(2, "0");
+      setDigitalTime(`${hrs}:${mins}:${secs}`);
+    };
+    updateClock();
+    const timer = setInterval(updateClock, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
-  const meta = VIEW_METADATA[view] ?? VIEW_METADATA.dashboard
+  const meta = VIEW_METADATA[view] ?? VIEW_METADATA.dashboard;
 
   return (
     <header className="digital-hud-glass digital-scanline sticky top-0 z-20 flex h-16 items-center justify-between gap-3 px-4 backdrop-blur-2xl md:px-6">
@@ -85,7 +102,9 @@ export function Topbar() {
               {meta.title}
             </motion.h1>
           </div>
-          <p className="hidden truncate text-xs text-muted-foreground sm:block">{meta.subtitle}</p>
+          <p className="hidden truncate text-xs text-muted-foreground sm:block">
+            {meta.subtitle}
+          </p>
         </div>
       </div>
 
@@ -97,11 +116,15 @@ export function Topbar() {
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </span>
-          <span className="font-semibold tracking-wider text-[10px]">SYS: OPTIMAL</span>
+          <span className="font-semibold tracking-wider text-[10px]">
+            SYS: OPTIMAL
+          </span>
           {digitalTime && (
             <>
               <span className="text-emerald-500/40">|</span>
-              <span className="font-mono text-[10px] text-muted-foreground">{digitalTime}</span>
+              <span className="font-mono text-[10px] text-muted-foreground">
+                {digitalTime}
+              </span>
             </>
           )}
         </div>
@@ -134,7 +157,7 @@ export function Topbar() {
           variant="outline"
           size="sm"
           onClick={() => dispatch(toggleAiWidget())}
-          className="relative hidden h-9 items-center gap-2 rounded-xl border border-indigo-500/40 bg-gradient-to-r from-indigo-500/10 via-violet-500/10 to-indigo-500/5 px-3 text-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:border-indigo-500/70 hover:bg-indigo-500/15 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] dark:text-indigo-300 sm:flex"
+          className="relative hidden h-9 items-center gap-2 rounded-xl border border-indigo-500/40  from-indigo-500/10 via-violet-500/10 to-indigo-500/5 px-3 text-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:border-indigo-500/70 hover:bg-indigo-500/15 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] dark:text-indigo-300 sm:flex"
         >
           <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
           <span className="text-xs font-semibold tracking-tight">Ask AI</span>
@@ -148,10 +171,12 @@ export function Topbar() {
           variant="default"
           size="sm"
           onClick={() => dispatch(setView("upload"))}
-          className="h-9 gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-md shadow-indigo-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] hover:opacity-95"
+          className="h-9 gap-1.5 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-md shadow-indigo-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] hover:opacity-95"
         >
           <Plus className="h-4 w-4" />
-          <span className="hidden text-xs font-semibold sm:inline">New Note</span>
+          <span className="hidden text-xs font-semibold sm:inline">
+            New Note
+          </span>
         </Button>
 
         {/* Theme Toggle HUD Icon */}
@@ -175,7 +200,9 @@ export function Topbar() {
             <DropdownMenuTrigger asChild>
               <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
                 <Avatar className="h-7 w-7 border border-indigo-500/30">
-                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                  {avatarSrc && (
+                    <AvatarImage src={avatarSrc} alt={displayName} />
+                  )}
                   <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
                     {initials}
                   </AvatarFallback>
@@ -189,8 +216,12 @@ export function Topbar() {
             <DropdownMenuContent align="end" className="w-56 p-1">
               <DropdownMenuLabel className="font-normal px-2 py-1.5">
                 <div className="flex flex-col space-y-0.5">
-                  <p className="text-xs font-semibold leading-tight">{displayName}</p>
-                  <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+                  <p className="text-xs font-semibold leading-tight">
+                    {displayName}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground truncate">
+                    {displayEmail}
+                  </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
@@ -209,7 +240,8 @@ export function Topbar() {
                 onClick={() => dispatch(setView("dashboard"))}
                 className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
               >
-                <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" /> Dashboard
+                <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" />{" "}
+                Dashboard
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() => dispatch(setView("settings"))}
@@ -220,8 +252,8 @@ export function Topbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  dispatch(logout())
-                  dispatch(setView("login"))
+                  dispatch(logout());
+                  dispatch(setView("login"));
                 }}
                 className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
               >
@@ -251,5 +283,5 @@ export function Topbar() {
         )}
       </div>
     </header>
-  )
+  );
 }

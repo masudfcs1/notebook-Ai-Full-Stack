@@ -213,7 +213,7 @@ export function TeamModal({ open, onClose }: Props) {
               </Button>
               <Button
                 type="submit"
-                className="gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg"
+                className="gap-2 rounded-xl  from-cyan-500 to-blue-500 text-white shadow-lg"
               >
                 <Plus className="h-4 w-4" />
                 Create Team

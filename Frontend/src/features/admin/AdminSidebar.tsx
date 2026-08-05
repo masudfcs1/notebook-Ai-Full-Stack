@@ -1,34 +1,43 @@
-'use client'
+"use client";
 
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import {
   PanelLeftClose,
   PanelLeft,
   LogOut,
   ArrowLeftRight,
   Shield,
-} from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setView, toggleSidebar } from "@/lib/redux/appSlice"
-import { logout } from "@/lib/redux/authSlice"
-import { Logo, Wordmark } from "@/features/navigation"
-import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
-import { ADMIN_NAVIGATION_GROUPS } from "@/constants/admin"
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { setView, toggleSidebar } from "@/lib/redux/appSlice";
+import { logout } from "@/lib/redux/authSlice";
+import { Logo, Wordmark } from "@/features/navigation";
+import {
+  cn,
+  getUserDisplayName,
+  getUserInitials,
+  getAvatarUrl,
+} from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { ADMIN_NAVIGATION_GROUPS } from "@/constants/admin";
 
 export function AdminSidebar() {
-  const dispatch = useAppDispatch()
-  const user = useAppSelector((s) => s.auth.user)
-  const view = useAppSelector((s) => s.app.view)
-  const collapsed = useAppSelector((s) => s.app.sidebarCollapsed)
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
+  const view = useAppSelector((s) => s.app.view);
+  const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
 
-  const avatarSrc = getAvatarUrl(user?.avatar)
-  const displayName = getUserDisplayName(user, "Admin")
-  const displayEmail = user?.email || "admin@noteflow.ai"
-  const initials = getUserInitials(user?.name, user?.email)
+  const avatarSrc = getAvatarUrl(user?.avatar);
+  const displayName = getUserDisplayName(user, "Admin");
+  const displayEmail = user?.email || "admin@noteflow.ai";
+  const initials = getUserInitials(user?.name, user?.email);
 
   return (
     <motion.aside
@@ -36,7 +45,7 @@ export function AdminSidebar() {
       animate={{ width: collapsed ? 80 : 272 }}
       transition={{ type: "spring", stiffness: 280, damping: 30 }}
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-rose-500/10 bg-sidebar/95 text-sidebar-foreground backdrop-blur-2xl lg:flex z-30"
+        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-rose-500/10 bg-sidebar/95 text-sidebar-foreground backdrop-blur-2xl lg:flex z-30",
       )}
     >
       {/* Header / Logo */}
@@ -46,7 +55,10 @@ export function AdminSidebar() {
           className="flex items-center gap-3 overflow-hidden text-left"
           aria-label="Go to admin dashboard"
         >
-          <Logo size={36} className="transition-transform hover:scale-105 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]" />
+          <Logo
+            size={36}
+            className="transition-transform hover:scale-105 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]"
+          />
           {!collapsed && (
             <motion.div
               initial={{ opacity: 0, x: -8 }}
@@ -99,8 +111,8 @@ export function AdminSidebar() {
               </motion.p>
             )}
             {group.items.map((item) => {
-              const isActive = view === item.key
-              const Icon = item.icon
+              const isActive = view === item.key;
+              const Icon = item.icon;
 
               const btn = (
                 <button
@@ -109,8 +121,8 @@ export function AdminSidebar() {
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
-                      ? "bg-gradient-to-r from-rose-500/15 to-amber-500/10 text-foreground shadow-sm shadow-rose-500/10"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? " from-rose-500/15 to-amber-500/10 text-foreground shadow-sm shadow-rose-500/10"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   {/* Active indicator bar */}
@@ -118,7 +130,11 @@ export function AdminSidebar() {
                     <motion.div
                       layoutId="admin-sidebar-active"
                       className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-rose-500 to-amber-500"
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 300,
+                        damping: 30,
+                      }}
                     />
                   )}
                   <div
@@ -126,7 +142,7 @@ export function AdminSidebar() {
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
                       isActive
                         ? `bg-gradient-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
-                        : "bg-muted text-muted-foreground group-hover:text-foreground"
+                        : "bg-muted text-muted-foreground group-hover:text-foreground",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -141,20 +157,23 @@ export function AdminSidebar() {
                     </motion.span>
                   )}
                 </button>
-              )
+              );
 
               if (collapsed) {
                 return (
                   <Tooltip key={item.key}>
                     <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                    <TooltipContent side="right" className="text-xs font-medium">
+                    <TooltipContent
+                      side="right"
+                      className="text-xs font-medium"
+                    >
                       {item.label}
                     </TooltipContent>
                   </Tooltip>
-                )
+                );
               }
 
-              return btn
+              return btn;
             })}
           </div>
         ))}
@@ -203,8 +222,12 @@ export function AdminSidebar() {
               animate={{ opacity: 1 }}
               className="min-w-0 flex-1 text-left"
             >
-              <p className="truncate text-xs font-semibold text-foreground">{displayName}</p>
-              <p className="truncate text-[10px] text-muted-foreground">{displayEmail}</p>
+              <p className="truncate text-xs font-semibold text-foreground">
+                {displayName}
+              </p>
+              <p className="truncate text-[10px] text-muted-foreground">
+                {displayEmail}
+              </p>
             </motion.div>
           )}
           {!collapsed ? (
@@ -214,8 +237,8 @@ export function AdminSidebar() {
               className="h-8 w-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
               title="Sign out"
               onClick={() => {
-                dispatch(logout())
-                dispatch(setView("login"))
+                dispatch(logout());
+                dispatch(setView("login"));
               }}
             >
               <LogOut className="h-4 w-4" />
@@ -228,8 +251,8 @@ export function AdminSidebar() {
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                   onClick={() => {
-                    dispatch(logout())
-                    dispatch(setView("login"))
+                    dispatch(logout());
+                    dispatch(setView("login"));
                   }}
                 >
                   <LogOut className="h-4 w-4" />
@@ -243,5 +266,5 @@ export function AdminSidebar() {
         </div>
       </div>
     </motion.aside>
-  )
+  );
 }
