@@ -94,13 +94,15 @@ export function MobileSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8"
+              className="h-8 w-8 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              title="Sign out"
+              aria-label="Sign out"
               onClick={() => {
                 dispatch(logout())
                 dispatch(setView("login"))
               }}
             >
-              <LogOut className="h-4 w-4 text-muted-foreground" />
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>

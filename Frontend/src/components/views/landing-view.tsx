@@ -5,13 +5,24 @@ import {
   Sparkles, FileText, CheckSquare, ArrowRight, Zap, Shield, Globe,
   Upload, Brain, TrendingUp, Star, Play,
 } from "lucide-react"
-import { useAppDispatch } from "@/lib/redux/hooks"
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView } from "@/lib/redux/appSlice"
+import { logout } from "@/lib/redux/authSlice"
 import { Button } from "@/components/ui/button"
 import { Logo, Wordmark } from "@/components/app/logo"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
-import { Moon, Sun } from "lucide-react"
+import { Moon, Sun, ChevronDown, LayoutDashboard, Settings, LogOut } from "lucide-react"
 import { useEffect, useState } from "react"
+import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
 
 const FEATURES = [
   { icon: Brain, title: "AI Summaries", desc: "Turn hours of notes into executive summaries in seconds.", gradient: "from-indigo-500 to-violet-500" },
@@ -37,10 +48,17 @@ const STATS = [
 
 export function LandingView() {
   const dispatch = useAppDispatch()
+  const user = useAppSelector((s) => s.auth.user)
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => setMounted(true), [])
+
+  const avatarSrc = getAvatarUrl(user?.avatar)
+  const displayName = getUserDisplayName(user, "Account")
+  const displayEmail = user?.email || ""
+  const initials = getUserInitials(user?.name, user?.email)
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-mesh">
@@ -83,24 +101,6 @@ export function LandingView() {
 
             <Button
               variant="ghost"
-              size="sm"
-              onClick={() => dispatch(setView("login"))}
-              className="hidden h-9 px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 md:flex rounded-xl"
-            >
-              Log In
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => dispatch(setView("signup"))}
-              className="hidden h-9 px-3 text-xs font-semibold border-indigo-500/30 bg-indigo-500/5 text-indigo-600 hover:bg-indigo-500/15 hover:border-indigo-500/60 dark:text-indigo-300 sm:flex rounded-xl"
-            >
-              Sign Up
-            </Button>
-
-            <Button
-              variant="ghost"
               size="icon"
               className="h-9 w-9 rounded-xl border border-border/60 bg-background/50 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-500"
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -109,12 +109,91 @@ export function LandingView() {
               {mounted && theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
             </Button>
 
-            <Button
-              onClick={() => dispatch(setView("dashboard"))}
-              className="h-9 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95"
-            >
-              Open App <ArrowRight className="h-3.5 w-3.5" />
-            </Button>
+            {isAuthenticated && user ? (
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
+                      <Avatar className="h-7 w-7 border border-indigo-500/30">
+                        {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
+                          {initials}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="hidden text-xs font-semibold text-foreground sm:inline-block max-w-[110px] truncate">
+                        {displayName}
+                      </span>
+                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56 p-1">
+                    <DropdownMenuLabel className="font-normal px-2 py-1.5">
+                      <div className="flex flex-col space-y-0.5">
+                        <p className="text-xs font-semibold leading-tight">{displayName}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+                      </div>
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => dispatch(setView("dashboard"))}
+                      className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
+                    >
+                      <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" /> Go to Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => dispatch(setView("settings"))}
+                      className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
+                    >
+                      <Settings className="h-3.5 w-3.5 text-indigo-500" /> Account Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        dispatch(logout())
+                        dispatch(setView("login"))
+                      }}
+                      className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
+                    >
+                      <LogOut className="h-3.5 w-3.5" /> Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  onClick={() => dispatch(setView("dashboard"))}
+                  className="h-9 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
+                >
+                  Dashboard <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => dispatch(setView("login"))}
+                  className="h-9 px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 rounded-xl cursor-pointer"
+                >
+                  Log In
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => dispatch(setView("signup"))}
+                  className="h-9 px-3 text-xs font-semibold border-indigo-500/30 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 dark:text-indigo-300 rounded-xl cursor-pointer"
+                >
+                  Sign Up
+                </Button>
+
+                <Button
+                  onClick={() => dispatch(setView("dashboard"))}
+                  className="h-9 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
+                >
+                  Open App <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </header>

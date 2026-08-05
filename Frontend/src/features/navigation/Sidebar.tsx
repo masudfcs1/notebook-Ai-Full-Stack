@@ -357,11 +357,11 @@ export function Sidebar() {
             <button
               onClick={() => dispatch(setView("settings"))}
               className={cn(
-                "flex flex-1 items-center gap-2.5 rounded-xl p-1.5 transition-colors hover:bg-sidebar-accent/60",
+                "flex flex-1 items-center gap-2.5 rounded-xl p-1.5 transition-all hover:bg-sidebar-accent/80 cursor-pointer",
                 collapsed && "w-full justify-center"
               )}
             >
-              <Avatar className="h-8 w-8 border border-sidebar-border">
+              <Avatar className="h-8 w-8 border border-sidebar-border shadow-sm">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
                 <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[11px] font-semibold text-white">
                   {initials}
@@ -377,28 +377,40 @@ export function Sidebar() {
             </button>
           </div>
 
-          <div className={cn("mt-2 flex", collapsed ? "justify-center" : "justify-between")}>
+          <div className={cn("mt-2 flex items-center", collapsed ? "flex-col gap-2" : "justify-between")}>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => dispatch(toggleSidebar())}
-              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground"
+              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground cursor-pointer"
             >
               {collapsed ? <PanelLeft className="h-4 w-4" /> : <><PanelLeftClose className="h-4 w-4" /> Collapse</>}
             </Button>
-            {!collapsed && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  dispatch(logout())
-                  dispatch(setView("login"))
-                }}
-                className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground"
-              >
-                <LogOut className="h-3.5 w-3.5" /> Sign out
-              </Button>
-            )}
+
+            <Tooltip delayDuration={collapsed ? 100 : 400}>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    dispatch(logout())
+                    dispatch(setView("login"))
+                  }}
+                  className={cn(
+                    "h-8 gap-1.5 px-2 text-xs text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer",
+                    collapsed && "w-8 p-0"
+                  )}
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  {!collapsed && <span>Sign out</span>}
+                </Button>
+              </TooltipTrigger>
+              {collapsed && (
+                <TooltipContent side="right" className="font-medium text-xs text-rose-500">
+                  Sign out
+                </TooltipContent>
+              )}
+            </Tooltip>
           </div>
         </div>
       </motion.aside>

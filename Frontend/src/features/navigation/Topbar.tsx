@@ -1,22 +1,43 @@
 'use client'
 
-import { Search, Menu, Sun, Moon, Command, Plus, Sparkles, X } from "lucide-react"
+import {
+  Search, Menu, Sun, Moon, Command, Plus, Sparkles, X, ChevronDown,
+  LayoutDashboard, Settings, LogOut, User as UserIcon,
+} from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setMobileNav, setView, toggleAiWidget, setSearchQuery } from "@/lib/redux/appSlice"
+import { logout } from "@/lib/redux/authSlice"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { VIEW_METADATA } from "@/constants"
+import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
 
 export function Topbar() {
   const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
   const searchQuery = useAppSelector((s) => s.app.searchQuery)
+  const user = useAppSelector((s) => s.auth.user)
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [digitalTime, setDigitalTime] = useState("")
+
+  const avatarSrc = getAvatarUrl(user?.avatar)
+  const displayName = getUserDisplayName(user, "Account")
+  const displayEmail = user?.email || ""
+  const initials = getUserInitials(user?.name, user?.email)
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -146,6 +167,76 @@ export function Topbar() {
             <Moon className="h-4 w-4 text-indigo-500" />
           )}
         </Button>
+
+        {/* User profile dropdown if logged in, else Log In / Sign Up buttons */}
+        {isAuthenticated && user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
+                <Avatar className="h-7 w-7 border border-indigo-500/30">
+                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                  <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden text-xs font-semibold text-foreground md:inline-block max-w-[110px] truncate">
+                  {displayName}
+                </span>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 p-1">
+              <DropdownMenuLabel className="font-normal px-2 py-1.5">
+                <div className="flex flex-col space-y-0.5">
+                  <p className="text-xs font-semibold leading-tight">{displayName}</p>
+                  <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => dispatch(setView("dashboard"))}
+                className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
+              >
+                <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" /> Dashboard
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => dispatch(setView("settings"))}
+                className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
+              >
+                <Settings className="h-3.5 w-3.5 text-indigo-500" /> Settings
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  dispatch(logout())
+                  dispatch(setView("login"))
+                }}
+                className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
+              >
+                <LogOut className="h-3.5 w-3.5" /> Sign out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-1.5">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => dispatch(setView("login"))}
+              className="h-9 px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 rounded-xl"
+            >
+              Log In
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => dispatch(setView("signup"))}
+              className="h-9 px-3 text-xs font-semibold border-indigo-500/30 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 dark:text-indigo-300 rounded-xl"
+            >
+              Sign Up
+            </Button>
+          </div>
+        )}
       </div>
     </header>
   )
