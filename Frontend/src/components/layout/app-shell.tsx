@@ -92,6 +92,16 @@ export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps
     )
   }
 
+  // Auth Guard: Unauthenticated / logged-out users cannot see the dashboard
+  if (!isAuthenticated) {
+    return (
+      <>
+        <AuthView initialMode="login" />
+        <AiAssistantWidget />
+      </>
+    )
+  }
+
   const ActiveViewComponent = VIEW_COMPONENT_REGISTRY[view] ?? DashboardView
 
   return (

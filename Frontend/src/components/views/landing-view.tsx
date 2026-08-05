@@ -187,7 +187,7 @@ export function LandingView() {
                 </Button>
 
                 <Button
-                  onClick={() => dispatch(setView("dashboard"))}
+                  onClick={() => dispatch(setView(isAuthenticated ? "dashboard" : "login"))}
                   className="h-9 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
                 >
                   Open App <ArrowRight className="h-3.5 w-3.5" />
