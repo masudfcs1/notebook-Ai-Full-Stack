@@ -10,7 +10,7 @@ import { setView, setActiveNote, pushNotification } from "@/lib/redux/appSlice"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
+import { cn, getUserDisplayName } from "@/lib/utils"
 import { EmptyState } from "@/components/app/empty-state"
 
 const STAT_CARDS = [
@@ -57,9 +57,12 @@ const QUICK_ACTIONS = [
 
 export function DashboardView() {
   const dispatch = useAppDispatch()
+  const user = useAppSelector((s) => s.auth.user)
   const notes = useAppSelector((s) => s.data.notes)
   const summaries = useAppSelector((s) => s.data.summaries)
   const tasks = useAppSelector((s) => s.data.tasks)
+
+  const userName = getUserDisplayName(user, "User")
 
   const stats = {
     notes: notes.length,
@@ -96,7 +99,7 @@ export function DashboardView() {
         <div className="relative flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
             <p className="text-xs font-medium uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
-              Welcome back, Arjun 👋
+              Welcome back, {userName} 👋
             </p>
             <h2 className="mt-1 text-xl font-semibold md:text-2xl">
               You have <span className="text-gradient">{tasks.filter((t) => t.status !== "completed").length} open action items</span> this week

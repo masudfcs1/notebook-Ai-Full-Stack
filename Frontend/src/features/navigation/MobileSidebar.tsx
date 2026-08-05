@@ -2,18 +2,26 @@
 
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setMobileNav, setView } from "@/lib/redux/appSlice"
+import { logout } from "@/lib/redux/authSlice"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Logo, Wordmark } from "./Logo"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
 import { NAVIGATION_GROUPS } from "@/constants"
+import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
 
 export function MobileSidebar() {
   const dispatch = useAppDispatch()
+  const user = useAppSelector((s) => s.auth.user)
   const open = useAppSelector((s) => s.app.mobileNavOpen)
   const view = useAppSelector((s) => s.app.view)
+
+  const avatarSrc = getAvatarUrl(user?.avatar)
+  const displayName = getUserDisplayName(user, "User Account")
+  const displayEmail = user?.email || "user@noteflow.ai"
+  const initials = getUserInitials(user?.name, user?.email)
 
   return (
     <Sheet open={open} onOpenChange={(v) => dispatch(setMobileNav(v))}>
@@ -74,19 +82,23 @@ export function MobileSidebar() {
         <div className="absolute bottom-0 inset-x-0 border-t border-border/60 p-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
+              {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
               <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white">
-                AK
+                {initials}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-xs font-semibold">Arjun Kapoor</p>
-              <p className="truncate text-[10px] text-muted-foreground">arjun@noteflow.ai</p>
+              <p className="truncate text-xs font-semibold">{displayName}</p>
+              <p className="truncate text-[10px] text-muted-foreground">{displayEmail}</p>
             </div>
             <Button
               variant="ghost"
               size="icon"
               className="h-8 w-8"
-              onClick={() => dispatch(setView("login"))}
+              onClick={() => {
+                dispatch(logout())
+                dispatch(setView("login"))
+              }}
             >
               <LogOut className="h-4 w-4 text-muted-foreground" />
             </Button>

@@ -5,6 +5,8 @@ import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, type ViewKey } from "@/lib/redux/appSlice"
 import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataSlice"
+import { setUser } from "@/lib/redux/authSlice"
+import { useGetMeQuery } from "@/lib/redux/api/authApiSlice"
 import { Sidebar, Topbar, MobileNav, MobileSidebar } from "@/features/navigation"
 import { AuthView } from "@/features/auth"
 import { LandingView } from "@/components/views/landing-view"
@@ -39,7 +41,17 @@ interface AppShellProps {
 export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps) {
   const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const pathname = usePathname()
+
+  // Fetch current user details if authenticated
+  const { data: meResponse } = useGetMeQuery(undefined, { skip: !isAuthenticated })
+
+  useEffect(() => {
+    if (meResponse?.success && meResponse?.data) {
+      dispatch(setUser(meResponse.data))
+    }
+  }, [meResponse, dispatch])
 
   // Sync workspace and team from URL slugs
   useEffect(() => {

@@ -17,9 +17,10 @@ import {
 } from "lucide-react"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, toggleSidebar, markAllNotificationsRead } from "@/lib/redux/appSlice"
+import { logout } from "@/lib/redux/authSlice"
 import { setActiveWorkspace, setActiveTeam } from "@/lib/redux/dataSlice"
 import { Logo, Wordmark } from "./Logo"
-import { cn } from "@/lib/utils"
+import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -38,10 +39,16 @@ import { TeamModal } from "@/components/modals/team-modal"
 
 export function Sidebar() {
   const dispatch = useAppDispatch()
+  const user = useAppSelector((s) => s.auth.user)
   const view = useAppSelector((s) => s.app.view)
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed)
   const notifications = useAppSelector((s) => s.app.notifications)
   const unread = notifications.filter((n) => !n.read).length
+
+  const avatarSrc = getAvatarUrl(user?.avatar)
+  const displayName = getUserDisplayName(user, "User Account")
+  const displayEmail = user?.email || "user@noteflow.ai"
+  const initials = getUserInitials(user?.name, user?.email)
 
   // Workspaces & Teams state
   const workspaces = useAppSelector((s) => s.data.workspaces)
@@ -355,15 +362,15 @@ export function Sidebar() {
               )}
             >
               <Avatar className="h-8 w-8 border border-sidebar-border">
-                <AvatarImage src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces" />
+                {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
                 <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[11px] font-semibold text-white">
-                  AK
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               {!collapsed && (
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-xs font-semibold text-sidebar-foreground">Arjun Kapoor</p>
-                  <p className="truncate text-[10px] text-muted-foreground">arjun@noteflow.ai</p>
+                  <p className="truncate text-xs font-semibold text-sidebar-foreground">{displayName}</p>
+                  <p className="truncate text-[10px] text-muted-foreground">{displayEmail}</p>
                 </div>
               )}
               {!collapsed && <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />}
@@ -383,7 +390,10 @@ export function Sidebar() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => dispatch(setView("login"))}
+                onClick={() => {
+                  dispatch(logout())
+                  dispatch(setView("login"))
+                }}
                 className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground"
               >
                 <LogOut className="h-3.5 w-3.5" /> Sign out

@@ -34,6 +34,12 @@ const getBaseUrl = () => {
   return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5015/api/v1";
 };
 
+export interface UpdateProfileRequest {
+  name?: string;
+  username?: string;
+  phone?: string;
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -65,6 +71,26 @@ export const authApi = createApi({
     getMe: builder.query<ApiResponse<User>, void>({
       query: () => "/auth/me",
     }),
+    updateProfile: builder.mutation<ApiResponse<User>, UpdateProfileRequest>({
+      query: (body) => ({
+        url: "/auth/profile",
+        method: "PATCH",
+        body,
+      }),
+    }),
+    updateProfileImage: builder.mutation<ApiResponse<User>, FormData>({
+      query: (formData) => ({
+        url: "/auth/profile-image",
+        method: "PATCH",
+        body: formData,
+      }),
+    }),
+    deleteProfileImage: builder.mutation<ApiResponse<void>, void>({
+      query: () => ({
+        url: "/auth/profile-image",
+        method: "DELETE",
+      }),
+    }),
     logoutUser: builder.mutation<ApiResponse<void>, void>({
       query: () => ({
         url: "/auth/logout",
@@ -78,5 +104,10 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useGetMeQuery,
+  useLazyGetMeQuery,
+  useUpdateProfileMutation,
+  useUpdateProfileImageMutation,
+  useDeleteProfileImageMutation,
   useLogoutUserMutation,
 } = authApi;
+

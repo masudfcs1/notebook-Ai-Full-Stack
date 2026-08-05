@@ -1,35 +1,41 @@
-'use client'
-
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
 import { motion } from "framer-motion"
 import {
   User, Bell, Palette, Shield, Sparkles, Moon, Sun, Check, Globe,
-  Mail, Lock, Smartphone, Zap, Download, Trash2,
+  Mail, Lock, Smartphone, Zap, Download, Trash2, Camera,
 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { useAppDispatch } from "@/lib/redux/hooks"
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { pushNotification } from "@/lib/redux/appSlice"
+import { setUser } from "@/lib/redux/authSlice"
+import { useUpdateProfileMutation, useUpdateProfileImageMutation } from "@/lib/redux/api/authApiSlice"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Badge } from "@/components/ui/badge"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
 import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
 
 export function SettingsView() {
   const { theme, setTheme } = useTheme()
   const dispatch = useAppDispatch()
-  const [name, setName] = useState("Arjun Kapoor")
-  const [email, setEmail] = useState("arjun@noteflow.ai")
-  const [role, setRole] = useState("Product Manager")
+  const user = useAppSelector((s) => s.auth.user)
+
+  const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation()
+  const [updateProfileImage, { isLoading: isUploadingImage }] = useUpdateProfileImageMutation()
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const [name, setName] = useState(user?.name || "")
+  const [email, setEmail] = useState(user?.email || "")
+  const [role, setRole] = useState(user?.role || "Member")
   const [timezone, setTimezone] = useState("Asia/Dhaka")
   const [prefs, setPrefs] = useState({
     emailSummaries: true,
@@ -40,21 +46,73 @@ export function SettingsView() {
     compactMode: false,
   })
 
+  useEffect(() => {
+    if (user) {
+      if (user.name) setName(user.name)
+      if (user.email) setEmail(user.email)
+      if (user.role) setRole(user.role)
+    }
+  }, [user])
+
+  const avatarSrc = getAvatarUrl(user?.avatar)
+  const displayName = getUserDisplayName(user, "User")
+  const initials = getUserInitials(user?.name, user?.email)
+
   function toggle(key: keyof typeof prefs) {
     setPrefs((p) => ({ ...p, [key]: !p[key] }))
   }
 
-  function save() {
-    toast.success("Settings saved")
-    dispatch(pushNotification({
-      title: "Settings updated",
-      description: "Your preferences have been saved.",
-      type: "info",
-    }))
+  async function save() {
+    try {
+      const res = await updateProfile({ name: name.trim() }).unwrap()
+      if (res.success && res.data) {
+        dispatch(setUser(res.data))
+        toast.success("Profile updated successfully")
+        dispatch(pushNotification({
+          title: "Settings updated",
+          description: "Your profile changes have been saved.",
+          type: "info",
+        }))
+      } else {
+        toast.error(res.message || "Failed to update profile")
+      }
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.error || "Error saving profile settings"
+      toast.error(msg)
+    }
+  }
+
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append("avatar", file)
+
+    const loadingToast = toast.loading("Uploading profile image...")
+    try {
+      const res = await updateProfileImage(formData).unwrap()
+      if (res.success && res.data) {
+        dispatch(setUser(res.data))
+        toast.success("Profile photo updated!", { id: loadingToast })
+      } else {
+        toast.error(res.message || "Upload failed", { id: loadingToast })
+      }
+    } catch (err: any) {
+      const msg = err?.data?.message || err?.error || "Failed to upload image"
+      toast.error(msg, { id: loadingToast })
+    }
   }
 
   return (
     <div className="mx-auto max-w-4xl">
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
       <Tabs defaultValue="profile">
         <TabsList className="flex w-full flex-wrap justify-start gap-1 overflow-x-auto rounded-xl bg-muted/50 p-1">
           <TabsTrigger value="profile" className="gap-1.5 rounded-lg text-sm"><User className="h-4 w-4" /> Profile</TabsTrigger>
@@ -68,20 +126,27 @@ export function SettingsView() {
         <TabsContent value="profile" className="mt-5 space-y-5">
           <Card className="border-border/50 p-5 backdrop-blur-sm md:p-6">
             <div className="mb-5 flex items-center gap-4">
-              <Avatar className="h-16 w-16 border-2 border-border">
+              <Avatar className="h-16 w-16 border-2 border-border shadow-md">
+                {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
                 <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-lg font-semibold text-white">
-                  AK
+                  {initials}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <h3 className="text-base font-semibold">{name}</h3>
+                <h3 className="text-base font-semibold">{displayName}</h3>
                 <p className="text-sm text-muted-foreground">{email}</p>
                 <Badge variant="secondary" className="mt-1 gap-1 bg-indigo-500/10 text-[10px] text-indigo-600 dark:text-indigo-300">
-                  <Sparkles className="h-2.5 w-2.5" /> Pro Plan
+                  <Sparkles className="h-2.5 w-2.5" /> {user?.role || "Active Member"}
                 </Badge>
               </div>
-              <Button variant="outline" size="sm" className="ml-auto gap-1.5 rounded-xl">
-                <Download className="h-3.5 w-3.5" /> Change photo
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUploadingImage}
+                onClick={() => fileInputRef.current?.click()}
+                className="ml-auto gap-1.5 rounded-xl cursor-pointer hover:border-indigo-500/40"
+              >
+                <Camera className="h-3.5 w-3.5" /> {isUploadingImage ? "Uploading..." : "Change photo"}
               </Button>
             </div>
             <Separator className="mb-5" />
@@ -90,7 +155,7 @@ export function SettingsView() {
                 <Input value={name} onChange={(e) => setName(e.target.value)} className="rounded-xl bg-muted/30" />
               </Field>
               <Field label="Email" icon={Mail}>
-                <Input value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-xl bg-muted/30" />
+                <Input value={email} disabled readOnly className="rounded-xl bg-muted/20 opacity-70 cursor-not-allowed" />
               </Field>
               <Field label="Role / Title" icon={Shield}>
                 <Input value={role} onChange={(e) => setRole(e.target.value)} className="rounded-xl bg-muted/30" />
@@ -109,8 +174,12 @@ export function SettingsView() {
               </Field>
             </div>
             <div className="mt-5 flex justify-end">
-              <Button onClick={save} className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md">
-                <Check className="h-4 w-4" /> Save changes
+              <Button
+                onClick={save}
+                disabled={isUpdatingProfile}
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
+              >
+                <Check className="h-4 w-4" /> {isUpdatingProfile ? "Saving..." : "Save changes"}
               </Button>
             </div>
           </Card>

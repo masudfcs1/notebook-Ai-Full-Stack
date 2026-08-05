@@ -24,8 +24,22 @@ const getInitialToken = (): string | null => {
   return null;
 };
 
+const getInitialUser = (): User | null => {
+  if (typeof window !== "undefined") {
+    const saved = localStorage.getItem("user");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+};
+
 const initialState: AuthState = {
-  user: null,
+  user: getInitialUser(),
   token: getInitialToken(),
   isAuthenticated: Boolean(getInitialToken()),
 };
@@ -44,11 +58,15 @@ export const authSlice = createSlice({
       state.isAuthenticated = true;
       if (typeof window !== "undefined") {
         localStorage.setItem("accessToken", token);
+        localStorage.setItem("user", JSON.stringify(user));
       }
     },
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.isAuthenticated = true;
+      if (typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      }
     },
     logout: (state) => {
       state.user = null;
@@ -56,6 +74,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false;
       if (typeof window !== "undefined") {
         localStorage.removeItem("accessToken");
+        localStorage.removeItem("user");
       }
     },
   },
