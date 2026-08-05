@@ -1,16 +1,26 @@
-'use client'
+"use client";
 
-import { motion } from "framer-motion"
+import { motion } from "framer-motion";
 import {
-  Sparkles, FileText, CheckSquare, ArrowRight, Zap, Shield, Globe,
-  Upload, Brain, TrendingUp, Star, Play,
-} from "lucide-react"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setView } from "@/lib/redux/appSlice"
-import { logout } from "@/lib/redux/authSlice"
-import { Button } from "@/components/ui/button"
-import { Logo, Wordmark } from "@/components/app/logo"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+  Sparkles,
+  FileText,
+  CheckSquare,
+  ArrowRight,
+  Zap,
+  Shield,
+  Globe,
+  Upload,
+  Brain,
+  TrendingUp,
+  Star,
+  Play,
+} from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { setView } from "@/lib/redux/appSlice";
+import { logout } from "@/lib/redux/authSlice";
+import { Button } from "@/components/ui/button";
+import { Logo, Wordmark } from "@/components/app/logo";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,47 +28,99 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
-import { Moon, Sun, ChevronDown, LayoutDashboard, Settings, LogOut } from "lucide-react"
-import { useEffect, useState } from "react"
-import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import { useTheme } from "next-themes";
+import {
+  Moon,
+  Sun,
+  ChevronDown,
+  LayoutDashboard,
+  Settings,
+  LogOut,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils";
 
 const FEATURES = [
-  { icon: Brain, title: "AI Summaries", desc: "Turn hours of notes into executive summaries in seconds.", gradient: "from-indigo-500 to-violet-500" },
-  { icon: CheckSquare, title: "Action Items", desc: "Auto-extract tasks, assignees, and due dates.", gradient: "from-emerald-500 to-teal-500" },
-  { icon: Zap, title: "Live Capture", desc: "Take notes during the meeting, export & summarize after.", gradient: "from-amber-500 to-orange-500" },
-  { icon: Shield, title: "Enterprise Ready", desc: "SSO, audit logs, and granular access control.", gradient: "from-rose-500 to-pink-500" },
-  { icon: Globe, title: "Any Source", desc: "Upload TXT, DOCX, or PDF — or paste raw notes.", gradient: "from-sky-500 to-cyan-500" },
-  { icon: TrendingUp, title: "Productivity", desc: "Track team velocity and meeting ROI over time.", gradient: "from-violet-500 to-fuchsia-500" },
-]
+  {
+    icon: Brain,
+    title: "AI Summaries",
+    desc: "Turn hours of notes into executive summaries in seconds.",
+    gradient: "from-indigo-500 to-violet-500",
+  },
+  {
+    icon: CheckSquare,
+    title: "Action Items",
+    desc: "Auto-extract tasks, assignees, and due dates.",
+    gradient: "from-emerald-500 to-teal-500",
+  },
+  {
+    icon: Zap,
+    title: "Live Capture",
+    desc: "Take notes during the meeting, export & summarize after.",
+    gradient: "from-amber-500 to-orange-500",
+  },
+  {
+    icon: Shield,
+    title: "Enterprise Ready",
+    desc: "SSO, audit logs, and granular access control.",
+    gradient: "from-rose-500 to-pink-500",
+  },
+  {
+    icon: Globe,
+    title: "Any Source",
+    desc: "Upload TXT, DOCX, or PDF — or paste raw notes.",
+    gradient: "from-sky-500 to-cyan-500",
+  },
+  {
+    icon: TrendingUp,
+    title: "Productivity",
+    desc: "Track team velocity and meeting ROI over time.",
+    gradient: "from-violet-500 to-fuchsia-500",
+  },
+];
 
 const STEPS = [
-  { n: "01", title: "Capture", desc: "Upload files or write notes live during your meeting.", icon: Upload },
-  { n: "02", title: "Summarize", desc: "AI generates an executive summary, key points, and decisions.", icon: Sparkles },
-  { n: "03", title: "Act", desc: "Action items land on your team board, ready to assign and ship.", icon: CheckSquare },
-]
+  {
+    n: "01",
+    title: "Capture",
+    desc: "Upload files or write notes live during your meeting.",
+    icon: Upload,
+  },
+  {
+    n: "02",
+    title: "Summarize",
+    desc: "AI generates an executive summary, key points, and decisions.",
+    icon: Sparkles,
+  },
+  {
+    n: "03",
+    title: "Act",
+    desc: "Action items land on your team board, ready to assign and ship.",
+    icon: CheckSquare,
+  },
+];
 
 const STATS = [
   { value: "10k+", label: "Meetings summarized" },
   { value: "98%", label: "Action item accuracy" },
   { value: "4.9★", label: "Average rating" },
   { value: "60s", label: "Avg. summary time" },
-]
+];
 
 export function LandingView() {
-  const dispatch = useAppDispatch()
-  const user = useAppSelector((s) => s.auth.user)
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
-  const { theme, setTheme } = useTheme()
-  const [mounted, setMounted] = useState(false)
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setMounted(true), [])
+  useEffect(() => setMounted(true), []);
 
-  const avatarSrc = getAvatarUrl(user?.avatar)
-  const displayName = getUserDisplayName(user, "Account")
-  const displayEmail = user?.email || ""
-  const initials = getUserInitials(user?.name, user?.email)
+  const avatarSrc = getAvatarUrl(user?.avatar);
+  const displayName = getUserDisplayName(user, "Account");
+  const displayEmail = user?.email || "";
+  const initials = getUserInitials(user?.name, user?.email);
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-mesh">
@@ -71,7 +133,10 @@ export function LandingView() {
       <header className="sticky top-0 z-40 px-4 pt-3 md:px-8">
         <div className="digital-hud-glass digital-scanline mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-indigo-500/30 bg-background/60 px-5 backdrop-blur-2xl transition-all duration-300">
           <div className="flex items-center gap-3">
-            <Logo size={36} className="neon-glow-indigo transition-transform hover:scale-105" />
+            <Logo
+              size={36}
+              className="neon-glow-indigo transition-transform hover:scale-105"
+            />
             <div className="flex items-center gap-2">
               <Wordmark className="text-base" />
               <span className="hidden rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 font-mono text-[9px] font-bold text-indigo-500 dark:text-indigo-400 sm:inline-block">
@@ -81,13 +146,22 @@ export function LandingView() {
           </div>
 
           <nav className="hidden items-center gap-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground md:flex">
-            <a href="#features" className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">
+            <a
+              href="#features"
+              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+            >
               Features
             </a>
-            <a href="#how" className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">
+            <a
+              href="#how"
+              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+            >
               How it works
             </a>
-            <a href="#stats" className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]">
+            <a
+              href="#stats"
+              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
+            >
               Stats
             </a>
           </nav>
@@ -106,7 +180,11 @@ export function LandingView() {
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
               aria-label="Toggle theme"
             >
-              {mounted && theme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4 text-indigo-500" />}
+              {mounted && theme === "dark" ? (
+                <Sun className="h-4 w-4 text-amber-400" />
+              ) : (
+                <Moon className="h-4 w-4 text-indigo-500" />
+              )}
             </Button>
 
             {isAuthenticated && user ? (
@@ -115,7 +193,9 @@ export function LandingView() {
                   <DropdownMenuTrigger asChild>
                     <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
                       <Avatar className="h-7 w-7 border border-indigo-500/30">
-                        {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                        {avatarSrc && (
+                          <AvatarImage src={avatarSrc} alt={displayName} />
+                        )}
                         <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
                           {initials}
                         </AvatarFallback>
@@ -129,8 +209,12 @@ export function LandingView() {
                   <DropdownMenuContent align="end" className="w-56 p-1">
                     <DropdownMenuLabel className="font-normal px-2 py-1.5">
                       <div className="flex flex-col space-y-0.5">
-                        <p className="text-xs font-semibold leading-tight">{displayName}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+                        <p className="text-xs font-semibold leading-tight">
+                          {displayName}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          {displayEmail}
+                        </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
@@ -138,19 +222,21 @@ export function LandingView() {
                       onClick={() => dispatch(setView("dashboard"))}
                       className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
                     >
-                      <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" /> Go to Dashboard
+                      <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" />{" "}
+                      Go to Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => dispatch(setView("settings"))}
                       className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
                     >
-                      <Settings className="h-3.5 w-3.5 text-indigo-500" /> Account Settings
+                      <Settings className="h-3.5 w-3.5 text-indigo-500" />{" "}
+                      Account Settings
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => {
-                        dispatch(logout())
-                        dispatch(setView("login"))
+                        dispatch(logout());
+                        dispatch(setView("login"));
                       }}
                       className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
                     >
@@ -187,7 +273,9 @@ export function LandingView() {
                 </Button>
 
                 <Button
-                  onClick={() => dispatch(setView(isAuthenticated ? "dashboard" : "login"))}
+                  onClick={() =>
+                    dispatch(setView(isAuthenticated ? "dashboard" : "login"))
+                  }
                   className="h-9 gap-2 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
                 >
                   Open App <ArrowRight className="h-3.5 w-3.5" />
@@ -213,7 +301,8 @@ export function LandingView() {
           <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
             Turn meeting chaos
             <br />
-            into <span className="text-gradient animate-gradient">clarity</span>.
+            into <span className="text-gradient animate-gradient">clarity</span>
+            .
           </h1>
           <p className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground md:text-lg">
             Upload notes, generate AI summaries, and extract actionable tasks —
@@ -234,7 +323,9 @@ export function LandingView() {
               <Play className="h-4 w-4" /> Watch live demo
             </Button>
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">No credit card required · Free 14-day trial</p>
+          <p className="mt-4 text-xs text-muted-foreground">
+            No credit card required · Free 14-day trial
+          </p>
         </motion.div>
 
         {/* Floating glass preview card */}
@@ -259,9 +350,24 @@ export function LandingView() {
             </div>
             <div className="grid gap-4 p-4 md:grid-cols-3 md:p-6">
               {[
-                { icon: FileText, label: "Total Notes", value: "128", grad: "from-indigo-500 to-violet-500" },
-                { icon: Sparkles, label: "AI Summaries", value: "96", grad: "from-violet-500 to-fuchsia-500" },
-                { icon: CheckSquare, label: "Action Items", value: "243", grad: "from-emerald-500 to-teal-500" },
+                {
+                  icon: FileText,
+                  label: "Total Notes",
+                  value: "128",
+                  grad: "from-indigo-500 to-violet-500",
+                },
+                {
+                  icon: Sparkles,
+                  label: "AI Summaries",
+                  value: "96",
+                  grad: "from-violet-500 to-fuchsia-500",
+                },
+                {
+                  icon: CheckSquare,
+                  label: "Action Items",
+                  value: "243",
+                  grad: "from-emerald-500 to-teal-500",
+                },
               ].map((c, i) => (
                 <motion.div
                   key={c.label}
@@ -270,7 +376,9 @@ export function LandingView() {
                   transition={{ delay: 0.4 + i * 0.1 }}
                   className="rounded-2xl border border-border/40 bg-card/60 p-4 backdrop-blur-sm"
                 >
-                  <div className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${c.grad} text-white`}>
+                  <div
+                    className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${c.grad} text-white`}
+                  >
                     <c.icon className="h-4 w-4" />
                   </div>
                   <p className="text-2xl font-bold">{c.value}</p>
@@ -279,15 +387,15 @@ export function LandingView() {
               ))}
             </div>
             <div className="border-t border-border/40 p-4 md:p-6">
-              <div className="rounded-2xl bg-gradient-to-r from-indigo-500/10 to-violet-500/10 p-4">
+              <div className="rounded-2xl from-indigo-500/10 to-violet-500/10 p-4">
                 <div className="mb-3 flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-indigo-500" />
                   <span className="text-sm font-medium">Latest AI Summary</span>
                 </div>
                 <p className="text-sm leading-relaxed text-muted-foreground">
-                  The Q3 planning meeting aligned the team on shipping dashboard v2,
-                  launching mobile beta, and reducing p95 latency below 200ms via a
-                  cache-layer migration…
+                  The Q3 planning meeting aligned the team on shipping dashboard
+                  v2, launching mobile beta, and reducing p95 latency below
+                  200ms via a cache-layer migration…
                 </p>
               </div>
             </div>
@@ -296,7 +404,10 @@ export function LandingView() {
       </section>
 
       {/* Stats band */}
-      <section id="stats" className="border-y border-border/40 bg-white/40 py-10 backdrop-blur-sm dark:bg-slate-900/40">
+      <section
+        id="stats"
+        className="border-y border-border/40 bg-white/40 py-10 backdrop-blur-sm dark:bg-slate-900/40"
+      >
         <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 px-4 md:grid-cols-4 md:px-8">
           {STATS.map((s, i) => (
             <motion.div
@@ -307,8 +418,12 @@ export function LandingView() {
               transition={{ delay: i * 0.08 }}
               className="text-center"
             >
-              <p className="text-3xl font-bold text-gradient md:text-4xl">{s.value}</p>
-              <p className="mt-1 text-xs text-muted-foreground md:text-sm">{s.label}</p>
+              <p className="text-3xl font-bold text-gradient md:text-4xl">
+                {s.value}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground md:text-sm">
+                {s.label}
+              </p>
             </motion.div>
           ))}
         </div>
@@ -318,10 +433,12 @@ export function LandingView() {
       <section id="features" className="mx-auto max-w-7xl px-4 py-20 md:px-8">
         <div className="mx-auto mb-12 max-w-2xl text-center">
           <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Everything your meetings <span className="text-gradient">deserve</span>
+            Everything your meetings{" "}
+            <span className="text-gradient">deserve</span>
           </h2>
           <p className="mt-3 text-muted-foreground">
-            A complete toolkit to capture, understand, and act on every conversation.
+            A complete toolkit to capture, understand, and act on every
+            conversation.
           </p>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -334,23 +451,31 @@ export function LandingView() {
               transition={{ delay: i * 0.06 }}
               className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10"
             >
-              <div className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${f.gradient} text-white shadow-lg`}>
+              <div
+                className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${f.gradient} text-white shadow-lg`}
+              >
                 <f.icon className="h-5 w-5" />
               </div>
               <h3 className="text-lg font-semibold">{f.title}</h3>
               <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
-              <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${f.gradient} opacity-0 blur-2xl transition-opacity group-hover:opacity-20`} />
+              <div
+                className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${f.gradient} opacity-0 blur-2xl transition-opacity group-hover:opacity-20`}
+              />
             </motion.div>
           ))}
         </div>
       </section>
 
       {/* How it works */}
-      <section id="how" className="border-y border-border/40 bg-white/40 py-20 backdrop-blur-sm dark:bg-slate-900/40">
+      <section
+        id="how"
+        className="border-y border-border/40 bg-white/40 py-20 backdrop-blur-sm dark:bg-slate-900/40"
+      >
         <div className="mx-auto max-w-7xl px-4 md:px-8">
           <div className="mx-auto mb-12 max-w-2xl text-center">
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              From notes to <span className="text-gradient">outcomes</span> in 3 steps
+              From notes to <span className="text-gradient">outcomes</span> in 3
+              steps
             </h2>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
@@ -364,7 +489,9 @@ export function LandingView() {
                 className="relative rounded-2xl border border-border/50 bg-card/60 p-6 backdrop-blur-sm"
               >
                 <div className="mb-4 flex items-center justify-between">
-                  <span className="text-4xl font-bold text-gradient">{s.n}</span>
+                  <span className="text-4xl font-bold text-gradient">
+                    {s.n}
+                  </span>
                   <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg">
                     <s.icon className="h-5 w-5" />
                   </div>
@@ -394,8 +521,9 @@ export function LandingView() {
             ))}
           </div>
           <blockquote className="text-pretty text-xl font-medium leading-relaxed md:text-2xl">
-            “NoteFlow AI replaced three tools for us. We walk out of every meeting
-            with a summary and a task board — no more lost action items.”
+            “NoteFlow AI replaced three tools for us. We walk out of every
+            meeting with a summary and a task board — no more lost action
+            items.”
           </blockquote>
           <div className="mt-6 flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white">
@@ -403,7 +531,9 @@ export function LandingView() {
             </div>
             <div>
               <p className="text-sm font-semibold">Jordan Mensah</p>
-              <p className="text-xs text-muted-foreground">Head of Product, Lattice Labs</p>
+              <p className="text-xs text-muted-foreground">
+                Head of Product, Lattice Labs
+              </p>
             </div>
           </div>
         </motion.div>
@@ -418,7 +548,8 @@ export function LandingView() {
             Ready to transform your meetings?
           </h2>
           <p className="relative mx-auto mt-3 max-w-xl text-white/80">
-            Join thousands of teams shipping faster with AI-powered meeting intelligence.
+            Join thousands of teams shipping faster with AI-powered meeting
+            intelligence.
           </p>
           <Button
             onClick={() => dispatch(setView("dashboard"))}
@@ -438,12 +569,18 @@ export function LandingView() {
           </div>
           <p>© {new Date().getFullYear()} NoteFlow AI. Crafted with care.</p>
           <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">Privacy</a>
-            <a href="#" className="hover:text-foreground">Terms</a>
-            <a href="#" className="hover:text-foreground">Contact</a>
+            <a href="#" className="hover:text-foreground">
+              Privacy
+            </a>
+            <a href="#" className="hover:text-foreground">
+              Terms
+            </a>
+            <a href="#" className="hover:text-foreground">
+              Contact
+            </a>
           </div>
         </div>
       </footer>
     </div>
-  )
+  );
 }
