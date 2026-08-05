@@ -25,7 +25,7 @@ export function AdminShell() {
   const ActiveView = ADMIN_VIEW_REGISTRY[view] ?? AdminDashboardView
 
   return (
-    <div className="relative flex min-h-screen bg-slate-950">
+    <div className="relative flex min-h-screen bg-background text-foreground transition-colors">
       <AdminSidebar />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -45,8 +45,8 @@ export function AdminShell() {
         </main>
 
         {/* Admin Footer */}
-        <footer className="mt-auto border-t border-white/5 bg-slate-950/80 px-4 py-4 backdrop-blur-xl md:px-6">
-          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-slate-500 sm:flex-row">
+        <footer className="mt-auto border-t border-border/60 bg-background/80 px-4 py-4 backdrop-blur-xl md:px-6">
+          <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
             <p>© {new Date().getFullYear()} NoteFlow AI — Administration Panel</p>
             <span className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />

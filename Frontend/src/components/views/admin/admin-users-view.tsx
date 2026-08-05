@@ -135,8 +135,8 @@ export function AdminUsersView() {
         className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <div>
-          <h1 className="text-2xl font-bold text-white">User Management</h1>
-          <p className="text-sm text-slate-400">
+          <h1 className="text-2xl font-bold text-foreground">User Management</h1>
+          <p className="text-sm text-muted-foreground">
             Manage all platform users, assign roles, and control access
           </p>
         </div>
@@ -146,27 +146,27 @@ export function AdminUsersView() {
               <Plus className="h-4 w-4" /> Create User
             </Button>
           </DialogTrigger>
-          <DialogContent className="bg-slate-900 border-slate-700 sm:max-w-md">
+          <DialogContent className="bg-popover border-border sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-white">Create New User</DialogTitle>
-              <DialogDescription className="text-slate-400">
+              <DialogTitle className="text-foreground">Create New User</DialogTitle>
+              <DialogDescription className="text-muted-foreground">
                 Add a new user to the platform with role and status.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
               <div>
-                <Label className="text-xs text-slate-300">Full Name</Label>
+                <Label className="text-xs text-foreground/80">Full Name</Label>
                 <Input
-                  className="mt-1 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+                  className="mt-1 border-border bg-muted text-foreground placeholder:text-muted-foreground"
                   placeholder="John Doe"
                   value={formName}
                   onChange={(e) => setFormName(e.target.value)}
                 />
               </div>
               <div>
-                <Label className="text-xs text-slate-300">Email *</Label>
+                <Label className="text-xs text-foreground/80">Email *</Label>
                 <Input
-                  className="mt-1 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+                  className="mt-1 border-border bg-muted text-foreground placeholder:text-muted-foreground"
                   placeholder="john@example.com"
                   type="email"
                   value={formEmail}
@@ -174,9 +174,9 @@ export function AdminUsersView() {
                 />
               </div>
               <div>
-                <Label className="text-xs text-slate-300">Password *</Label>
+                <Label className="text-xs text-foreground/80">Password *</Label>
                 <Input
-                  className="mt-1 border-slate-700 bg-slate-800 text-white placeholder:text-slate-500"
+                  className="mt-1 border-border bg-muted text-foreground placeholder:text-muted-foreground"
                   placeholder="Min 8 chars, 1 uppercase, 1 number"
                   type="password"
                   value={formPassword}
@@ -185,14 +185,14 @@ export function AdminUsersView() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-slate-300">Role</Label>
+                  <Label className="text-xs text-foreground/80">Role</Label>
                   <Select value={formRole} onValueChange={setFormRole}>
-                    <SelectTrigger className="mt-1 border-slate-700 bg-slate-800 text-white">
+                    <SelectTrigger className="mt-1 border-border bg-muted text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-muted border-border">
                       {ROLE_OPTIONS.map((r) => (
-                        <SelectItem key={r} value={r} className="text-white">
+                        <SelectItem key={r} value={r} className="text-foreground">
                           {getRoleConfig(r).label}
                         </SelectItem>
                       ))}
@@ -200,14 +200,14 @@ export function AdminUsersView() {
                   </Select>
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-300">Status</Label>
+                  <Label className="text-xs text-foreground/80">Status</Label>
                   <Select value={formStatus} onValueChange={setFormStatus}>
-                    <SelectTrigger className="mt-1 border-slate-700 bg-slate-800 text-white">
+                    <SelectTrigger className="mt-1 border-border bg-muted text-foreground">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-700">
+                    <SelectContent className="bg-muted border-border">
                       {STATUS_OPTIONS.map((s) => (
-                        <SelectItem key={s} value={s} className="text-white">
+                        <SelectItem key={s} value={s} className="text-foreground">
                           {getStatusConfig(s).label}
                         </SelectItem>
                       ))}
@@ -233,12 +233,12 @@ export function AdminUsersView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="border-white/5 bg-white/[0.02] p-4 backdrop-blur-sm">
+        <Card className="border-border/60 bg-card/70 p-4 backdrop-blur-sm">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="border-white/5 bg-white/[0.03] pl-9 text-sm text-white placeholder:text-slate-500"
+                className="border-border/60 bg-muted/40 pl-9 text-sm text-foreground placeholder:text-muted-foreground"
                 placeholder="Search by name, email, or username…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -246,18 +246,18 @@ export function AdminUsersView() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-slate-500" />
+              <Filter className="h-4 w-4 text-muted-foreground" />
               <Select
                 value={params.role || "ALL"}
                 onValueChange={handleRoleFilter}
               >
-                <SelectTrigger className="h-9 w-[140px] border-white/5 bg-white/[0.03] text-xs text-white">
+                <SelectTrigger className="h-9 w-[140px] border-border/60 bg-muted/40 text-xs text-foreground">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="ALL" className="text-white">All Roles</SelectItem>
+                <SelectContent className="bg-muted border-border">
+                  <SelectItem value="ALL" className="text-foreground">All Roles</SelectItem>
                   {ROLE_OPTIONS.map((r) => (
-                    <SelectItem key={r} value={r} className="text-white">
+                    <SelectItem key={r} value={r} className="text-foreground">
                       {getRoleConfig(r).label}
                     </SelectItem>
                   ))}
@@ -267,13 +267,13 @@ export function AdminUsersView() {
                 value={params.status || "ALL"}
                 onValueChange={handleStatusFilter}
               >
-                <SelectTrigger className="h-9 w-[140px] border-white/5 bg-white/[0.03] text-xs text-white">
+                <SelectTrigger className="h-9 w-[140px] border-border/60 bg-muted/40 text-xs text-foreground">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700">
-                  <SelectItem value="ALL" className="text-white">All Status</SelectItem>
+                <SelectContent className="bg-muted border-border">
+                  <SelectItem value="ALL" className="text-foreground">All Status</SelectItem>
                   {STATUS_OPTIONS.map((s) => (
-                    <SelectItem key={s} value={s} className="text-white">
+                    <SelectItem key={s} value={s} className="text-foreground">
                       {getStatusConfig(s).label}
                     </SelectItem>
                   ))}
@@ -282,7 +282,7 @@ export function AdminUsersView() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-9 text-xs text-slate-400 hover:text-white cursor-pointer"
+                className="h-9 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                 onClick={handleSearch}
               >
                 Search
@@ -298,26 +298,26 @@ export function AdminUsersView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="overflow-hidden border-white/5 bg-white/[0.02] backdrop-blur-sm">
+        <Card className="overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
           {/* Table header */}
-          <div className="hidden border-b border-white/5 px-6 py-3 md:grid md:grid-cols-12 md:gap-4">
-            <div className="col-span-4 text-[10px] font-bold uppercase tracking-wider text-slate-500">User</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">Role</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">Status</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-slate-500">Provider</div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-slate-500 text-right">Actions</div>
+          <div className="hidden border-b border-border/60 px-6 py-3 md:grid md:grid-cols-12 md:gap-4">
+            <div className="col-span-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">User</div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Role</div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Status</div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Provider</div>
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-right">Actions</div>
           </div>
 
           {/* Rows */}
           <div className={isFetching ? "opacity-50 transition-opacity" : ""}>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="border-b border-white/5 p-4">
-                  <Skeleton className="h-12 w-full bg-white/5" />
+                <div key={i} className="border-b border-border/60 p-4">
+                  <Skeleton className="h-12 w-full bg-muted" />
                 </div>
               ))
             ) : users.length === 0 ? (
-              <div className="flex h-48 items-center justify-center text-sm text-slate-500">
+              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
                 <Users className="mr-2 h-5 w-5" /> No users found
               </div>
             ) : (
@@ -339,21 +339,21 @@ export function AdminUsersView() {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: i * 0.03 }}
-                      className="grid grid-cols-1 gap-3 border-b border-white/5 p-4 transition-colors hover:bg-white/[0.02] md:grid-cols-12 md:items-center md:gap-4 md:px-6"
+                      className="grid grid-cols-1 gap-3 border-b border-border/60 p-4 transition-colors hover:bg-card/70 md:grid-cols-12 md:items-center md:gap-4 md:px-6"
                     >
                       {/* User info */}
                       <div className="col-span-4 flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border border-white/10">
+                        <Avatar className="h-9 w-9 border border-border">
                           {avatarSrc && <AvatarImage src={avatarSrc} alt={u.name || ""} />}
                           <AvatarFallback className={`bg-gradient-to-br ${roleConfig.color} text-[10px] font-bold text-white`}>
                             {userInitials}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-white">
+                          <p className="truncate text-xs font-semibold text-foreground">
                             {u.name || u.username || "Unnamed"}
                           </p>
-                          <p className="truncate text-[10px] text-slate-500">{u.email}</p>
+                          <p className="truncate text-[10px] text-muted-foreground">{u.email}</p>
                         </div>
                       </div>
 
@@ -374,7 +374,7 @@ export function AdminUsersView() {
 
                       {/* Provider */}
                       <div className="col-span-2">
-                        <span className="text-[10px] font-medium text-slate-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                           {u.provider}
                         </span>
                       </div>
@@ -386,30 +386,30 @@ export function AdminUsersView() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-slate-400 hover:text-white hover:bg-white/5 cursor-pointer"
+                              className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-muted cursor-pointer"
                             >
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-52 bg-slate-900 border-slate-700 p-1">
-                            <DropdownMenuLabel className="text-[10px] text-slate-500 px-2">
+                          <DropdownMenuContent align="end" className="w-52 bg-popover border-border p-1">
+                            <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">
                               Manage User
                             </DropdownMenuLabel>
-                            <DropdownMenuSeparator className="bg-slate-700" />
+                            <DropdownMenuSeparator className="bg-border" />
 
                             {/* Change Role submenu */}
                             <DropdownMenuSub>
-                              <DropdownMenuSubTrigger className="gap-2 text-xs text-slate-300 cursor-pointer rounded-lg">
+                              <DropdownMenuSubTrigger className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg">
                                 <Shield className="h-3.5 w-3.5 text-violet-400" /> Change Role
                               </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent className="bg-slate-900 border-slate-700 p-1">
+                              <DropdownMenuSubContent className="bg-popover border-border p-1">
                                 {ROLE_OPTIONS.map((role) => {
                                   const rc = getRoleConfig(role)
                                   return (
                                     <DropdownMenuItem
                                       key={role}
                                       disabled={u.role === role}
-                                      className="gap-2 text-xs text-slate-300 cursor-pointer rounded-lg"
+                                      className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
                                       onClick={() => updateRole({ userId: u.id, role })}
                                     >
                                       <span className={`h-2 w-2 rounded-full ${rc.dot}`} />
@@ -423,17 +423,17 @@ export function AdminUsersView() {
 
                             {/* Change Status submenu */}
                             <DropdownMenuSub>
-                              <DropdownMenuSubTrigger className="gap-2 text-xs text-slate-300 cursor-pointer rounded-lg">
+                              <DropdownMenuSubTrigger className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg">
                                 <UserCog className="h-3.5 w-3.5 text-amber-400" /> Change Status
                               </DropdownMenuSubTrigger>
-                              <DropdownMenuSubContent className="bg-slate-900 border-slate-700 p-1">
+                              <DropdownMenuSubContent className="bg-popover border-border p-1">
                                 {STATUS_OPTIONS.map((status) => {
                                   const sc = getStatusConfig(status)
                                   return (
                                     <DropdownMenuItem
                                       key={status}
                                       disabled={u.status === status}
-                                      className="gap-2 text-xs text-slate-300 cursor-pointer rounded-lg"
+                                      className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
                                       onClick={() => updateStatus({ userId: u.id, status })}
                                     >
                                       <span className={`h-2 w-2 rounded-full ${sc.dot}`} />
@@ -445,7 +445,7 @@ export function AdminUsersView() {
                               </DropdownMenuSubContent>
                             </DropdownMenuSub>
 
-                            <DropdownMenuSeparator className="bg-slate-700" />
+                            <DropdownMenuSeparator className="bg-border" />
                             <DropdownMenuItem
                               className="gap-2 text-xs text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer rounded-lg"
                               onClick={() => setDeleteTarget({ id: u.id, name: u.name || u.email })}
@@ -464,15 +464,15 @@ export function AdminUsersView() {
 
           {/* Pagination */}
           {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-white/5 px-6 py-3">
-              <p className="text-[10px] text-slate-500">
+            <div className="flex items-center justify-between border-t border-border/60 px-6 py-3">
+              <p className="text-[10px] text-muted-foreground">
                 Showing {((meta.page - 1) * meta.limit) + 1}–{Math.min(meta.page * meta.limit, meta.total)} of {meta.total} users
               </p>
               <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-white cursor-pointer"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                   disabled={!meta.hasPrev}
                   onClick={() => setParams((p) => ({ ...p, page: (p.page || 1) - 1 }))}
                 >
@@ -488,7 +488,7 @@ export function AdminUsersView() {
                       className={`h-8 w-8 text-xs cursor-pointer ${
                         meta.page === pageNum
                           ? "bg-rose-500/15 text-rose-400 font-bold"
-                          : "text-slate-400 hover:text-white"
+                          : "text-muted-foreground hover:text-foreground"
                       }`}
                       onClick={() => setParams((p) => ({ ...p, page: pageNum }))}
                     >
@@ -499,7 +499,7 @@ export function AdminUsersView() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-slate-400 hover:text-white cursor-pointer"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
                   disabled={!meta.hasNext}
                   onClick={() => setParams((p) => ({ ...p, page: (p.page || 1) + 1 }))}
                 >
@@ -513,16 +513,16 @@ export function AdminUsersView() {
 
       {/* Delete confirmation dialog */}
       <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
-        <AlertDialogContent className="bg-slate-900 border-slate-700">
+        <AlertDialogContent className="bg-popover border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Delete User</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Are you sure you want to delete <span className="font-semibold text-white">{deleteTarget?.name}</span>?
+            <AlertDialogTitle className="text-foreground">Delete User</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Are you sure you want to delete <span className="font-semibold text-foreground">{deleteTarget?.name}</span>?
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-slate-700 bg-slate-800 text-white hover:bg-slate-700 cursor-pointer">
+            <AlertDialogCancel className="border-border bg-muted text-foreground hover:bg-border cursor-pointer">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction

@@ -13,8 +13,8 @@ export function AdminActivityView() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-2xl font-bold text-white">Activity Log</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-foreground">Activity Log</h1>
+        <p className="text-sm text-muted-foreground">
           System activity and audit trail
         </p>
       </motion.div>
@@ -25,13 +25,13 @@ export function AdminActivityView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="border-white/5 bg-white/[0.02] p-12 backdrop-blur-sm">
+        <Card className="border-border/60 bg-card/70 p-12 backdrop-blur-sm">
           <div className="flex flex-col items-center justify-center text-center">
             <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500 to-cyan-500 text-white shadow-lg shadow-sky-500/25">
               <Activity className="h-7 w-7" />
             </div>
-            <h3 className="mb-2 text-lg font-bold text-white">Activity Log Coming Soon</h3>
-            <p className="max-w-md text-sm text-slate-400 leading-relaxed">
+            <h3 className="mb-2 text-lg font-bold text-foreground">Activity Log Coming Soon</h3>
+            <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
               The activity log will provide a comprehensive audit trail of all system events,
               including user logins, role changes, account modifications, and security events.
             </p>
@@ -48,10 +48,10 @@ export function AdminActivityView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="border-white/5 bg-white/[0.02] p-6 backdrop-blur-sm">
+        <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
           <div className="flex items-center gap-2 mb-4">
-            <Info className="h-4 w-4 text-slate-400" />
-            <h3 className="text-sm font-semibold text-white">Planned Features</h3>
+            <Info className="h-4 w-4 text-muted-foreground" />
+            <h3 className="text-sm font-semibold text-foreground">Planned Features</h3>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
@@ -62,10 +62,10 @@ export function AdminActivityView() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="rounded-xl border border-white/5 bg-white/[0.02] p-4"
+                className="rounded-xl border border-border/60 bg-card/70 p-4"
               >
-                <h4 className="text-xs font-semibold text-white mb-1">{item.title}</h4>
-                <p className="text-[10px] text-slate-500 leading-relaxed">{item.desc}</p>
+                <h4 className="text-xs font-semibold text-foreground mb-1">{item.title}</h4>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>

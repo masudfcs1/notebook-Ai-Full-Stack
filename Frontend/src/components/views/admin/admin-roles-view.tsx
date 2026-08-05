@@ -19,8 +19,8 @@ export function AdminRolesView() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <h1 className="text-2xl font-bold text-white">Roles & Permissions</h1>
-        <p className="text-sm text-slate-400">
+        <h1 className="text-2xl font-bold text-foreground">Roles & Permissions</h1>
+        <p className="text-sm text-muted-foreground">
           Role hierarchy and access level overview
         </p>
       </motion.div>
@@ -37,7 +37,7 @@ export function AdminRolesView() {
               transition={{ delay: i * 0.1 }}
             >
               <Card
-                className="relative overflow-hidden border-white/5 bg-white/[0.02] p-0 backdrop-blur-sm transition-all hover:bg-white/[0.04]"
+                className="relative overflow-hidden border-border/60 bg-card/70 p-0 backdrop-blur-sm transition-all hover:bg-muted/60"
               >
                 <div className="flex items-stretch">
                   {/* Level bar */}
@@ -52,25 +52,25 @@ export function AdminRolesView() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-bold text-white">{role.label}</h3>
+                        <h3 className="text-sm font-bold text-foreground">{role.label}</h3>
                         <Badge className={`h-5 rounded-md border text-[9px] font-bold ${role.badge}`}>
                           Level {role.level}
                         </Badge>
                       </div>
-                      <p className="text-xs text-slate-400 leading-relaxed">{role.description}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed">{role.description}</p>
                     </div>
 
                     {/* User count */}
                     <div className="hidden shrink-0 flex-col items-center gap-1 sm:flex">
-                      <div className="flex items-center gap-1.5 rounded-lg border border-white/5 bg-white/[0.03] px-3 py-1.5">
-                        <Users className="h-3.5 w-3.5 text-slate-400" />
+                      <div className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5">
+                        <Users className="h-3.5 w-3.5 text-muted-foreground" />
                         {isLoading ? (
-                          <Skeleton className="h-5 w-6 bg-white/5" />
+                          <Skeleton className="h-5 w-6 bg-muted" />
                         ) : (
-                          <span className="text-sm font-bold text-white">{userCount}</span>
+                          <span className="text-sm font-bold text-foreground">{userCount}</span>
                         )}
                       </div>
-                      <span className="text-[9px] text-slate-500">users</span>
+                      <span className="text-[9px] text-muted-foreground">users</span>
                     </div>
                   </div>
                 </div>
@@ -82,7 +82,7 @@ export function AdminRolesView() {
               {/* Arrow connector */}
               {i < ADMIN_ROLES.length - 1 && (
                 <div className="flex justify-center py-1">
-                  <ArrowDown className="h-4 w-4 text-slate-600" />
+                  <ArrowDown className="h-4 w-4 text-muted-foreground/70" />
                 </div>
               )}
             </motion.div>
@@ -96,13 +96,13 @@ export function AdminRolesView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
       >
-        <Card className="border-white/5 bg-white/[0.02] p-6 backdrop-blur-sm">
-          <h3 className="mb-4 text-sm font-semibold text-white">Permission Overview</h3>
+        <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
+          <h3 className="mb-4 text-sm font-semibold text-foreground">Permission Overview</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-xs">
               <thead>
-                <tr className="border-b border-white/5">
-                  <th className="py-2 pr-4 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">Permission</th>
+                <tr className="border-b border-border/60">
+                  <th className="py-2 pr-4 text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Permission</th>
                   {ADMIN_ROLES.map((r) => (
                     <th key={r.name} className="px-3 py-2 text-center">
                       <Badge className={`h-5 rounded-md border text-[8px] font-bold ${r.badge}`}>
@@ -124,8 +124,8 @@ export function AdminRolesView() {
                   { perm: "Create notes", roles: [true, true, true, true, true] },
                   { perm: "View own data", roles: [true, true, true, true, true] },
                 ].map((row) => (
-                  <tr key={row.perm} className="border-b border-white/5 last:border-0">
-                    <td className="py-2.5 pr-4 text-slate-300 font-medium">{row.perm}</td>
+                  <tr key={row.perm} className="border-b border-border/60 last:border-0">
+                    <td className="py-2.5 pr-4 text-foreground/80 font-medium">{row.perm}</td>
                     {row.roles.map((allowed, j) => (
                       <td key={j} className="px-3 py-2.5 text-center">
                         {allowed ? (
@@ -133,7 +133,7 @@ export function AdminRolesView() {
                             ✓
                           </span>
                         ) : (
-                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-white/5 text-slate-600 text-[10px]">
+                          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-muted text-muted-foreground/70 text-[10px]">
                             —
                           </span>
                         )}
