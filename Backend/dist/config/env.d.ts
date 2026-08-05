@@ -1,0 +1,62 @@
+import { z } from 'zod';
+declare const envSchema: z.ZodObject<{
+    PORT: z.ZodDefault<z.ZodEffects<z.ZodString, number, string>>;
+    NODE_ENV: z.ZodDefault<z.ZodEnum<["development", "production", "test"]>>;
+    DATABASE_URL: z.ZodString;
+    JWT_ACCESS_SECRET: z.ZodString;
+    JWT_REFRESH_SECRET: z.ZodString;
+    JWT_ACCESS_EXPIRES: z.ZodDefault<z.ZodString>;
+    JWT_REFRESH_EXPIRES: z.ZodDefault<z.ZodString>;
+    COOKIE_SECRET: z.ZodString;
+    UPLOAD_PATH: z.ZodDefault<z.ZodString>;
+    SUPER_ADMIN_NAME: z.ZodDefault<z.ZodString>;
+    SUPER_ADMIN_EMAIL: z.ZodString;
+    SUPER_ADMIN_PASSWORD: z.ZodString;
+    FRONTEND_URL: z.ZodDefault<z.ZodString>;
+}, "strip", z.ZodTypeAny, {
+    PORT: number;
+    NODE_ENV: "development" | "production" | "test";
+    DATABASE_URL: string;
+    JWT_ACCESS_SECRET: string;
+    JWT_REFRESH_SECRET: string;
+    JWT_ACCESS_EXPIRES: string;
+    JWT_REFRESH_EXPIRES: string;
+    COOKIE_SECRET: string;
+    UPLOAD_PATH: string;
+    SUPER_ADMIN_NAME: string;
+    SUPER_ADMIN_EMAIL: string;
+    SUPER_ADMIN_PASSWORD: string;
+    FRONTEND_URL: string;
+}, {
+    DATABASE_URL: string;
+    JWT_ACCESS_SECRET: string;
+    JWT_REFRESH_SECRET: string;
+    COOKIE_SECRET: string;
+    SUPER_ADMIN_EMAIL: string;
+    SUPER_ADMIN_PASSWORD: string;
+    PORT?: string | undefined;
+    NODE_ENV?: "development" | "production" | "test" | undefined;
+    JWT_ACCESS_EXPIRES?: string | undefined;
+    JWT_REFRESH_EXPIRES?: string | undefined;
+    UPLOAD_PATH?: string | undefined;
+    SUPER_ADMIN_NAME?: string | undefined;
+    FRONTEND_URL?: string | undefined;
+}>;
+export declare const env: {
+    PORT: number;
+    NODE_ENV: "development" | "production" | "test";
+    DATABASE_URL: string;
+    JWT_ACCESS_SECRET: string;
+    JWT_REFRESH_SECRET: string;
+    JWT_ACCESS_EXPIRES: string;
+    JWT_REFRESH_EXPIRES: string;
+    COOKIE_SECRET: string;
+    UPLOAD_PATH: string;
+    SUPER_ADMIN_NAME: string;
+    SUPER_ADMIN_EMAIL: string;
+    SUPER_ADMIN_PASSWORD: string;
+    FRONTEND_URL: string;
+};
+export type Env = z.infer<typeof envSchema>;
+export {};
+//# sourceMappingURL=env.d.ts.map

@@ -3,6 +3,7 @@ import appReducer from "./appSlice";
 import dataReducer from "./dataSlice";
 import authReducer from "./authSlice";
 import { authApi } from "./api/authApiSlice";
+import { adminApi } from "./api/adminApiSlice";
 
 export function makeStore() {
   return configureStore({
@@ -11,9 +12,12 @@ export function makeStore() {
       data: dataReducer,
       auth: authReducer,
       [authApi.reducerPath]: authApi.reducer,
+      [adminApi.reducerPath]: adminApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
-      getDefaultMiddleware().concat(authApi.middleware),
+      getDefaultMiddleware()
+        .concat(authApi.middleware)
+        .concat(adminApi.middleware),
   });
 }
 

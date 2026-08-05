@@ -15,6 +15,11 @@ export type ViewKey =
   | "action-items"
   | "history"
   | "settings"
+  | "admin-dashboard"
+  | "admin-users"
+  | "admin-roles"
+  | "admin-activity"
+  | "admin-settings"
 
 export type PriorityLevel = "urgent" | "high" | "medium" | "low"
 export type TaskStatus = "backlog" | "todo" | "in_progress" | "done" | "pending" | "completed"

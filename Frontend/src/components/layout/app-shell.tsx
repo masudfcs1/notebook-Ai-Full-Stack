@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, type ViewKey } from "@/lib/redux/appSlice"
@@ -8,6 +8,7 @@ import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataS
 import { setUser } from "@/lib/redux/authSlice"
 import { useGetMeQuery } from "@/lib/redux/api/authApiSlice"
 import { Sidebar, Topbar, MobileNav, MobileSidebar } from "@/features/navigation"
+import { AdminShell } from "@/features/admin"
 import { AuthView } from "@/features/auth"
 import { LandingView } from "@/components/views/landing-view"
 import { DashboardView } from "@/components/views/dashboard-view"
@@ -41,8 +42,10 @@ interface AppShellProps {
 export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps) {
   const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
+  const user = useAppSelector((s) => s.auth.user)
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
   const pathname = usePathname()
+  const adminRedirected = useRef(false)
 
   // Fetch current user details if authenticated
   const { data: meResponse } = useGetMeQuery(undefined, { skip: !isAuthenticated })
@@ -50,8 +53,14 @@ export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps
   useEffect(() => {
     if (meResponse?.success && meResponse?.data) {
       dispatch(setUser(meResponse.data))
+      // Auto-redirect SUPER_ADMIN to admin panel on first load
+      const role = meResponse.data.role
+      if (!adminRedirected.current && (role === "SUPER_ADMIN") && !view.startsWith("admin-")) {
+        adminRedirected.current = true
+        dispatch(setView("admin-dashboard"))
+      }
     }
-  }, [meResponse, dispatch])
+  }, [meResponse, dispatch, view])
 
   // Sync workspace and team from URL slugs
   useEffect(() => {
@@ -100,6 +109,17 @@ export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps
         <AiAssistantWidget />
       </>
     )
+  }
+
+  // Admin Panel: render completely separate admin shell for admin views
+  if (view.startsWith("admin-")) {
+    const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN"
+    if (!isAdmin) {
+      // Non-admin users trying to access admin panel → redirect to user dashboard
+      dispatch(setView("dashboard"))
+      return null
+    }
+    return <AdminShell />
   }
 
   const ActiveViewComponent = VIEW_COMPONENT_REGISTRY[view] ?? DashboardView

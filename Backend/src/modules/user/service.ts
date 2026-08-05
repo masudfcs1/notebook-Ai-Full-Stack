@@ -153,6 +153,20 @@ export class UserService {
 
     return toUserResponse(updatedUser);
   }
+
+  async getStats() {
+    const stats = await userRepository.getStats();
+
+    return {
+      totalUsers: stats.totalUsers,
+      activeUsers: stats.activeUsers,
+      pendingUsers: stats.pendingUsers,
+      suspendedUsers: stats.suspendedUsers,
+      inactiveUsers: stats.inactiveUsers,
+      usersByRole: stats.usersByRole,
+      recentUsers: toUserListResponse(stats.recentUsers),
+    };
+  }
 }
 
 export const userService = new UserService();

@@ -140,6 +140,54 @@ export class UserRepository {
       where: query,
     });
   }
+
+  async getStats() {
+    const [
+      totalUsers,
+      activeUsers,
+      pendingUsers,
+      suspendedUsers,
+      inactiveUsers,
+      superAdminCount,
+      adminCount,
+      managerCount,
+      employeeCount,
+      userCount,
+      recentUsers,
+    ] = await Promise.all([
+      prisma.user.count({ where: { deletedAt: null } }),
+      prisma.user.count({ where: { status: 'ACTIVE', deletedAt: null } }),
+      prisma.user.count({ where: { status: 'PENDING', deletedAt: null } }),
+      prisma.user.count({ where: { status: 'SUSPENDED', deletedAt: null } }),
+      prisma.user.count({ where: { status: 'INACTIVE', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'SUPER_ADMIN', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'ADMIN', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'MANAGER', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'EMPLOYEE', deletedAt: null } }),
+      prisma.user.count({ where: { role: 'USER', deletedAt: null } }),
+      prisma.user.findMany({
+        where: { deletedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      }),
+    ]);
+
+    return {
+      totalUsers,
+      activeUsers,
+      pendingUsers,
+      suspendedUsers,
+      inactiveUsers,
+      usersByRole: {
+        SUPER_ADMIN: superAdminCount,
+        ADMIN: adminCount,
+        MANAGER: managerCount,
+        EMPLOYEE: employeeCount,
+        USER: userCount,
+      },
+      recentUsers,
+    };
+  }
 }
 
 export const userRepository = new UserRepository();

@@ -2,7 +2,7 @@
 
 import {
   Search, Menu, Sun, Moon, Command, Plus, Sparkles, X, ChevronDown,
-  LayoutDashboard, Settings, LogOut, User as UserIcon,
+  LayoutDashboard, Settings, LogOut, User as UserIcon, Shield,
 } from "lucide-react"
 import { useTheme } from "next-themes"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
@@ -38,6 +38,7 @@ export function Topbar() {
   const displayName = getUserDisplayName(user, "Account")
   const displayEmail = user?.email || ""
   const initials = getUserInitials(user?.name, user?.email)
+  const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN"
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -193,6 +194,17 @@ export function Topbar() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
+              {isAdmin && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => dispatch(setView("admin-dashboard"))}
+                    className="gap-2 text-xs font-medium cursor-pointer rounded-lg text-rose-500 focus:text-rose-600 focus:bg-rose-500/10"
+                  >
+                    <Shield className="h-3.5 w-3.5" /> Admin Panel
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                </>
+              )}
               <DropdownMenuItem
                 onClick={() => dispatch(setView("dashboard"))}
                 className="gap-2 text-xs font-medium cursor-pointer rounded-lg"

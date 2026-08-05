@@ -91,6 +91,12 @@ export class UserController {
 
     return sendSuccess(res, MESSAGES.ROLE_UPDATED, user);
   });
+
+  getStats = catchAsync(async (_req: Request, res: Response, _next: NextFunction) => {
+    const stats = await userService.getStats();
+
+    return sendSuccess(res, 'Admin stats fetched successfully', stats);
+  });
 }
 
 export const userController = new UserController();

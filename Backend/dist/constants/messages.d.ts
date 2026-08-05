@@ -1,0 +1,87 @@
+export declare const HTTP_STATUS: {
+    readonly OK: 200;
+    readonly CREATED: 201;
+    readonly NO_CONTENT: 204;
+    readonly BAD_REQUEST: 400;
+    readonly UNAUTHORIZED: 401;
+    readonly FORBIDDEN: 403;
+    readonly NOT_FOUND: 404;
+    readonly CONFLICT: 409;
+    readonly UNPROCESSABLE_ENTITY: 422;
+    readonly TOO_MANY_REQUESTS: 429;
+    readonly INTERNAL_SERVER_ERROR: 500;
+    readonly SERVICE_UNAVAILABLE: 503;
+};
+export declare const MESSAGES: {
+    readonly REGISTER_SUCCESS: "User registered successfully. Please verify your email.";
+    readonly LOGIN_SUCCESS: "Login successful";
+    readonly LOGOUT_SUCCESS: "Logout successful";
+    readonly REFRESH_TOKEN_SUCCESS: "Token refreshed successfully";
+    readonly INVALID_CREDENTIALS: "Invalid email or password";
+    readonly EMAIL_NOT_VERIFIED: "Please verify your email to continue";
+    readonly ACCOUNT_SUSPENDED: "Your account has been suspended";
+    readonly ACCOUNT_INACTIVE: "Your account is inactive";
+    readonly TOKEN_EXPIRED: "Token has expired";
+    readonly TOKEN_INVALID: "Invalid token";
+    readonly UNAUTHORIZED: "Unauthorized access";
+    readonly FORBIDDEN: "Access forbidden";
+    readonly PASSWORD_CHANGED: "Password changed successfully";
+    readonly PASSWORD_RESET_SENT: "Password reset email sent";
+    readonly PASSWORD_RESET_SUCCESS: "Password reset successfully";
+    readonly INVALID_RESET_TOKEN: "Invalid or expired reset token";
+    readonly VERIFICATION_SENT: "Verification email sent";
+    readonly EMAIL_VERIFIED: "Email verified successfully";
+    readonly INVALID_VERIFICATION_TOKEN: "Invalid or expired verification token";
+    readonly OTP_SENT: "OTP sent successfully";
+    readonly OTP_VERIFIED: "OTP verified successfully";
+    readonly INVALID_OTP: "Invalid or expired OTP";
+    readonly USER_CREATED: "User created successfully";
+    readonly USER_UPDATED: "User updated successfully";
+    readonly USER_DELETED: "User deleted successfully";
+    readonly USER_NOT_FOUND: "User not found";
+    readonly USER_ALREADY_EXISTS: "User already exists";
+    readonly EMAIL_ALREADY_EXISTS: "Email already exists";
+    readonly USERNAME_ALREADY_EXISTS: "Username already exists";
+    readonly PROFILE_UPDATED: "Profile updated successfully";
+    readonly PROFILE_IMAGE_UPLOADED: "Profile image uploaded successfully";
+    readonly PROFILE_IMAGE_DELETED: "Profile image deleted successfully";
+    readonly ACCOUNT_DELETED: "Account deleted successfully";
+    readonly ROLE_UPDATED: "Role updated successfully";
+    readonly STATUS_UPDATED: "Status updated successfully";
+    readonly INSUFFICIENT_PERMISSIONS: "Insufficient permissions";
+    readonly VALIDATION_FAILED: "Validation failed";
+    readonly NOT_FOUND: "Resource not found";
+    readonly SERVER_ERROR: "Internal server error";
+    readonly RATE_LIMIT_EXCEEDED: "Too many requests, please try again later";
+    readonly FILE_UPLOAD_SUCCESS: "File uploaded successfully";
+    readonly FILE_DELETE_SUCCESS: "File deleted successfully";
+    readonly INVALID_FILE_TYPE: "Invalid file type";
+    readonly FILE_TOO_LARGE: "File size exceeds the limit";
+};
+export declare const USER_ROLES: {
+    readonly SUPER_ADMIN: "SUPER_ADMIN";
+    readonly ADMIN: "ADMIN";
+    readonly MANAGER: "MANAGER";
+    readonly EMPLOYEE: "EMPLOYEE";
+    readonly USER: "USER";
+};
+export declare const USER_STATUS: {
+    readonly ACTIVE: "ACTIVE";
+    readonly INACTIVE: "INACTIVE";
+    readonly SUSPENDED: "SUSPENDED";
+    readonly PENDING: "PENDING";
+    readonly DELETED: "DELETED";
+};
+export declare const PROVIDERS: {
+    readonly LOCAL: "LOCAL";
+    readonly GOOGLE: "GOOGLE";
+    readonly FACEBOOK: "FACEBOOK";
+    readonly APPLE: "APPLE";
+    readonly GITHUB: "GITHUB";
+};
+export declare const PAGINATION: {
+    readonly DEFAULT_PAGE: 1;
+    readonly DEFAULT_LIMIT: 10;
+    readonly MAX_LIMIT: 100;
+};
+//# sourceMappingURL=messages.d.ts.map

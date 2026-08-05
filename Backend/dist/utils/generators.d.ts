@@ -1,0 +1,9 @@
+export declare const generateOTP: (length?: number) => string;
+export declare const generateRandomString: (length?: number) => string;
+export declare const generateUUID: () => string;
+export declare const generateSlug: (text: string) => string;
+export declare const generateUniqueCode: (prefix?: string) => string;
+export declare const generateVerificationToken: () => string;
+export declare const generatePasswordResetToken: () => string;
+export declare const hashToken: (token: string) => string;
+//# sourceMappingURL=generators.d.ts.map

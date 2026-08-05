@@ -34,6 +34,11 @@ export const VIEW_METADATA: Record<ViewKey, ViewMetadata> = {
   history: { title: "History", subtitle: "Archive search & telemetry query", sysCode: "SYS.HISTORY_DB" },
   settings: { title: "Settings", subtitle: "Profile parameters & digital preferences", sysCode: "SYS.CONFIG" },
   team: { title: "Teams", subtitle: "Manage workspace team members & permissions", sysCode: "SYS.TEAM_MGMT" },
+  "admin-dashboard": { title: "Admin Dashboard", subtitle: "System-wide analytics & overview", sysCode: "SYS.ADMIN.DASH" },
+  "admin-users": { title: "User Management", subtitle: "Manage all platform users", sysCode: "SYS.ADMIN.USERS" },
+  "admin-roles": { title: "Roles & Permissions", subtitle: "Role hierarchy & access control", sysCode: "SYS.ADMIN.RBAC" },
+  "admin-activity": { title: "Activity Log", subtitle: "System activity & audit trail", sysCode: "SYS.ADMIN.AUDIT" },
+  "admin-settings": { title: "Admin Settings", subtitle: "System configuration & preferences", sysCode: "SYS.ADMIN.CONFIG" },
 }
 
 export const NAVIGATION_GROUPS = [

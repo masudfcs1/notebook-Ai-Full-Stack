@@ -1,0 +1,10 @@
+export declare const formatDate: (date: Date | string, format?: string) => string;
+export declare const getCurrentDate: () => Date;
+export declare const addDays: (date: Date, days: number) => Date;
+export declare const addMinutes: (date: Date, minutes: number) => Date;
+export declare const isExpired: (date: Date) => boolean;
+export declare const getDifferenceInSeconds: (start: Date, end: Date) => number;
+export declare const getDifferenceInDays: (start: Date, end: Date) => number;
+export declare const toUTC: (date: Date) => Date;
+export declare const fromUTC: (date: Date, tz?: string) => Date;
+//# sourceMappingURL=date.d.ts.map

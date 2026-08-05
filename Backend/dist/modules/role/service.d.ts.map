@@ -1,0 +1,1 @@
+{"version":3,"file":"service.d.ts","sourceRoot":"","sources":["../../../src/modules/role/service.ts"],"names":[],"mappings":"AAAA,OAAO,EAAS,QAAQ,EAAE,MAAM,SAAS,CAAC;AAE1C,qBAAa,WAAW;IACtB,WAAW,IAAI,QAAQ,EAAE;IAIzB,aAAa,CAAC,IAAI,EAAE,MAAM,GAAG,QAAQ,GAAG,SAAS;IAIjD,YAAY,CAAC,IAAI,EAAE,MAAM,GAAG,OAAO;CAGpC;AAED,eAAO,MAAM,WAAW,aAAoB,CAAC"}

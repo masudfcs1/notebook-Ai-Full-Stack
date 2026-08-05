@@ -1,0 +1,222 @@
+import { z } from 'zod';
+export declare const GetUsersQuerySchema: z.ZodObject<{
+    query: z.ZodObject<{
+        page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        search: z.ZodOptional<z.ZodString>;
+        role: z.ZodOptional<z.ZodEnum<["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"]>>;
+        status: z.ZodOptional<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING", "DELETED"]>>;
+        sortBy: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
+    }, "strip", z.ZodTypeAny, {
+        limit: number;
+        page: number;
+        sortBy: string;
+        sortOrder: "asc" | "desc";
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        search?: string | undefined;
+    }, {
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        limit?: number | undefined;
+        page?: number | undefined;
+        search?: string | undefined;
+        sortBy?: string | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    query: {
+        limit: number;
+        page: number;
+        sortBy: string;
+        sortOrder: "asc" | "desc";
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        search?: string | undefined;
+    };
+}, {
+    query: {
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        limit?: number | undefined;
+        page?: number | undefined;
+        search?: string | undefined;
+        sortBy?: string | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+    };
+}>;
+export declare const GetUserParamsSchema: z.ZodObject<{
+    params: z.ZodObject<{
+        id: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+    }, {
+        id: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    params: {
+        id: string;
+    };
+}, {
+    params: {
+        id: string;
+    };
+}>;
+export declare const CreateUserSchema: z.ZodObject<{
+    body: z.ZodObject<{
+        name: z.ZodOptional<z.ZodString>;
+        username: z.ZodOptional<z.ZodString>;
+        email: z.ZodString;
+        password: z.ZodString;
+        phone: z.ZodOptional<z.ZodString>;
+        role: z.ZodDefault<z.ZodOptional<z.ZodEnum<["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"]>>>;
+        status: z.ZodDefault<z.ZodOptional<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"]>>>;
+    }, "strip", z.ZodTypeAny, {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        password: string;
+        email: string;
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        name?: string | undefined;
+        username?: string | undefined;
+        phone?: string | undefined;
+    }, {
+        password: string;
+        email: string;
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | undefined;
+        name?: string | undefined;
+        username?: string | undefined;
+        phone?: string | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    body: {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        password: string;
+        email: string;
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        name?: string | undefined;
+        username?: string | undefined;
+        phone?: string | undefined;
+    };
+}, {
+    body: {
+        password: string;
+        email: string;
+        status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | undefined;
+        name?: string | undefined;
+        username?: string | undefined;
+        phone?: string | undefined;
+        role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+    };
+}>;
+export declare const UpdateUserSchema: z.ZodObject<{
+    params: z.ZodObject<{
+        id: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+    }, {
+        id: string;
+    }>;
+    body: z.ZodObject<{
+        name: z.ZodOptional<z.ZodString>;
+        username: z.ZodOptional<z.ZodString>;
+        email: z.ZodOptional<z.ZodString>;
+        phone: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        name?: string | undefined;
+        username?: string | undefined;
+        email?: string | undefined;
+        phone?: string | undefined;
+    }, {
+        name?: string | undefined;
+        username?: string | undefined;
+        email?: string | undefined;
+        phone?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    params: {
+        id: string;
+    };
+    body: {
+        name?: string | undefined;
+        username?: string | undefined;
+        email?: string | undefined;
+        phone?: string | undefined;
+    };
+}, {
+    params: {
+        id: string;
+    };
+    body: {
+        name?: string | undefined;
+        username?: string | undefined;
+        email?: string | undefined;
+        phone?: string | undefined;
+    };
+}>;
+export declare const UpdateUserStatusSchema: z.ZodObject<{
+    body: z.ZodObject<{
+        userId: z.ZodNumber;
+        status: z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"]>;
+    }, "strip", z.ZodTypeAny, {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        userId: number;
+    }, {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        userId: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    body: {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        userId: number;
+    };
+}, {
+    body: {
+        status: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING";
+        userId: number;
+    };
+}>;
+export declare const UpdateUserRoleSchema: z.ZodObject<{
+    body: z.ZodObject<{
+        userId: z.ZodNumber;
+        role: z.ZodEnum<["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"]>;
+    }, "strip", z.ZodTypeAny, {
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        userId: number;
+    }, {
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        userId: number;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    body: {
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        userId: number;
+    };
+}, {
+    body: {
+        role: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER";
+        userId: number;
+    };
+}>;
+export declare const DeleteUserParamsSchema: z.ZodObject<{
+    params: z.ZodObject<{
+        id: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+    }, {
+        id: string;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    params: {
+        id: string;
+    };
+}, {
+    params: {
+        id: string;
+    };
+}>;
+export type GetUsersQuery = z.infer<typeof GetUsersQuerySchema>['query'];
+export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];
+export type UpdateUserInput = z.infer<typeof UpdateUserSchema>['body'];
+//# sourceMappingURL=validation.d.ts.map
