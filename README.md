@@ -35,7 +35,7 @@ A powerful, full-stack enterprise-grade application for note-taking and AI-power
 - **Validation**: Zod
 - **Logging**: Pino
 
-## 📂 Project Structure
+## 📂 Project Structures
 
 ```text
 NoteMeet-Ai/
