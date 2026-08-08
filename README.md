@@ -101,7 +101,7 @@ This document provides a comprehensive overview of the frontend architecture, st
 
 ### Core Architecture
 
-The frontend is built using **Next.js 16** (with React 19) utilizing the modern **App Router** (`src/app`). 
+The frontend is built using **Next.js 16** utilizing the modern **App Router** (`src/app`). 
 Interestingly, despite being a Next.js application, the core user experience is designed as a **Single Page Application (SPA)** within the main layout. 
 
 Instead of traditional Next.js file-system routing for every screen, the application relies on a Redux-managed "view" state to render different screens (e.g., Dashboard, Upload, Action Items) seamlessly without full page reloads.
