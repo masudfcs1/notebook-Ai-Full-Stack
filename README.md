@@ -46,7 +46,6 @@ NoteMeet-Ai/
 ├── Frontend/                # Next.js web application
 │   ├── src/                 # Frontend source code
 │   ├── public/              # Static assets
-│   ├── prisma/              # Frontend database schema (if applicable)
 │   └── package.json         # Frontend dependencies
 └── package.json             # Root workspace package.json
 ```
