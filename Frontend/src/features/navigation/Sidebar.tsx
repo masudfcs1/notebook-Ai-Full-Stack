@@ -297,7 +297,7 @@ export function Sidebar() {
                         className={cn(
                           "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                           active
-                            ? " from-indigo-500/15 to-violet-500/10 text-sidebar-foreground"
+                            ? "from-indigo-500/15 to-violet-500/10 text-sidebar-foreground"
                             : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
                           collapsed && "justify-center",
                         )}
