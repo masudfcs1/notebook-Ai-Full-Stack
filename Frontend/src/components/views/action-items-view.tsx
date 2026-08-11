@@ -450,39 +450,49 @@ function LinearTaskCard({
 }) {
   const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium;
   const PriorityIcon = PriorityMeta.icon;
+  const iconColor = PriorityMeta.style.match(/text-\w+-\d+/)?.[0] || "text-foreground";
 
   return (
-    <Card className="group relative border-white/10 bg-card/80 p-3.5 backdrop-blur-md transition-all hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10">
-      <div className="flex items-start justify-between gap-2">
-        <span className="font-mono text-[10px] font-bold text-indigo-400">
-          {task.identifier || "ACT-100"}
-        </span>
+    <Card className="group relative flex flex-col gap-3 rounded-[14px] border bg-[#eeeefa] p-4 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#e8e8ef] hover:shadow-md hover:shadow-black/20">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <PriorityIcon className={cn("h-4 w-4", iconColor)} />
+          <span className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground/60 transition-colors group-hover:text-muted-foreground/90">
+            {task.identifier || "ACT-100"}
+          </span>
+        </div>
 
         {onDelete && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="rounded p-1 text-muted-foreground/50 opacity-0 transition-opacity group-hover:opacity-100 hover:text-foreground">
-                <MoreHorizontal className="h-3.5 w-3.5" />
+              <button className="rounded-md p-1.5 text-muted-foreground/40 opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100">
+                <MoreHorizontal className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent
+              align="end"
+              className="w-44 border-white/10 bg-[#1C1C1E]/95 backdrop-blur-xl"
+            >
               <DropdownMenuItem
+                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
                 onClick={() => onStatusChange?.(task.id, "todo")}
               >
                 Mark To Do
               </DropdownMenuItem>
               <DropdownMenuItem
+                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
                 onClick={() => onStatusChange?.(task.id, "in_progress")}
               >
                 Mark In Progress
               </DropdownMenuItem>
               <DropdownMenuItem
+                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
                 onClick={() => onStatusChange?.(task.id, "done")}
               >
                 Mark Done
               </DropdownMenuItem>
               <DropdownMenuItem
-                className="text-rose-400"
+                className="cursor-pointer py-2 text-[13px] font-medium text-rose-400 focus:bg-rose-500/20 focus:text-rose-400"
                 onClick={() => onDelete(task.id)}
               >
                 Delete Issue
@@ -492,41 +502,46 @@ function LinearTaskCard({
         )}
       </div>
 
-      <p className="mt-1.5 text-xs font-semibold leading-relaxed text-foreground">
-        {task.title}
-      </p>
-      {task.description && (
-        <p className="mt-1 line-clamp-2 text-[11px] text-muted-foreground/80">
-          {task.description}
+      <div className="flex-1 space-y-1.5">
+        <p className="text-[14px] font-medium leading-snug text-slate-200">
+          {task.title}
         </p>
-      )}
+        {task.description && (
+          <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground/70">
+            {task.description}
+          </p>
+        )}
+      </div>
 
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-white/5 pt-2.5">
-        <div className="flex items-center gap-1.5">
+      <div className="mt-2 flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge
             variant="outline"
             className={cn(
-              "gap-1 px-1.5 py-0 text-[9px] font-semibold",
+              "px-2 py-0.5 text-[10.5px] font-medium tracking-wide transition-colors border-white/5 bg-white/[0.02]",
               PriorityMeta.style,
             )}
           >
-            <PriorityIcon className="h-2.5 w-2.5" /> {PriorityMeta.label}
+            {PriorityMeta.label}
           </Badge>
           {task.teamName && (
-            <span className="rounded bg-white/5 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+            <Badge
+              variant="outline"
+              className="px-2 py-0.5 text-[10.5px] font-medium tracking-wide text-muted-foreground transition-colors border-white/5 bg-white/[0.02]"
+            >
               {task.teamName}
-            </span>
+            </Badge>
           )}
         </div>
 
         {task.assignee && (
           <div
-            className="flex items-center gap-1.5"
+            className="flex shrink-0 items-center transition-transform hover:scale-105"
             title={`Assigned to ${task.assignee}`}
           >
-            <Avatar className="h-5 w-5 border border-white/20">
+            <Avatar className="h-6 w-6 border border-white/10 ring-2 ring-transparent transition-all hover:ring-white/20">
               <AvatarImage src={task.assigneeAvatar} />
-              <AvatarFallback className="bg-indigo-500/20 text-[9px] font-bold text-indigo-300">
+              <AvatarFallback className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[10px] font-medium text-indigo-300">
                 {task.assignee.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
