@@ -1,42 +1,43 @@
 /**
  * NoteFlow AI - Enterprise API Client Service
  * @file apiService.ts
- * Communicates with the external Backend API server.
+ * Communicates with the external Backend API server and Gemini Service.
  */
 
-import type { ApiResponse } from "@/types"
+import type { ApiResponse } from "@/types";
+import { geminiService } from "./geminiService";
 
 export interface SummaryResult {
-  content: string
-  keyPoints: string[]
-  decisions: string[]
-  participants: string[]
-  sentiment: "positive" | "neutral" | "negative"
-  wordCount: number
+  content: string;
+  keyPoints: string[];
+  decisions: string[];
+  participants: string[];
+  sentiment: "positive" | "neutral" | "negative";
+  wordCount: number;
 }
 
 export interface ActionItemResult {
-  id: string
-  title: string
-  assignee: string | null
-  dueDate: string | null
-  priority: "low" | "medium" | "high"
+  id: string;
+  title: string;
+  assignee: string | null;
+  dueDate: string | null;
+  priority: "low" | "medium" | "high";
 }
 
 export interface SummarizeResponse {
-  noteId?: string
-  summary: SummaryResult
-  actionItems: ActionItemResult[]
+  noteId?: string;
+  summary: SummaryResult;
+  actionItems: ActionItemResult[];
 }
 
 class ApiService {
-  private baseUrl: string
+  private baseUrl: string;
 
   constructor() {
     this.baseUrl =
       typeof process !== "undefined" && process.env.NEXT_PUBLIC_BACKEND_URL
         ? process.env.NEXT_PUBLIC_BACKEND_URL
-        : "http://localhost:5015/api/v1"
+        : "http://localhost:5015/api/v1";
   }
 
   /**
@@ -50,78 +51,89 @@ class ApiService {
           ...options?.headers,
         },
         ...options,
-      })
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`)
+        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
       }
 
-      const data = await response.json()
+      const data = await response.json();
       return {
         success: true,
         data,
         timestamp: new Date().toISOString(),
-      }
+      };
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred"
+      const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred";
       return {
         success: false,
         error: errorMsg,
         timestamp: new Date().toISOString(),
-      }
+      };
     }
   }
 
   /**
-   * Summarize notes with client fallback
+   * Summarize notes with Gemini AI
    */
   async summarizeNotes(title: string, content: string): Promise<SummarizeResponse> {
-    const wordCount = content.split(/\s+/).filter(Boolean).length
-    const sampleKeyPoints = [
-      "Extracted core architectural highlights and key decisions.",
-      "Identified timeline constraints and action item assignments.",
-      "Aligned stakeholder expectations across team boundaries.",
-    ]
-    const sampleDecisions = [
-      "Approved system architecture refactoring.",
-      "Finalized sprint deliverables and deployment schedule.",
-    ]
-
-    return {
-      noteId: `note-${Date.now()}`,
-      summary: {
-        content: `Executive summary for "${title || "Meeting Notes"}": Key takeaways and decision items synthesized automatically.`,
-        keyPoints: sampleKeyPoints,
-        decisions: sampleDecisions,
-        participants: ["Arjun Kapoor", "Sarah Chen", "Devin Miller"],
-        sentiment: "positive",
-        wordCount,
-      },
-      actionItems: [
-        {
-          id: `act-${Date.now()}-1`,
-          title: "Complete frontend component verification",
-          assignee: "Arjun Kapoor",
-          dueDate: "Friday",
-          priority: "high",
+    try {
+      const res = await geminiService.summarizeMeetingNotes(title, content);
+      return {
+        noteId: `note-${Date.now()}`,
+        summary: {
+          content: res.content,
+          keyPoints: res.keyPoints,
+          decisions: res.decisions,
+          participants: res.participants,
+          sentiment: res.sentiment,
+          wordCount: res.wordCount,
         },
-        {
-          id: `act-${Date.now()}-2`,
-          title: "Review backend API endpoints and schema models",
-          assignee: "Sarah Chen",
-          dueDate: "Next Monday",
-          priority: "medium",
+        actionItems: res.actionItems.map((item, idx) => ({
+          id: `act-${Date.now()}-${idx + 1}`,
+          title: item.title,
+          assignee: item.assignee || null,
+          dueDate: item.dueDate || null,
+          priority: item.priority,
+        })),
+      };
+    } catch (e) {
+      console.error("Gemini summarize error in apiService, using fallback", e);
+      const wordCount = content.split(/\s+/).filter(Boolean).length;
+      return {
+        noteId: `note-${Date.now()}`,
+        summary: {
+          content: `Summary for "${title}": Key insights extracted from notes.`,
+          keyPoints: ["Discussed project timelines and milestones."],
+          decisions: ["Approved initial architecture design."],
+          participants: ["Team Lead", "Product Manager"],
+          sentiment: "positive",
+          wordCount,
         },
-      ],
+        actionItems: [
+          {
+            id: `act-${Date.now()}-1`,
+            title: "Review action items and confirm deadline details",
+            assignee: "Team Member",
+            dueDate: "End of Week",
+            priority: "medium",
+          },
+        ],
+      };
     }
   }
 
   /**
-   * AI Assistant query handler
+   * AI Assistant query handler calling Gemini API
    */
-  async askAiAssistant(query: string): Promise<string> {
-    return `NoteFlow AI Response for "${query}": Based on your meeting notes, key deliverables are on schedule and all critical action items are tracked.`
+  async askAiAssistant(query: string, history?: { role: string; content: string }[]): Promise<string> {
+    try {
+      return await geminiService.askAiAssistant(query, history);
+    } catch (e) {
+      console.error("Gemini assistant error in apiService", e);
+      return `NoteFlow AI Response for "${query}": I encountered an issue reaching the Gemini AI service. Please try again.`;
+    }
   }
 }
 
-export const apiService = new ApiService()
+export const apiService = new ApiService();

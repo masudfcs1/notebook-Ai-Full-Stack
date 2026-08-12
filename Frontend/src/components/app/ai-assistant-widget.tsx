@@ -49,7 +49,7 @@ export function AiAssistantWidget() {
     setMessages(next);
     setLoading(true);
     try {
-      const reply = await apiService.askAiAssistant(trimmed);
+      const reply = await apiService.askAiAssistant(trimmed, next);
       setMessages([...next, { role: "assistant", content: reply }]);
     } catch {
       setMessages([
@@ -63,6 +63,7 @@ export function AiAssistantWidget() {
       setLoading(false);
     }
   }
+
 
   return (
     <AnimatePresence>
