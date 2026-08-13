@@ -382,7 +382,7 @@ export function TeamView() {
                   <div className="flex items-center gap-2.5 min-w-0 pr-1">
                     <div className="relative shrink-0">
                       <Avatar className="h-8 w-8 border border-white/20 ring-1 ring-white/10 transition-all group-hover:ring-indigo-500/40">
-                        <AvatarImage src={member.avatar} />
+                        <AvatarImage src={member.avatar || undefined} />
                         <AvatarFallback className="bg-indigo-500/20 text-[10px] font-bold text-indigo-300">
                           {member.name.slice(0, 2).toUpperCase()}
                         </AvatarFallback>

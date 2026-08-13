@@ -57,6 +57,7 @@ model User {
   tokens       RefreshToken[]
   notes        MeetingNote[]
   memberships  TeamMember[]
+  workspaces   Workspace[]
 
   @@index([email])
   @@index([uuid])
@@ -104,12 +105,15 @@ model Workspace {
   slug        String   @unique
   icon        String?
   description String?
+  userId      Int?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   teams       Team[]
   notes       MeetingNote[]
 
+  @@index([userId])
   @@map("workspaces")
 }
 

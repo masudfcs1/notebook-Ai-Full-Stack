@@ -4,6 +4,7 @@ import dataReducer from "./dataSlice";
 import authReducer from "./authSlice";
 import { authApi } from "./api/authApiSlice";
 import { adminApi } from "./api/adminApiSlice";
+import { workspaceApi } from "./api/workspaceApiSlice";
 
 export function makeStore() {
   return configureStore({
@@ -13,11 +14,13 @@ export function makeStore() {
       auth: authReducer,
       [authApi.reducerPath]: authApi.reducer,
       [adminApi.reducerPath]: adminApi.reducer,
+      [workspaceApi.reducerPath]: workspaceApi.reducer,
     },
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware()
         .concat(authApi.middleware)
-        .concat(adminApi.middleware),
+        .concat(adminApi.middleware)
+        .concat(workspaceApi.middleware),
   });
 }
 

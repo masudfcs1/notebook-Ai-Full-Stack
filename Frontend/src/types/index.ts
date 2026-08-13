@@ -29,7 +29,7 @@ export interface TeamMember {
   teamId: string
   name: string
   email: string
-  avatar?: string
+  avatar?: string | null
   role: "OWNER" | "LEAD" | "MEMBER"
 }
 
@@ -37,9 +37,9 @@ export interface Team {
   id: string
   workspaceId: string
   name: string
-  slug: string // e.g. engineering, product-design
-  key: string // e.g. ENG, PRD, DES
-  icon?: string
+  slug?: string
+  key: string
+  icon?: string | null
   members: TeamMember[]
 }
 
@@ -47,8 +47,8 @@ export interface Workspace {
   id: string
   name: string
   slug: string
-  icon?: string
-  description?: string
+  icon?: string | null
+  description?: string | null
   teams: Team[]
 }
 

@@ -1,79 +1,146 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, X, Plus, Sparkles, Check } from "lucide-react";
+import { Building2, X, Plus, Check, Edit3, Loader2 } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/hooks";
-import { addWorkspace } from "@/lib/redux/dataSlice";
+import { addWorkspace, updateWorkspaceInState } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
+import {
+  useCreateWorkspaceMutation,
+  useUpdateWorkspaceMutation,
+  WorkspaceItem,
+} from "@/lib/redux/api/workspaceApiSlice";
+import { Workspace } from "@/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  mode?: "create" | "edit";
+  workspaceToEdit?: WorkspaceItem | Workspace | null;
 }
 
 const ICONS = ["⚡", "🧠", "🚀", "💻", "🎨", "🔥", "🌐", "💎"];
 
-export function WorkspaceModal({ open, onClose }: Props) {
+export function WorkspaceModal({
+  open,
+  onClose,
+  mode = "create",
+  workspaceToEdit = null,
+}: Props) {
   const dispatch = useAppDispatch();
+  const [createWorkspace, { isLoading: isCreating }] =
+    useCreateWorkspaceMutation();
+  const [updateWorkspace, { isLoading: isUpdating }] =
+    useUpdateWorkspaceMutation();
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("⚡");
+  const [slug, setSlug] = useState("");
+
+  const isEdit = mode === "edit" && !!workspaceToEdit;
+
+  useEffect(() => {
+    if (open) {
+      if (isEdit && workspaceToEdit) {
+        setName(workspaceToEdit.name || "");
+        setDescription(workspaceToEdit.description || "");
+        setIcon(workspaceToEdit.icon || "⚡");
+        setSlug(workspaceToEdit.slug || "");
+      } else {
+        setName("");
+        setDescription("");
+        setIcon("⚡");
+        setSlug("");
+      }
+    }
+  }, [open, isEdit, workspaceToEdit]);
 
   if (!open) return null;
 
-  function handleSubmit(e: React.FormEvent) {
+  const isLoading = isCreating || isUpdating;
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Workspace name is required");
       return;
     }
 
-    const slug = name
+    const generatedSlug = (slug || name)
       .toLowerCase()
+      .trim()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-    const newWs = {
-      id: `ws-${Date.now()}`,
-      name: name.trim(),
-      slug,
-      icon,
-      description: description.trim() || undefined,
-      teams: [
-        {
-          id: `team-${Date.now()}-general`,
-          workspaceId: `ws-${Date.now()}`,
-          name: "General",
-          slug: "general",
-          key: "GEN",
-          icon: "🌐",
-          members: [
-            {
-              id: `mem-${Date.now()}`,
-              teamId: `team-${Date.now()}-general`,
-              name: "Workspace Lead",
-              email: "admin@noteflow.ai",
-              role: "OWNER" as const,
-            },
-          ],
-        },
-      ],
-    };
 
-    dispatch(addWorkspace(newWs));
-    dispatch(
-      pushNotification({
-        title: "Workspace created",
-        description: `Created new workspace "${name.trim()}".`,
-        type: "success",
-      }),
-    );
-    toast.success(`Workspace "${name.trim()}" created!`);
-    setName("");
-    setDescription("");
-    onClose();
+    try {
+      if (isEdit && workspaceToEdit) {
+        const res = await updateWorkspace({
+          id: workspaceToEdit.id,
+          data: {
+            name: name.trim(),
+            description: description.trim() || undefined,
+            icon,
+            slug: generatedSlug,
+          },
+        }).unwrap();
+
+        if (res.success && res.data) {
+          dispatch(
+            updateWorkspaceInState({
+              id: workspaceToEdit.id,
+              name: res.data.name,
+              description: res.data.description || undefined,
+              icon: res.data.icon || undefined,
+              slug: res.data.slug,
+            }),
+          );
+          dispatch(
+            pushNotification({
+              title: "Workspace updated",
+              description: `Updated workspace "${res.data.name}".`,
+              type: "success",
+            }),
+          );
+          toast.success(`Workspace "${res.data.name}" updated!`);
+          onClose();
+        }
+      } else {
+        const res = await createWorkspace({
+          name: name.trim(),
+          description: description.trim() || undefined,
+          icon,
+          slug: generatedSlug,
+        }).unwrap();
+
+        if (res.success && res.data) {
+          dispatch(
+            addWorkspace({
+              ...res.data,
+              teams: res.data.teams || [],
+            }),
+          );
+          dispatch(
+            pushNotification({
+              title: "Workspace created",
+              description: `Created new workspace "${res.data.name}".`,
+              type: "success",
+            }),
+          );
+          toast.success(`Workspace "${res.data.name}" created!`);
+          onClose();
+        }
+      }
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message ||
+        err?.message ||
+        `Failed to ${isEdit ? "update" : "create"} workspace`;
+      toast.error(errorMsg);
+    }
   }
 
   return (
@@ -95,18 +162,26 @@ export function WorkspaceModal({ open, onClose }: Props) {
           <div className="flex items-center justify-between border-b border-border/40 pb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/15 text-primary">
-                <Building2 className="h-5 w-5" />
+                {isEdit ? (
+                  <Edit3 className="h-5 w-5" />
+                ) : (
+                  <Building2 className="h-5 w-5" />
+                )}
               </div>
               <div>
-                <h2 className="text-lg font-bold">Create New Workspace</h2>
+                <h2 className="text-lg font-bold">
+                  {isEdit ? "Edit Workspace" : "Create New Workspace"}
+                </h2>
                 <p className="text-xs text-muted-foreground">
-                  Workspaces isolate teams, notes, and action items
+                  {isEdit
+                    ? "Update your workspace details and settings"
+                    : "Workspaces isolate teams, notes, and action items"}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -123,7 +198,7 @@ export function WorkspaceModal({ open, onClose }: Props) {
                     key={i}
                     type="button"
                     onClick={() => setIcon(i)}
-                    className={`flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition-all ${
+                    className={`flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition-all cursor-pointer ${
                       icon === i
                         ? "border-primary bg-primary/20 text-primary shadow-sm ring-2 ring-primary/40"
                         : "border-border/60 bg-muted/30 hover:border-border"
@@ -143,9 +218,32 @@ export function WorkspaceModal({ open, onClose }: Props) {
                 type="text"
                 placeholder="e.g. Acme Corp, Design Studio"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  if (!isEdit && !slug) {
+                    setSlug(
+                      e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, "-")
+                        .replace(/^-|-$/g, ""),
+                    );
+                  }
+                }}
                 className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 autoFocus
+              />
+            </div>
+
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Workspace Slug
+              </label>
+              <input
+                type="text"
+                placeholder="acme-corp"
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-sm outline-none font-mono text-xs transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </div>
 
@@ -167,16 +265,32 @@ export function WorkspaceModal({ open, onClose }: Props) {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="rounded-xl"
+                disabled={isLoading}
+                className="rounded-xl cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="gap-2 rounded-xl  from-indigo-500 to-cyan-500 text-white shadow-lg"
+                disabled={isLoading}
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90"
               >
-                <Plus className="h-4 w-4" />
-                Create Workspace
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {isEdit ? "Saving..." : "Creating..."}
+                  </>
+                ) : isEdit ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Save Changes
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Create Workspace
+                  </>
+                )}
               </Button>
             </div>
           </form>

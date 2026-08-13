@@ -274,10 +274,42 @@ const dataSlice = createSlice({
         state.activeTeamId = null
       }
     },
+    setWorkspaces(state, action: PayloadAction<Workspace[]>) {
+      state.workspaces = action.payload
+      if (action.payload.length > 0) {
+        const exists = action.payload.some((w) => w.id === state.activeWorkspaceId)
+        if (!exists) {
+          state.activeWorkspaceId = action.payload[0].id
+          state.activeTeamId = null
+        }
+      }
+    },
     addWorkspace(state, action: PayloadAction<Workspace>) {
-      state.workspaces.push(action.payload)
+      const exists = state.workspaces.some((w) => w.id === action.payload.id)
+      if (!exists) {
+        state.workspaces.push(action.payload)
+      }
       state.activeWorkspaceId = action.payload.id
       state.activeTeamId = null
+    },
+    updateWorkspaceInState(
+      state,
+      action: PayloadAction<{ id: string; name?: string; icon?: string; description?: string; slug?: string }>
+    ) {
+      const idx = state.workspaces.findIndex((w) => w.id === action.payload.id)
+      if (idx >= 0) {
+        state.workspaces[idx] = {
+          ...state.workspaces[idx],
+          ...action.payload,
+        }
+      }
+    },
+    deleteWorkspaceFromState(state, action: PayloadAction<string>) {
+      state.workspaces = state.workspaces.filter((w) => w.id !== action.payload)
+      if (state.activeWorkspaceId === action.payload) {
+        state.activeWorkspaceId = state.workspaces[0]?.id || ""
+        state.activeTeamId = null
+      }
     },
 
     // Teams
@@ -422,7 +454,10 @@ const dataSlice = createSlice({
 export const {
   setActiveWorkspace,
   setActiveWorkspaceBySlug,
+  setWorkspaces,
   addWorkspace,
+  updateWorkspaceInState,
+  deleteWorkspaceFromState,
   setActiveTeam,
   setActiveTeamBySlug,
   addTeam,

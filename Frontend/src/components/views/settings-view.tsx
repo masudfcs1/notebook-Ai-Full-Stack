@@ -17,15 +17,21 @@ import {
   Download,
   Trash2,
   Camera,
+  Building2,
+  Plus,
+  Edit3,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { pushNotification } from "@/lib/redux/appSlice";
 import { setUser } from "@/lib/redux/authSlice";
+import { setActiveWorkspace } from "@/lib/redux/dataSlice";
 import {
   useUpdateProfileMutation,
   useUpdateProfileImageMutation,
 } from "@/lib/redux/api/authApiSlice";
+import { WorkspaceModal } from "@/components/modals/workspace-modal";
+import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +60,15 @@ export function SettingsView() {
   const { theme, setTheme } = useTheme();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+
+  const [wsModalOpen, setWsModalOpen] = useState(false);
+  const [wsModalMode, setWsModalMode] = useState<"create" | "edit">("create");
+  const [wsToEdit, setWsToEdit] = useState<any>(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [wsToDelete, setWsToDelete] = useState<any>(null);
 
   const [updateProfile, { isLoading: isUpdatingProfile }] =
     useUpdateProfileMutation();
@@ -163,6 +178,9 @@ export function SettingsView() {
           </TabsTrigger>
           <TabsTrigger value="ai" className="gap-1.5 rounded-lg text-sm">
             <Sparkles className="h-4 w-4" /> AI
+          </TabsTrigger>
+          <TabsTrigger value="workspaces" className="gap-1.5 rounded-lg text-sm">
+            <Building2 className="h-4 w-4" /> Workspaces
           </TabsTrigger>
           <TabsTrigger value="security" className="gap-1.5 rounded-lg text-sm">
             <Shield className="h-4 w-4" /> Security
@@ -521,7 +539,151 @@ export function SettingsView() {
             </div>
           </Card>
         </TabsContent>
+
+        {/* Workspaces Management Tab */}
+        <TabsContent value="workspaces" className="mt-5 space-y-5">
+          <Card className="border-border/50 p-5 backdrop-blur-sm md:p-6">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6 border-b border-border/40 pb-4">
+              <div>
+                <h3 className="text-lg font-bold">Workspace Management</h3>
+                <p className="text-sm text-muted-foreground">
+                  Create, edit, or remove workspaces in your account
+                </p>
+              </div>
+              <Button
+                onClick={() => {
+                  setWsToEdit(null);
+                  setWsModalMode("create");
+                  setWsModalOpen(true);
+                }}
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-md cursor-pointer hover:opacity-90"
+              >
+                <Plus className="h-4 w-4" /> Create Workspace
+              </Button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {workspaces.map((ws) => {
+                const isActive = ws.id === activeWorkspaceId;
+                return (
+                  <div
+                    key={ws.id}
+                    className={cn(
+                      "relative flex flex-col justify-between rounded-2xl border p-5 transition-all",
+                      isActive
+                        ? "border-indigo-500/60 bg-indigo-500/5 shadow-md ring-1 ring-indigo-500/30"
+                        : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70",
+                    )}
+                  >
+                    <div>
+                      <div className="flex items-start justify-between gap-3 mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-500/15 text-2xl shadow-inner">
+                            {ws.icon || "⚡"}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-base">{ws.name}</h4>
+                              {isActive && (
+                                <Badge className="bg-indigo-500 text-white text-[10px]">
+                                  Active
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="font-mono text-xs text-muted-foreground">
+                              /{ws.slug}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {ws.description && (
+                        <p className="text-xs text-muted-foreground mb-4 line-clamp-2">
+                          {ws.description}
+                        </p>
+                      )}
+
+                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-5">
+                        <span className="flex items-center gap-1">
+                          <span className="font-semibold text-foreground">
+                            {ws.teams?.length || 0}
+                          </span>{" "}
+                          teams
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-auto">
+                      {!isActive ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => dispatch(setActiveWorkspace(ws.id))}
+                          className="rounded-xl text-xs cursor-pointer hover:border-indigo-500/40"
+                        >
+                          Set Active
+                        </Button>
+                      ) : (
+                        <span className="text-xs font-medium text-indigo-500 flex items-center gap-1">
+                          <Check className="h-3.5 w-3.5" /> Current Workspace
+                        </span>
+                      )}
+
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setWsToEdit(ws);
+                            setWsModalMode("edit");
+                            setWsModalOpen(true);
+                          }}
+                          className="h-8 gap-1 rounded-lg text-xs cursor-pointer hover:text-indigo-400"
+                        >
+                          <Edit3 className="h-3.5 w-3.5" /> Edit
+                        </Button>
+
+                        {workspaces.length > 1 && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setWsToDelete(ws);
+                              setDeleteModalOpen(true);
+                            }}
+                            className="h-8 gap-1 rounded-lg text-xs text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 cursor-pointer"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" /> Delete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        </TabsContent>
       </Tabs>
+
+      {/* Workspace Modals */}
+      <WorkspaceModal
+        open={wsModalOpen}
+        onClose={() => {
+          setWsModalOpen(false);
+          setWsToEdit(null);
+        }}
+        mode={wsModalMode}
+        workspaceToEdit={wsToEdit}
+      />
+      <DeleteWorkspaceModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setWsToDelete(null);
+        }}
+        workspace={wsToDelete}
+      />
     </div>
   );
 }

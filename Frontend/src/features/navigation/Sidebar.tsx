@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PanelLeftClose,
@@ -14,6 +14,8 @@ import {
   Plus,
   Check,
   Briefcase,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
@@ -22,7 +24,12 @@ import {
   markAllNotificationsRead,
 } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
-import { setActiveWorkspace, setActiveTeam } from "@/lib/redux/dataSlice";
+import {
+  setActiveWorkspace,
+  setActiveTeam,
+  setWorkspaces,
+} from "@/lib/redux/dataSlice";
+import { useGetAllWorkspacesQuery } from "@/lib/redux/api/workspaceApiSlice";
 import { Logo, Wordmark } from "./Logo";
 import {
   cn,
@@ -48,15 +55,28 @@ import {
 } from "@/components/ui/tooltip";
 import { NAVIGATION_GROUPS } from "@/constants";
 import { WorkspaceModal } from "@/components/modals/workspace-modal";
+import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
 import { TeamModal } from "@/components/modals/team-modal";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
+  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
   const notifications = useAppSelector((s) => s.app.notifications);
   const unread = notifications.filter((n) => !n.read).length;
+
+  // Sync user workspaces from API
+  const { data: wsRes } = useGetAllWorkspacesQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
+  useEffect(() => {
+    if (wsRes?.success && wsRes.data) {
+      dispatch(setWorkspaces(wsRes.data));
+    }
+  }, [wsRes, dispatch]);
 
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "User Account");
@@ -73,6 +93,12 @@ export function Sidebar() {
 
   // Modal & section collapse triggers
   const [wsModalOpen, setWsModalOpen] = useState(false);
+  const [wsModalMode, setWsModalMode] = useState<"create" | "edit">("create");
+  const [wsToEdit, setWsToEdit] = useState<any>(null);
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [wsToDelete, setWsToDelete] = useState<any>(null);
+
   const [teamModalOpen, setTeamModalOpen] = useState(false);
   const [teamsCollapsed, setTeamsCollapsed] = useState(true);
 
@@ -152,25 +178,58 @@ export function Sidebar() {
                       window.history.pushState(null, "", `/${ws.slug}`);
                     }
                   }}
-                  className="flex items-center justify-between py-2 cursor-pointer"
+                  className="flex items-center justify-between py-2 cursor-pointer group"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <span className="text-base">{ws.icon || "🏢"}</span>
                     <div className="truncate">
                       <p className="text-xs font-semibold">{ws.name}</p>
                       <p className="text-[10px] text-muted-foreground">
-                        {ws.teams.length} teams
+                        {ws.teams?.length || 0} teams
                       </p>
                     </div>
                   </div>
-                  {ws.id === activeWorkspaceId && (
-                    <Check className="h-4 w-4 text-indigo-500" />
-                  )}
+                  <div className="flex items-center gap-1">
+                    {ws.id === activeWorkspaceId && (
+                      <Check className="h-4 w-4 text-indigo-500 mr-0.5" />
+                    )}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setWsToEdit(ws);
+                        setWsModalMode("edit");
+                        setWsModalOpen(true);
+                      }}
+                      title="Edit workspace"
+                      className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                    >
+                      <Edit3 className="h-3.5 w-3.5" />
+                    </button>
+                    {workspaces.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWsToDelete(ws);
+                          setDeleteModalOpen(true);
+                        }}
+                        title="Delete workspace"
+                        className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => setWsModalOpen(true)}
+                onClick={() => {
+                  setWsToEdit(null);
+                  setWsModalMode("create");
+                  setWsModalOpen(true);
+                }}
                 className="gap-2 text-xs font-medium text-indigo-500 cursor-pointer"
               >
                 <Plus className="h-3.5 w-3.5" /> Create Workspace
@@ -487,7 +546,20 @@ export function Sidebar() {
       {/* Modals */}
       <WorkspaceModal
         open={wsModalOpen}
-        onClose={() => setWsModalOpen(false)}
+        onClose={() => {
+          setWsModalOpen(false);
+          setWsToEdit(null);
+        }}
+        mode={wsModalMode}
+        workspaceToEdit={wsToEdit}
+      />
+      <DeleteWorkspaceModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setWsToDelete(null);
+        }}
+        workspace={wsToDelete}
       />
       <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
     </>
