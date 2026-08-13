@@ -20,10 +20,14 @@ import { toast } from "react-hot-toast";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { setView, pushNotification } from "@/lib/redux/appSlice";
 import { setCredentials } from "@/lib/redux/authSlice";
+import { resetDataState } from "@/lib/redux/dataSlice";
 import {
   useLoginMutation,
   useRegisterMutation,
+  authApi,
 } from "@/lib/redux/api/authApiSlice";
+import { workspaceApi } from "@/lib/redux/api/workspaceApiSlice";
+import { adminApi } from "@/lib/redux/api/adminApiSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Logo, Wordmark } from "@/features/navigation";
@@ -77,6 +81,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
 
         if (response.success && response.data) {
           const { user, accessToken } = response.data;
+          dispatch(workspaceApi.util.resetApiState());
+          dispatch(authApi.util.resetApiState());
+          dispatch(adminApi.util.resetApiState());
+          dispatch(resetDataState());
           dispatch(setCredentials({ user, token: accessToken }));
           dispatch(
             pushNotification({
@@ -136,6 +144,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
             }).unwrap();
             if (loginRes.success && loginRes.data) {
               const { user, accessToken } = loginRes.data;
+              dispatch(workspaceApi.util.resetApiState());
+              dispatch(authApi.util.resetApiState());
+              dispatch(adminApi.util.resetApiState());
+              dispatch(resetDataState());
               dispatch(setCredentials({ user, token: accessToken }));
               toast.success(
                 "Account created successfully! Welcome to NoteFlow AI.",

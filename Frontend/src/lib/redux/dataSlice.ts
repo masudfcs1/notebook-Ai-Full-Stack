@@ -448,6 +448,16 @@ const dataSlice = createSlice({
     setGenerating(state, action: PayloadAction<boolean>) {
       state.generating = action.payload
     },
+    resetDataState(state) {
+      state.workspaces = []
+      state.activeWorkspaceId = ""
+      state.activeTeamId = null
+      state.notes = []
+      state.summaries = []
+      state.tasks = []
+      state.loading = false
+      state.generating = false
+    },
   },
 })
 
@@ -477,6 +487,7 @@ export const {
   deleteTask,
   setLoading,
   setGenerating,
+  resetDataState,
 } = dataSlice.actions
 
 export default dataSlice.reducer
