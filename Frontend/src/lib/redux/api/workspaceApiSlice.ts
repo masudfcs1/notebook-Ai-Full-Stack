@@ -19,6 +19,7 @@ export interface Team {
   workspaceId: string;
   name: string;
   key: string;
+  slug?: string;
   icon?: string | null;
   createdAt?: string;
   updatedAt?: string;
@@ -85,6 +86,33 @@ export interface UpdateWorkspaceRequest {
   slug?: string;
   icon?: string;
   description?: string;
+}
+
+export interface CreateTeamRequest {
+  workspaceId: string;
+  name: string;
+  key: string;
+  icon?: string;
+  slug?: string;
+}
+
+export interface UpdateTeamRequest {
+  name?: string;
+  key?: string;
+  icon?: string;
+  slug?: string;
+}
+
+export interface SingleTeamResponse {
+  success: boolean;
+  message: string;
+  data: Team;
+}
+
+export interface TeamsResponse {
+  success: boolean;
+  message: string;
+  data: Team[];
 }
 
 /* ---------- API Slice ---------- */
@@ -159,6 +187,37 @@ export const workspaceApi = createApi({
       }),
       invalidatesTags: ["Workspaces"],
     }),
+    // Team Endpoints
+    getTeamsByWorkspace: builder.query<TeamsResponse, string>({
+      query: (workspaceId) => `/teams?workspaceId=${workspaceId}`,
+      providesTags: ["Workspaces"],
+    }),
+    createTeam: builder.mutation<SingleTeamResponse, CreateTeamRequest>({
+      query: (body) => ({
+        url: "/teams",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Workspaces"],
+    }),
+    updateTeam: builder.mutation<
+      SingleTeamResponse,
+      { id: string; data: UpdateTeamRequest }
+    >({
+      query: ({ id, data }) => ({
+        url: `/teams/${id}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: ["Workspaces"],
+    }),
+    deleteTeam: builder.mutation<{ success: boolean; message: string }, string>({
+      query: (id) => ({
+        url: `/teams/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Workspaces"],
+    }),
   }),
 });
 
@@ -169,4 +228,8 @@ export const {
   useCreateWorkspaceMutation,
   useUpdateWorkspaceMutation,
   useDeleteWorkspaceMutation,
+  useGetTeamsByWorkspaceQuery,
+  useCreateTeamMutation,
+  useUpdateTeamMutation,
+  useDeleteTeamMutation,
 } = workspaceApi;

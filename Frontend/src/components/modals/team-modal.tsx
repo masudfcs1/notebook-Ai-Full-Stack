@@ -1,92 +1,177 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, X, Plus, Shield, UserPlus } from "lucide-react";
+import { Users, X, Plus, Check, Edit3, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { addTeam, addTeamMember } from "@/lib/redux/dataSlice";
+import { addTeam, updateTeam } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
+import {
+  useCreateTeamMutation,
+  useUpdateTeamMutation,
+} from "@/lib/redux/api/workspaceApiSlice";
+import { Team } from "@/types";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface Props {
   open: boolean;
   onClose: () => void;
+  mode?: "create" | "edit";
+  teamToEdit?: Team | null;
+  targetWorkspaceId?: string;
 }
 
-const TEAM_ICONS = ["💻", "🎨", "🚀", "📊", "⚡", "🔬", "🛠️", "🎯"];
+const TEAM_ICONS = ["💬", "💻", "🎨", "🚀", "📊", "⚡", "🔬", "🛠️", "🎯"];
 
-export function TeamModal({ open, onClose }: Props) {
+export function TeamModal({
+  open,
+  onClose,
+  mode = "create",
+  teamToEdit = null,
+  targetWorkspaceId,
+}: Props) {
   const dispatch = useAppDispatch();
   const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
-  const currentWs = useAppSelector((s) =>
-    s.data.workspaces.find((w) => w.id === activeWorkspaceId),
-  );
+  const workspaces = useAppSelector((s) => s.data.workspaces);
 
+  const effectiveWorkspaceId = targetWorkspaceId || activeWorkspaceId;
+  const currentWs = workspaces.find((w) => w.id === effectiveWorkspaceId);
+
+  const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation();
+  const [updateTeamMutation, { isLoading: isUpdating }] = useUpdateTeamMutation();
+
+  const [selectedWsId, setSelectedWsId] = useState(effectiveWorkspaceId);
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
-  const [icon, setIcon] = useState("💻");
-  const [memberName, setMemberName] = useState("");
-  const [memberEmail, setMemberEmail] = useState("");
-  const [memberRole, setMemberRole] = useState<"OWNER" | "LEAD" | "MEMBER">(
-    "MEMBER",
-  );
+  const [icon, setIcon] = useState("💬");
+  const [isKeyManuallyEdited, setIsKeyManuallyEdited] = useState(false);
+
+  const isEdit = mode === "edit" && !!teamToEdit;
+  const isLoading = isCreating || isUpdating;
+
+  useEffect(() => {
+    if (open) {
+      setSelectedWsId(effectiveWorkspaceId || workspaces[0]?.id || "");
+      if (isEdit && teamToEdit) {
+        setName(teamToEdit.name || "");
+        setKey(teamToEdit.key || "");
+        setIcon(teamToEdit.icon || "💬");
+        setIsKeyManuallyEdited(true);
+      } else {
+        setName("");
+        setKey("");
+        setIcon("💬");
+        setIsKeyManuallyEdited(false);
+      }
+    }
+  }, [open, isEdit, teamToEdit, effectiveWorkspaceId, workspaces]);
 
   if (!open) return null;
 
-  function handleCreateTeam(e: React.FormEvent) {
+  function generateKeyFromName(val: string): string {
+    const words = val.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 3) {
+      return (words[0][0] + words[1][0] + words[2][0]).toUpperCase();
+    } else if (words.length === 2) {
+      return (words[0].slice(0, 2) + words[1][0]).toUpperCase();
+    } else if (val.trim().length >= 3) {
+      return val.trim().slice(0, 3).toUpperCase();
+    }
+    return val.trim().toUpperCase();
+  }
+
+  function handleNameChange(val: string) {
+    setName(val);
+    if (!isKeyManuallyEdited) {
+      setKey(generateKeyFromName(val));
+    }
+  }
+
+  function handleKeyChange(val: string) {
+    setIsKeyManuallyEdited(true);
+    setKey(val.toUpperCase().replace(/[^A-Z0-9]/g, ""));
+  }
+
+  async function handleFormSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
       toast.error("Team name is required");
       return;
     }
 
-    const generatedKey = key.trim()
-      ? key.trim().toUpperCase()
-      : name.trim().slice(0, 3).toUpperCase();
-    const slug =
-      name
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "") || "team";
-    const teamId = `team-${Date.now()}`;
+    const wsId = selectedWsId || activeWorkspaceId;
+    if (!wsId) {
+      toast.error("Please select a workspace for this team");
+      return;
+    }
 
-    const newTeam = {
-      id: teamId,
-      workspaceId: activeWorkspaceId,
-      name: name.trim(),
-      slug,
-      key: generatedKey,
-      icon,
-      members:
-        memberName.trim() && memberEmail.trim()
-          ? [
-              {
-                id: `mem-${Date.now()}`,
-                teamId,
-                name: memberName.trim(),
-                email: memberEmail.trim(),
-                role: memberRole,
-              },
-            ]
-          : [],
-    };
+    const finalKey = (key.trim() || generateKeyFromName(name)).slice(0, 10).toUpperCase();
+    const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
-    dispatch(addTeam(newTeam));
-    dispatch(
-      pushNotification({
-        title: "Team created",
-        description: `Created new team "${name.trim()}" (${generatedKey}).`,
-        type: "success",
-      }),
-    );
-    toast.success(`Team "${name.trim()}" created!`);
-    setName("");
-    setKey("");
-    setMemberName("");
-    setMemberEmail("");
-    onClose();
+    try {
+      if (isEdit && teamToEdit) {
+        const res = await updateTeamMutation({
+          id: teamToEdit.id,
+          data: {
+            name: name.trim(),
+            key: finalKey,
+            icon,
+            slug,
+          },
+        }).unwrap();
+
+        if (res.success && res.data) {
+          dispatch(
+            updateTeam({
+              teamId: teamToEdit.id,
+              name: res.data.name,
+              key: res.data.key,
+              icon: res.data.icon || undefined,
+            }),
+          );
+          dispatch(
+            pushNotification({
+              title: "Team updated",
+              description: `Updated team "${res.data.name}".`,
+              type: "success",
+            }),
+          );
+          toast.success(`Team "${res.data.name}" updated!`);
+          onClose();
+        }
+      } else {
+        const res = await createTeam({
+          workspaceId: wsId,
+          name: name.trim(),
+          key: finalKey,
+          icon,
+          slug,
+        }).unwrap();
+
+        if (res.success && res.data) {
+          dispatch(
+            addTeam({
+              ...res.data,
+              members: res.data.members || [],
+            }),
+          );
+          dispatch(
+            pushNotification({
+              title: "Team created",
+              description: `Created new team "${res.data.name}" (${res.data.key}).`,
+              type: "success",
+            }),
+          );
+          toast.success(`Team "${res.data.name}" created!`);
+          onClose();
+        }
+      }
+    } catch (err: any) {
+      const errorMsg =
+        err?.data?.message || err?.message || `Failed to ${isEdit ? "update" : "create"} team`;
+      toast.error(errorMsg);
+    }
   }
 
   return (
@@ -108,26 +193,47 @@ export function TeamModal({ open, onClose }: Props) {
           <div className="flex items-center justify-between border-b border-border/40 pb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400">
-                <Users className="h-5 w-5" />
+                {isEdit ? <Edit3 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
               </div>
               <div>
                 <h2 className="text-lg font-bold">
-                  Create Team in {currentWs?.name || "Workspace"}
+                  {isEdit ? "Edit Team" : "Create Team"}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  Teams group members, task identifiers, and action items
+                  {currentWs
+                    ? `Workspace: ${currentWs.name}`
+                    : "Teams isolate action items and meeting notes"}
                 </p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
 
-          <form onSubmit={handleCreateTeam} className="mt-5 space-y-4">
+          <form onSubmit={handleFormSubmit} className="mt-5 space-y-4">
+            {!isEdit && workspaces.length > 1 && (
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Target Workspace *
+                </label>
+                <select
+                  value={selectedWsId}
+                  onChange={(e) => setSelectedWsId(e.target.value)}
+                  className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-sm outline-none transition-all focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
+                >
+                  {workspaces.map((w) => (
+                    <option key={w.id} value={w.id}>
+                      {w.icon || "🏢"} {w.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             <div>
               <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Team Icon
@@ -138,7 +244,7 @@ export function TeamModal({ open, onClose }: Props) {
                     key={i}
                     type="button"
                     onClick={() => setIcon(i)}
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-base transition-all ${
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-base transition-all cursor-pointer ${
                       icon === i
                         ? "border-cyan-500 bg-cyan-500/20 text-cyan-400 shadow-sm ring-2 ring-cyan-500/40"
                         : "border-border/60 bg-muted/30 hover:border-border"
@@ -159,45 +265,22 @@ export function TeamModal({ open, onClose }: Props) {
                   type="text"
                   placeholder="e.g. Engineering, Product Design"
                   value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  onChange={(e) => handleNameChange(e.target.value)}
                   className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
                   autoFocus
                 />
               </div>
               <div>
                 <label className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Key Identifier
+                  Key Identifier *
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. ENG"
-                  maxLength={4}
+                  maxLength={6}
                   value={key}
-                  onChange={(e) => setKey(e.target.value.toUpperCase())}
+                  onChange={(e) => handleKeyChange(e.target.value)}
                   className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2.5 font-mono text-sm uppercase outline-none transition-all focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20"
-                />
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-white/5 bg-muted/20 p-4">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold text-foreground">
-                <UserPlus className="h-4 w-4 text-cyan-400" />
-                Add Initial Member (Optional)
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <input
-                  type="text"
-                  placeholder="Full Name"
-                  value={memberName}
-                  onChange={(e) => setMemberName(e.target.value)}
-                  className="rounded-lg border border-border/60 bg-background px-3 py-1.5 text-xs outline-none focus:border-cyan-500"
-                />
-                <input
-                  type="email"
-                  placeholder="user@company.com"
-                  value={memberEmail}
-                  onChange={(e) => setMemberEmail(e.target.value)}
-                  className="rounded-lg border border-border/60 bg-background px-3 py-1.5 text-xs outline-none focus:border-cyan-500"
                 />
               </div>
             </div>
@@ -207,16 +290,32 @@ export function TeamModal({ open, onClose }: Props) {
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                className="rounded-xl"
+                disabled={isLoading}
+                className="rounded-xl cursor-pointer"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                className="gap-2 rounded-xl  from-cyan-500 to-blue-500 text-white shadow-lg"
+                disabled={isLoading || !name.trim()}
+                className="gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50"
               >
-                <Plus className="h-4 w-4" />
-                Create Team
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {isEdit ? "Saving..." : "Creating..."}
+                  </>
+                ) : isEdit ? (
+                  <>
+                    <Check className="h-4 w-4" />
+                    Save Team
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Create Team
+                  </>
+                )}
               </Button>
             </div>
           </form>

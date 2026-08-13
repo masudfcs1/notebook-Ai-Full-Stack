@@ -32,6 +32,8 @@ import {
 } from "@/lib/redux/api/authApiSlice";
 import { WorkspaceModal } from "@/components/modals/workspace-modal";
 import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
+import { TeamModal } from "@/components/modals/team-modal";
+import { DeleteTeamModal } from "@/components/modals/delete-team-modal";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,6 +71,14 @@ export function SettingsView() {
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [wsToDelete, setWsToDelete] = useState<any>(null);
+
+  const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">("create");
+  const [teamToEdit, setTeamToEdit] = useState<any>(null);
+  const [targetWsIdForTeam, setTargetWsIdForTeam] = useState<string>("");
+
+  const [deleteTeamModalOpen, setDeleteTeamModalOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<any>(null);
 
   const [updateProfile, { isLoading: isUpdatingProfile }] =
     useUpdateProfileMutation();
@@ -603,13 +613,67 @@ export function SettingsView() {
                         </p>
                       )}
 
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-5">
-                        <span className="flex items-center gap-1">
-                          <span className="font-semibold text-foreground">
-                            {ws.teams?.length || 0}
-                          </span>{" "}
-                          teams
-                        </span>
+                      <div className="mt-3 pt-3 border-t border-border/40 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+                            Teams ({ws.teams?.length || 0})
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setTargetWsIdForTeam(ws.id);
+                              setTeamToEdit(null);
+                              setTeamModalMode("create");
+                              setTeamModalOpen(true);
+                            }}
+                            className="h-6 gap-1 px-2 text-[11px] text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/10 cursor-pointer"
+                          >
+                            <Plus className="h-3 w-3" /> Add Team
+                          </Button>
+                        </div>
+                        {ws.teams && ws.teams.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {ws.teams.map((t: any) => (
+                              <div
+                                key={t.id}
+                                className="flex items-center gap-1.5 rounded-lg border border-border/50 bg-background/60 px-2 py-1 text-xs"
+                              >
+                                <span>{t.icon || "💬"}</span>
+                                <span className="font-medium">{t.name}</span>
+                                <span className="font-mono text-[9px] rounded bg-muted px-1 text-muted-foreground">
+                                  {t.key}
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTargetWsIdForTeam(ws.id);
+                                    setTeamToEdit(t);
+                                    setTeamModalMode("edit");
+                                    setTeamModalOpen(true);
+                                  }}
+                                  className="text-muted-foreground hover:text-indigo-400 cursor-pointer ml-1"
+                                  title="Edit team"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTeamToDelete(t);
+                                    setDeleteTeamModalOpen(true);
+                                  }}
+                                  className="text-muted-foreground hover:text-rose-500 cursor-pointer"
+                                  title="Delete team"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-[11px] text-muted-foreground italic">No teams in this workspace</p>
+                        )}
                       </div>
                     </div>
 
@@ -683,6 +747,24 @@ export function SettingsView() {
           setWsToDelete(null);
         }}
         workspace={wsToDelete}
+      />
+      <TeamModal
+        open={teamModalOpen}
+        onClose={() => {
+          setTeamModalOpen(false);
+          setTeamToEdit(null);
+        }}
+        mode={teamModalMode}
+        teamToEdit={teamToEdit}
+        targetWorkspaceId={targetWsIdForTeam || activeWorkspaceId}
+      />
+      <DeleteTeamModal
+        open={deleteTeamModalOpen}
+        onClose={() => {
+          setDeleteTeamModalOpen(false);
+          setTeamToDelete(null);
+        }}
+        team={teamToDelete}
       />
     </div>
   );

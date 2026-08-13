@@ -58,6 +58,7 @@ import { NAVIGATION_GROUPS } from "@/constants";
 import { WorkspaceModal } from "@/components/modals/workspace-modal";
 import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
 import { TeamModal } from "@/components/modals/team-modal";
+import { DeleteTeamModal } from "@/components/modals/delete-team-modal";
 
 export function Sidebar() {
   const dispatch = useAppDispatch();
@@ -101,6 +102,12 @@ export function Sidebar() {
   const [wsToDelete, setWsToDelete] = useState<any>(null);
 
   const [teamModalOpen, setTeamModalOpen] = useState(false);
+  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">("create");
+  const [teamToEdit, setTeamToEdit] = useState<any>(null);
+
+  const [deleteTeamModalOpen, setDeleteTeamModalOpen] = useState(false);
+  const [teamToDelete, setTeamToDelete] = useState<any>(null);
+
   const [teamsCollapsed, setTeamsCollapsed] = useState(true);
 
   return (
@@ -258,8 +265,12 @@ export function Sidebar() {
                   </span>
                 </button>
                 <button
-                  onClick={() => setTeamModalOpen(true)}
-                  className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                  onClick={() => {
+                    setTeamToEdit(null);
+                    setTeamModalMode("create");
+                    setTeamModalOpen(true);
+                  }}
+                  className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
                   title="Create Team"
                 >
                   <Plus className="h-3 w-3" />
@@ -287,7 +298,7 @@ export function Sidebar() {
                         }
                       }}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors",
+                        "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors cursor-pointer",
                         activeTeamId === null
                           ? "bg-indigo-500/15 font-semibold text-indigo-400"
                           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
@@ -298,37 +309,66 @@ export function Sidebar() {
                     </button>
 
                     {teams.map((t) => (
-                      <button
+                      <div
                         key={t.id}
-                        onClick={() => {
-                          dispatch(setActiveTeam(t.id));
-                          dispatch(setView("team"));
-                          if (
-                            typeof window !== "undefined" &&
-                            activeWorkspace
-                          ) {
-                            window.history.pushState(
-                              null,
-                              "",
-                              `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
-                            );
-                          }
-                        }}
                         className={cn(
-                          "flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                          "group/team flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
                           activeTeamId === t.id
                             ? "bg-indigo-500/15 font-semibold text-indigo-400"
                             : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
                         )}
                       >
-                        <div className="flex items-center gap-2 min-w-0">
+                        <button
+                          onClick={() => {
+                            dispatch(setActiveTeam(t.id));
+                            dispatch(setView("team"));
+                            if (
+                              typeof window !== "undefined" &&
+                              activeWorkspace
+                            ) {
+                              window.history.pushState(
+                                null,
+                                "",
+                                `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
+                              );
+                            }
+                          }}
+                          className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
+                        >
                           <span className="text-xs">{t.icon || "💬"}</span>
                           <span className="truncate">{t.name}</span>
+                        </button>
+                        <div className="flex items-center gap-1">
+                          <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
+                            {t.key}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTeamToEdit(t);
+                              setTeamModalMode("edit");
+                              setTeamModalOpen(true);
+                            }}
+                            title="Edit team"
+                            className="p-0.5 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setTeamToDelete(t);
+                              setDeleteTeamModalOpen(true);
+                            }}
+                            title="Delete team"
+                            className="p-0.5 text-muted-foreground hover:text-rose-500 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
-                        <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
-                          {t.key}
-                        </span>
-                      </button>
+                      </div>
                     ))}
                   </motion.div>
                 )}
@@ -565,7 +605,24 @@ export function Sidebar() {
         }}
         workspace={wsToDelete}
       />
-      <TeamModal open={teamModalOpen} onClose={() => setTeamModalOpen(false)} />
+      <TeamModal
+        open={teamModalOpen}
+        onClose={() => {
+          setTeamModalOpen(false);
+          setTeamToEdit(null);
+        }}
+        mode={teamModalMode}
+        teamToEdit={teamToEdit}
+        targetWorkspaceId={activeWorkspaceId}
+      />
+      <DeleteTeamModal
+        open={deleteTeamModalOpen}
+        onClose={() => {
+          setDeleteTeamModalOpen(false);
+          setTeamToDelete(null);
+        }}
+        team={teamToDelete}
+      />
     </>
   );
 }

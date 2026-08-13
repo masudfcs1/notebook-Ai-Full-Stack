@@ -328,9 +328,13 @@ const dataSlice = createSlice({
       }
     },
     addTeam(state, action: PayloadAction<Team>) {
-      const ws = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
+      const ws = state.workspaces.find((w) => w.id === (action.payload.workspaceId || state.activeWorkspaceId))
       if (ws) {
-        ws.teams.push(action.payload)
+        if (!ws.teams) ws.teams = []
+        const exists = ws.teams.some((t) => t.id === action.payload.id)
+        if (!exists) {
+          ws.teams.push(action.payload)
+        }
       }
     },
     updateTeam(state, action: PayloadAction<{ teamId: string; name?: string; key?: string; icon?: string }>) {
@@ -344,6 +348,20 @@ const dataSlice = createSlice({
           if (action.payload.key) team.key = action.payload.key.toUpperCase()
           if (action.payload.icon) team.icon = action.payload.icon
           break
+        }
+      }
+    },
+    deleteTeamFromState(state, action: PayloadAction<string>) {
+      for (const ws of state.workspaces) {
+        if (ws.teams) {
+          const idx = ws.teams.findIndex((t) => t.id === action.payload)
+          if (idx >= 0) {
+            ws.teams.splice(idx, 1)
+            if (state.activeTeamId === action.payload) {
+              state.activeTeamId = null
+            }
+            break
+          }
         }
       }
     },
@@ -472,6 +490,7 @@ export const {
   setActiveTeamBySlug,
   addTeam,
   updateTeam,
+  deleteTeamFromState,
   addTeamMember,
   updateTeamMember,
   removeTeamMember,
