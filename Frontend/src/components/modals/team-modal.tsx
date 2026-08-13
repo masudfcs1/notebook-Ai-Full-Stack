@@ -53,7 +53,7 @@ export function TeamModal({
   useEffect(() => {
     if (open) {
       setSelectedWsId(effectiveWorkspaceId || workspaces[0]?.id || "");
-      if (isEdit && teamToEdit) {
+      if (mode === "edit" && teamToEdit) {
         setName(teamToEdit.name || "");
         setKey(teamToEdit.key || "");
         setIcon(teamToEdit.icon || "💬");
@@ -65,7 +65,7 @@ export function TeamModal({
         setIsKeyManuallyEdited(false);
       }
     }
-  }, [open, isEdit, teamToEdit, effectiveWorkspaceId, workspaces]);
+  }, [open, mode, teamToEdit, effectiveWorkspaceId, workspaces]);
 
   if (!open) return null;
 
@@ -106,18 +106,20 @@ export function TeamModal({
       return;
     }
 
-    const finalKey = (key.trim() || generateKeyFromName(name)).slice(0, 10).toUpperCase();
+    let finalKey = (key.trim() || generateKeyFromName(name)).slice(0, 10).toUpperCase();
+    if (finalKey.length < 2) {
+      finalKey = (finalKey + "XX").slice(0, 2);
+    }
     const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
     try {
-      if (isEdit && teamToEdit) {
+      if (mode === "edit" && teamToEdit) {
         const res = await updateTeamMutation({
           id: teamToEdit.id,
           data: {
             name: name.trim(),
             key: finalKey,
             icon,
-            slug,
           },
         }).unwrap();
 

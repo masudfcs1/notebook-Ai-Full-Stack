@@ -27,6 +27,7 @@ import {
   removeTeamMember,
 } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
+import { useUpdateTeamMutation } from "@/lib/redux/api/workspaceApiSlice";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -69,6 +70,8 @@ export function TeamView() {
     workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
   const currentTeam =
     activeWs?.teams.find((t) => t.id === activeTeamId) || activeWs?.teams[0];
+
+  const [updateTeamMutation, { isLoading: isUpdatingTeam }] = useUpdateTeamMutation();
 
   // Editing team name/key state
   const [isEditingTeam, setIsEditingTeam] = useState(false);
@@ -122,30 +125,48 @@ export function TeamView() {
     );
   }
 
-  function handleSaveTeamDetails() {
+  async function handleSaveTeamDetails() {
+    if (!currentTeam) return;
     if (!editTeamName.trim()) {
       toast.error("Team name cannot be empty");
       return;
     }
 
-    dispatch(
-      updateTeam({
-        teamId: currentTeam.id,
-        name: editTeamName.trim(),
-        key: editTeamKey.trim().toUpperCase(),
-      }),
-    );
+    const keyRaw = (editTeamKey.trim().toUpperCase() || "TEAM").slice(0, 10);
+    const finalKey = keyRaw.length < 2 ? (keyRaw + "XX").slice(0, 2) : keyRaw;
 
-    dispatch(
-      pushNotification({
-        title: "Team details updated",
-        description: `Renamed team to "${editTeamName.trim()}" (${editTeamKey.trim().toUpperCase()}).`,
-        type: "success",
-      }),
-    );
+    try {
+      const res = await updateTeamMutation({
+        id: currentTeam.id,
+        data: {
+          name: editTeamName.trim(),
+          key: finalKey,
+        },
+      }).unwrap();
 
-    toast.success("Team settings saved!");
-    setIsEditingTeam(false);
+      if (res.success && res.data) {
+        dispatch(
+          updateTeam({
+            teamId: currentTeam.id,
+            name: res.data.name,
+            key: res.data.key,
+          }),
+        );
+
+        dispatch(
+          pushNotification({
+            title: "Team details updated",
+            description: `Renamed team to "${res.data.name}" (${res.data.key}).`,
+            type: "success",
+          }),
+        );
+
+        toast.success("Team settings saved!");
+        setIsEditingTeam(false);
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to update team");
+    }
   }
 
   function handleAddMember(e: React.FormEvent) {

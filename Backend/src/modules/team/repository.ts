@@ -63,9 +63,14 @@ export class TeamRepository {
   }
 
   async update(id: string, data: UpdateTeamData) {
+    const updatePayload: any = {};
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.key !== undefined) updatePayload.key = data.key;
+    if (data.icon !== undefined) updatePayload.icon = data.icon;
+
     return prisma.team.update({
       where: { id },
-      data,
+      data: updatePayload,
       include: {
         members: true,
       },
