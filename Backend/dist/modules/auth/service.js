@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = exports.AuthService = void 0;
 const repository_1 = require("./repository");
+const repository_2 = require("../workspace/repository");
 const password_1 = require("../../utils/password");
 const jwt_1 = require("../../utils/jwt");
 const generators_1 = require("../../utils/generators");
@@ -32,6 +33,27 @@ class AuthService {
             status: constants_1.USER_STATUS.ACTIVE,
             isVerified: true,
         });
+        // Auto-create initial default workspace and team for the newly registered user
+        try {
+            const displayName = data.name || user.username || 'Personal';
+            const workspaceName = `${displayName}'s Workspace`;
+            const baseSlug = displayName
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, '-')
+                .replace(/^-|-$/g, '') || 'workspace';
+            const uniqueSlug = `${baseSlug}-${user.id}`;
+            await repository_2.workspaceRepository.create({
+                name: workspaceName,
+                slug: uniqueSlug,
+                icon: '⚡',
+                description: 'Default personal workspace',
+                userId: user.id,
+            });
+            logger_1.logger.info({ userId: user.id }, 'Default workspace and team auto-created on register');
+        }
+        catch (err) {
+            logger_1.logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
+        }
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User registered');
         return {
             user: (0, dto_1.toUserResponse)(user),

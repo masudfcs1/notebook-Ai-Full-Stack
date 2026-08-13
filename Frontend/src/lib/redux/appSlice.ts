@@ -17,6 +17,7 @@ interface AppState {
   sidebarCollapsed: boolean
   mobileNavOpen: boolean
   activeNoteId: string | null
+  selectedAdminUserId: number | null
   notifications: NotificationItem[]
   aiWidgetOpen: boolean
   searchQuery: string
@@ -27,6 +28,7 @@ const initialState: AppState = {
   sidebarCollapsed: false,
   mobileNavOpen: false,
   activeNoteId: null,
+  selectedAdminUserId: null,
   aiWidgetOpen: false,
   searchQuery: "",
   notifications: [
@@ -73,12 +75,16 @@ const appSlice = createSlice({
         else if (v === "signup") targetPath = "/signup"
         else if (v === "dashboard") targetPath = "/dashboard"
         else if (v === "admin-dashboard") targetPath = "/admin"
+        else if (v === "admin-user-detail" && state.selectedAdminUserId) targetPath = `/admin/users/${state.selectedAdminUserId}`
         else if (v.startsWith("admin-")) targetPath = `/admin/${v.replace("admin-", "")}`
         else targetPath = `/dashboard/${v}`
         if (window.location.pathname !== targetPath) {
           window.history.pushState(null, "", targetPath)
         }
       }
+    },
+    setSelectedAdminUserId(state, action: PayloadAction<number | null>) {
+      state.selectedAdminUserId = action.payload
     },
     toggleSidebar(state) {
       state.sidebarCollapsed = !state.sidebarCollapsed
@@ -118,6 +124,7 @@ const appSlice = createSlice({
 
 export const {
   setView,
+  setSelectedAdminUserId,
   toggleSidebar,
   setMobileNav,
   setActiveNote,

@@ -36,6 +36,7 @@ export const VIEW_METADATA: Record<ViewKey, ViewMetadata> = {
   team: { title: "Teams", subtitle: "Manage workspace team members & permissions", sysCode: "SYS.TEAM_MGMT" },
   "admin-dashboard": { title: "Admin Dashboard", subtitle: "System-wide analytics & overview", sysCode: "SYS.ADMIN.DASH" },
   "admin-users": { title: "User Management", subtitle: "Manage all platform users", sysCode: "SYS.ADMIN.USERS" },
+  "admin-user-detail": { title: "User Overview", subtitle: "Workspace & team hierarchy details", sysCode: "SYS.ADMIN.USER_DETAIL" },
   "admin-roles": { title: "Roles & Permissions", subtitle: "Role hierarchy & access control", sysCode: "SYS.ADMIN.RBAC" },
   "admin-activity": { title: "Activity Log", subtitle: "System activity & audit trail", sysCode: "SYS.ADMIN.AUDIT" },
   "admin-settings": { title: "Admin Settings", subtitle: "System configuration & preferences", sysCode: "SYS.ADMIN.CONFIG" },

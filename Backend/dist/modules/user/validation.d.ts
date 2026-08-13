@@ -10,8 +10,8 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
     }, "strip", z.ZodTypeAny, {
         limit: number;
-        page: number;
         sortBy: string;
+        page: number;
         sortOrder: "asc" | "desc";
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
@@ -20,16 +20,16 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
         limit?: number | undefined;
-        page?: number | undefined;
-        search?: string | undefined;
         sortBy?: string | undefined;
+        page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     query: {
         limit: number;
-        page: number;
         sortBy: string;
+        page: number;
         sortOrder: "asc" | "desc";
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
@@ -40,10 +40,10 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
         limit?: number | undefined;
-        page?: number | undefined;
-        search?: string | undefined;
         sortBy?: string | undefined;
+        page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
     };
 }>;
 export declare const GetUserParamsSchema: z.ZodObject<{

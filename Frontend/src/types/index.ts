@@ -17,6 +17,7 @@ export type ViewKey =
   | "settings"
   | "admin-dashboard"
   | "admin-users"
+  | "admin-user-detail"
   | "admin-roles"
   | "admin-activity"
   | "admin-settings"

@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../../src/modules/workspace/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,IAAI,eAAe,EAAE,MAAM,SAAS,CAAC;AACrD,OAAO,EAAE,gBAAgB,EAAE,MAAM,WAAW,CAAC;AAC7C,OAAO,EAAE,mBAAmB,EAAE,MAAM,cAAc,CAAC;AACnD,OAAO,EAAE,mBAAmB,EAAE,MAAM,cAAc,CAAC;AACnD,cAAc,SAAS,CAAC;AACxB,cAAc,OAAO,CAAC"}

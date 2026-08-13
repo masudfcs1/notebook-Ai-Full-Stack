@@ -15,7 +15,9 @@ export interface UserResponseDTO {
     loginCount: number;
     createdAt: Date;
     updatedAt: Date;
+    workspaces?: any[];
+    memberships?: any[];
 }
-export declare const toUserResponse: (user: User) => UserResponseDTO;
+export declare const toUserResponse: (user: any) => UserResponseDTO;
 export declare const toUserListResponse: (users: User[]) => UserResponseDTO[];
 //# sourceMappingURL=dto.d.ts.map

@@ -16,9 +16,11 @@ export interface UserResponseDTO {
   loginCount: number;
   createdAt: Date;
   updatedAt: Date;
+  workspaces?: any[];
+  memberships?: any[];
 }
 
-export const toUserResponse = (user: User): UserResponseDTO => {
+export const toUserResponse = (user: any): UserResponseDTO => {
   return {
     id: user.id,
     uuid: user.uuid,
@@ -35,6 +37,8 @@ export const toUserResponse = (user: User): UserResponseDTO => {
     loginCount: user.loginCount,
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
+    ...(user.workspaces && { workspaces: user.workspaces }),
+    ...(user.memberships && { memberships: user.memberships }),
   };
 };
 

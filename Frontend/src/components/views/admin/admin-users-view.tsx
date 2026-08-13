@@ -13,7 +13,11 @@ import {
   Shield,
   UserCog,
   Filter,
+  Building2,
+  Eye,
 } from "lucide-react";
+import { useAppDispatch } from "@/lib/redux/hooks";
+import { setView, setSelectedAdminUserId } from "@/lib/redux/appSlice";
 import {
   useGetUsersQuery,
   useCreateUserMutation,
@@ -72,6 +76,7 @@ const ROLE_OPTIONS = ["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"];
 const STATUS_OPTIONS = ["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"];
 
 export function AdminUsersView() {
+  const dispatch = useAppDispatch();
   const [params, setParams] = useState<GetUsersParams>({
     page: 1,
     limit: 10,
@@ -143,6 +148,11 @@ export function AdminUsersView() {
     } catch {
       // Error handled by RTK Query
     }
+  };
+
+  const handleUserClick = (userId: number) => {
+    dispatch(setSelectedAdminUserId(userId));
+    dispatch(setView("admin-user-detail"));
   };
 
   const handleDeleteUser = async () => {
@@ -397,8 +407,12 @@ export function AdminUsersView() {
                       className="grid grid-cols-1 gap-3 border-b border-border/60 p-4 transition-colors hover:bg-card/70 md:grid-cols-12 md:items-center md:gap-4 md:px-6"
                     >
                       {/* User info */}
-                      <div className="col-span-4 flex items-center gap-3">
-                        <Avatar className="h-9 w-9 border border-border">
+                      <div
+                        onClick={() => handleUserClick(u.id)}
+                        className="col-span-4 flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-opacity"
+                        title="Click to view workspace and team details"
+                      >
+                        <Avatar className="h-9 w-9 border border-border group-hover:border-rose-500/50 transition-colors">
                           {avatarSrc && (
                             <AvatarImage src={avatarSrc} alt={u.name || ""} />
                           )}
@@ -409,7 +423,7 @@ export function AdminUsersView() {
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                          <p className="truncate text-xs font-semibold text-foreground">
+                          <p className="truncate text-xs font-semibold text-foreground group-hover:text-rose-400 transition-colors flex items-center gap-1.5">
                             {u.name || u.username || "Unnamed"}
                           </p>
                           <p className="truncate text-[10px] text-muted-foreground">
@@ -460,11 +474,22 @@ export function AdminUsersView() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
-                            className="w-52 bg-popover border-border p-1"
+                            className="w-56 bg-popover border-border p-1"
                           >
                             <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">
                               Manage User
                             </DropdownMenuLabel>
+                            <DropdownMenuSeparator className="bg-border" />
+
+                            {/* View Workspaces & Teams */}
+                            <DropdownMenuItem
+                              onClick={() => handleUserClick(u.id)}
+                              className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg font-medium"
+                            >
+                              <Building2 className="h-3.5 w-3.5 text-rose-400" />
+                              Workspaces & Teams
+                            </DropdownMenuItem>
+
                             <DropdownMenuSeparator className="bg-border" />
 
                             {/* Change Role submenu */}

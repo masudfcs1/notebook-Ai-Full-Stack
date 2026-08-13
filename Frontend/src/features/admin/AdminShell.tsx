@@ -5,6 +5,7 @@ import { AdminSidebar } from "./AdminSidebar"
 import { AdminTopbar } from "./AdminTopbar"
 import { AdminDashboardView } from "@/components/views/admin/admin-dashboard-view"
 import { AdminUsersView } from "@/components/views/admin/admin-users-view"
+import { AdminUserDetailView } from "@/components/views/admin/admin-user-detail-view"
 import { AdminRolesView } from "@/components/views/admin/admin-roles-view"
 import { AdminActivityView } from "@/components/views/admin/admin-activity-view"
 import { AdminSettingsView } from "@/components/views/admin/admin-settings-view"
@@ -14,6 +15,7 @@ import type { ViewKey } from "@/types"
 const ADMIN_VIEW_REGISTRY: Record<string, React.ComponentType> = {
   "admin-dashboard": AdminDashboardView,
   "admin-users": AdminUsersView,
+  "admin-user-detail": AdminUserDetailView,
   "admin-roles": AdminRolesView,
   "admin-activity": AdminActivityView,
   "admin-settings": AdminSettingsView,

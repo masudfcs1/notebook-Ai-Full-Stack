@@ -54,10 +54,48 @@ export interface AdminStatsResponse {
   data: AdminStatsData;
 }
 
+export interface TeamMemberInfo {
+  id: string;
+  userId?: number | null;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  role: string;
+  createdAt?: string;
+}
+
+export interface TeamInfo {
+  id: string;
+  workspaceId: string;
+  name: string;
+  key: string;
+  icon?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+  members: TeamMemberInfo[];
+}
+
+export interface WorkspaceInfo {
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string | null;
+  description?: string | null;
+  userId?: number | null;
+  isOwner?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  teams: TeamInfo[];
+}
+
+export interface AdminUserDetail extends AdminUser {
+  workspaces?: WorkspaceInfo[];
+}
+
 export interface SingleUserResponse {
   success: boolean;
   message: string;
-  data: AdminUser;
+  data: AdminUserDetail;
 }
 
 export interface GetUsersParams {

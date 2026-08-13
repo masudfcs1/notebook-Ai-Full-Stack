@@ -11,7 +11,7 @@ interface FindAllOptions {
 }
 export declare class UserRepository {
     findAll(options: FindAllOptions): Promise<IPaginatedResult<User>>;
-    findById(id: number): Promise<User | null>;
+    findById(id: number): Promise<any | null>;
     findByUuid(uuid: string): Promise<User | null>;
     findByEmail(email: string): Promise<User | null>;
     findByUsername(username: string): Promise<User | null>;

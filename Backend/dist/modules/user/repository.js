@@ -39,9 +39,129 @@ class UserRepository {
         };
     }
     async findById(id) {
-        return database_1.prisma.user.findUnique({
+        const user = await database_1.prisma.user.findUnique({
             where: { id, deletedAt: null },
+            include: {
+                workspaces: {
+                    include: {
+                        teams: {
+                            include: {
+                                members: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        avatar: true,
+                                        role: true,
+                                        userId: true,
+                                        createdAt: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+                memberships: {
+                    include: {
+                        team: {
+                            include: {
+                                workspace: true,
+                                members: {
+                                    select: {
+                                        id: true,
+                                        name: true,
+                                        email: true,
+                                        avatar: true,
+                                        role: true,
+                                        userId: true,
+                                        createdAt: true,
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
+            },
         });
+        if (!user)
+            return null;
+        const workspaceMap = new Map();
+        // 1. Process owned workspaces
+        for (const ws of user.workspaces) {
+            workspaceMap.set(ws.id, {
+                id: ws.id,
+                name: ws.name,
+                slug: ws.slug,
+                icon: ws.icon,
+                description: ws.description,
+                userId: ws.userId,
+                isOwner: true,
+                createdAt: ws.createdAt,
+                updatedAt: ws.updatedAt,
+                teams: ws.teams.map((t) => ({
+                    id: t.id,
+                    workspaceId: t.workspaceId,
+                    name: t.name,
+                    key: t.key,
+                    icon: t.icon,
+                    createdAt: t.createdAt,
+                    updatedAt: t.updatedAt,
+                    members: t.members,
+                })),
+            });
+        }
+        // 2. Process workspaces from team memberships
+        for (const mem of user.memberships) {
+            if (mem.team && mem.team.workspace) {
+                const ws = mem.team.workspace;
+                if (!workspaceMap.has(ws.id)) {
+                    workspaceMap.set(ws.id, {
+                        id: ws.id,
+                        name: ws.name,
+                        slug: ws.slug,
+                        icon: ws.icon,
+                        description: ws.description,
+                        userId: ws.userId,
+                        isOwner: ws.userId === id,
+                        createdAt: ws.createdAt,
+                        updatedAt: ws.updatedAt,
+                        teams: [
+                            {
+                                id: mem.team.id,
+                                workspaceId: mem.team.workspaceId,
+                                name: mem.team.name,
+                                key: mem.team.key,
+                                icon: mem.team.icon,
+                                createdAt: mem.team.createdAt,
+                                updatedAt: mem.team.updatedAt,
+                                members: mem.team.members,
+                            },
+                        ],
+                    });
+                }
+                else {
+                    const existing = workspaceMap.get(ws.id);
+                    const teamExists = existing.teams.some((t) => t.id === mem.team.id);
+                    if (!teamExists) {
+                        existing.teams.push({
+                            id: mem.team.id,
+                            workspaceId: mem.team.workspaceId,
+                            name: mem.team.name,
+                            key: mem.team.key,
+                            icon: mem.team.icon,
+                            createdAt: mem.team.createdAt,
+                            updatedAt: mem.team.updatedAt,
+                            members: mem.team.members,
+                        });
+                    }
+                }
+            }
+        }
+        const formattedWorkspaces = Array.from(workspaceMap.values());
+        return {
+            ...user,
+            workspaces: formattedWorkspaces,
+        };
     }
     async findByUuid(uuid) {
         return database_1.prisma.user.findUnique({

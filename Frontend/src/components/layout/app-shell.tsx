@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setView, type ViewKey } from "@/lib/redux/appSlice"
+import { setView, setSelectedAdminUserId, type ViewKey } from "@/lib/redux/appSlice"
 import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataSlice"
 import { setUser } from "@/lib/redux/authSlice"
 import { useGetMeQuery } from "@/lib/redux/api/authApiSlice"
@@ -37,9 +37,10 @@ interface AppShellProps {
   initialView?: ViewKey
   workspaceSlug?: string
   teamSlug?: string
+  adminUserId?: number
 }
 
-export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps) {
+export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: AppShellProps) {
   const dispatch = useAppDispatch()
   const view = useAppSelector((s) => s.app.view)
   const user = useAppSelector((s) => s.auth.user)
@@ -75,8 +76,11 @@ export function AppShell({ initialView, workspaceSlug, teamSlug }: AppShellProps
     }
   }, [dispatch, workspaceSlug, teamSlug])
 
-  // Sync view on initial mount if specified
+  // Sync view and admin user ID on initial mount if specified
   useEffect(() => {
+    if (adminUserId) {
+      dispatch(setSelectedAdminUserId(adminUserId))
+    }
     if (initialView) {
       dispatch(setView(initialView))
     }

@@ -18,6 +18,8 @@ const toUserResponse = (user) => {
         loginCount: user.loginCount,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        ...(user.workspaces && { workspaces: user.workspaces }),
+        ...(user.memberships && { memberships: user.memberships }),
     };
 };
 exports.toUserResponse = toUserResponse;

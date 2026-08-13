@@ -9,14 +9,14 @@ export declare const PaginationSchema: z.ZodObject<{
     limit: number;
     page: number;
     sortOrder: "asc" | "desc";
-    search?: string | undefined;
     sortBy?: string | undefined;
+    search?: string | undefined;
 }, {
     limit?: number | undefined;
-    page?: number | undefined;
-    search?: string | undefined;
     sortBy?: string | undefined;
+    page?: number | undefined;
     sortOrder?: "asc" | "desc" | undefined;
+    search?: string | undefined;
 }>;
 export type PaginationInput = z.infer<typeof PaginationSchema>;
 //# sourceMappingURL=paginated.d.ts.map
