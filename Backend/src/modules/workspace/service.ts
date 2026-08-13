@@ -41,7 +41,24 @@ export class WorkspaceService {
   }
 
   async findAllUserWorkspaces(userId?: number, isAdmin?: boolean) {
-    const workspaces = await workspaceRepository.findAllUserWorkspaces(userId, isAdmin);
+    let workspaces = await workspaceRepository.findAllUserWorkspaces(userId, isAdmin);
+
+    if (workspaces.length === 0 && userId) {
+      try {
+        const defaultWs = await workspaceRepository.create({
+          name: 'My Workspace',
+          slug: `workspace-${userId}-${Date.now().toString().slice(-4)}`,
+          icon: '⚡',
+          description: 'Default personal workspace',
+          userId,
+        });
+        workspaces = [defaultWs];
+        logger.info({ userId }, 'Auto-provisioned default workspace with team for user');
+      } catch (err: any) {
+        logger.error({ userId, err }, 'Failed to auto-provision default workspace');
+      }
+    }
+
     return toWorkspaceListResponse(workspaces);
   }
 

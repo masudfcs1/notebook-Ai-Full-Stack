@@ -1,4 +1,5 @@
 import { authRepository } from './repository';
+import { workspaceRepository } from '../workspace/repository';
 import { hashPassword, comparePassword } from '@/utils/password';
 import {
   generateAccessToken,
@@ -45,6 +46,28 @@ export class AuthService {
       status: USER_STATUS.ACTIVE,
       isVerified: true,
     });
+
+    // Auto-create initial default workspace and team for the newly registered user
+    try {
+      const displayName = data.name || user.username || 'Personal';
+      const workspaceName = `${displayName}'s Workspace`;
+      const baseSlug = displayName
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '') || 'workspace';
+      const uniqueSlug = `${baseSlug}-${user.id}`;
+
+      await workspaceRepository.create({
+        name: workspaceName,
+        slug: uniqueSlug,
+        icon: '⚡',
+        description: 'Default personal workspace',
+        userId: user.id,
+      });
+      logger.info({ userId: user.id }, 'Default workspace and team auto-created on register');
+    } catch (err: any) {
+      logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
+    }
 
     logger.info({ userId: user.id, email: user.email }, 'User registered');
 
