@@ -75,7 +75,9 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
     setFieldErrors({});
 
     if (mode === "login") {
-      const toastId = toast.loading("Authenticating user...");
+      const toastId = toast.loading("Authenticating user...", {
+        position: "bottom-right",
+      });
       try {
         const response = await login({ email, password, rememberMe }).unwrap();
 
@@ -95,11 +97,15 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           );
           toast.success(`Welcome back, ${user.name || user.email}!`, {
             id: toastId,
+            position: "bottom-right",
           });
           dispatch(setView("dashboard"));
           router.push("/dashboard");
         } else {
-          toast.error(response.message || "Failed to log in", { id: toastId });
+          toast.error(response.message || "Failed to log in", {
+            id: toastId,
+            position: "bottom-right",
+          });
         }
       } catch (err: any) {
         const errorMsg =

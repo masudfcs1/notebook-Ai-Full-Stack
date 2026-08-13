@@ -17,6 +17,7 @@ import {
   Edit3,
   Trash2,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setView,
@@ -520,6 +521,9 @@ export function Sidebar() {
                   onClick={() => {
                     dispatch(logout());
                     dispatch(setView("login"));
+                    toast.success("Logged out successfully", {
+                      position: "bottom-right",
+                    });
                   }}
                   className={cn(
                     "h-8 gap-1.5 px-2 text-xs text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer",

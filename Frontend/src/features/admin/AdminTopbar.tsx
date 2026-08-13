@@ -1,5 +1,6 @@
 'use client'
 
+import { toast } from "react-hot-toast"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, toggleSidebar, markAllNotificationsRead } from "@/lib/redux/appSlice"
 import { logout } from "@/lib/redux/authSlice"
@@ -178,6 +179,9 @@ export function AdminTopbar() {
               onClick={() => {
                 dispatch(logout())
                 dispatch(setView("login"))
+                toast.success("Logged out successfully", {
+                  position: "bottom-right",
+                })
               }}
               className="gap-2 text-xs font-medium text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer rounded-lg"
             >

@@ -38,7 +38,7 @@ export default function RootLayout({
           {children}
           <Toaster />
           <SonnerToaster position="bottom-right" richColors />
-          <HotToaster position="top-right" reverseOrder={false} />
+          <HotToaster position="bottom-right" reverseOrder={false} />
         </Providers>
       </body>
     </html>

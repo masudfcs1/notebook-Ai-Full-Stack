@@ -17,6 +17,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setMobileNav,
@@ -254,6 +255,9 @@ export function Topbar() {
                 onClick={() => {
                   dispatch(logout());
                   dispatch(setView("login"));
+                  toast.success("Logged out successfully", {
+                    position: "bottom-right",
+                  });
                 }}
                 className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
               >

@@ -1,5 +1,6 @@
 'use client'
 
+import { toast } from "react-hot-toast"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setMobileNav, setView } from "@/lib/redux/appSlice"
 import { logout } from "@/lib/redux/authSlice"
@@ -100,6 +101,9 @@ export function MobileSidebar() {
               onClick={() => {
                 dispatch(logout())
                 dispatch(setView("login"))
+                toast.success("Logged out successfully", {
+                  position: "bottom-right",
+                })
               }}
             >
               <LogOut className="h-4 w-4" />
