@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, X, Plus, Check, Edit3, Loader2 } from "lucide-react";
-import { useAppDispatch } from "@/lib/redux/hooks";
+import { Building2, X, Plus, Check, Edit3, Loader2, AlertCircle } from "lucide-react";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { addWorkspace, updateWorkspaceInState } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
 import {
@@ -31,6 +31,8 @@ export function WorkspaceModal({
   workspaceToEdit = null,
 }: Props) {
   const dispatch = useAppDispatch();
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+
   const [createWorkspace, { isLoading: isCreating }] =
     useCreateWorkspaceMutation();
   const [updateWorkspace, { isLoading: isUpdating }] =
@@ -40,6 +42,7 @@ export function WorkspaceModal({
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("⚡");
   const [slug, setSlug] = useState("");
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
 
   const isEdit = mode === "edit" && !!workspaceToEdit;
 
@@ -50,11 +53,13 @@ export function WorkspaceModal({
         setDescription(workspaceToEdit.description || "");
         setIcon(workspaceToEdit.icon || "⚡");
         setSlug(workspaceToEdit.slug || "");
+        setIsSlugManuallyEdited(true);
       } else {
         setName("");
         setDescription("");
         setIcon("⚡");
         setSlug("");
+        setIsSlugManuallyEdited(false);
       }
     }
   }, [open, isEdit, workspaceToEdit]);
@@ -63,6 +68,40 @@ export function WorkspaceModal({
 
   const isLoading = isCreating || isUpdating;
 
+  // Normalized slug check
+  const normalizedSlug = slug
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+  // Check if slug exists in workspaces
+  const isSlugTaken = Boolean(
+    normalizedSlug &&
+      workspaces.some(
+        (w) =>
+          w.slug.toLowerCase() === normalizedSlug &&
+          (!isEdit || w.id !== workspaceToEdit?.id),
+      ),
+  );
+
+  function handleNameChange(val: string) {
+    setName(val);
+    if (!isSlugManuallyEdited) {
+      const autoSlug = val
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      setSlug(autoSlug);
+    }
+  }
+
+  function handleSlugChange(val: string) {
+    setIsSlugManuallyEdited(true);
+    const formatted = val.toLowerCase().replace(/[^a-z0-9-]+/g, "");
+    setSlug(formatted);
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) {
@@ -70,7 +109,12 @@ export function WorkspaceModal({
       return;
     }
 
-    const generatedSlug = (slug || name)
+    if (isSlugTaken) {
+      toast.error("This workspace slug already exists. Please choose another one.");
+      return;
+    }
+
+    const finalSlug = (slug || name)
       .toLowerCase()
       .trim()
       .replace(/[^a-z0-9]+/g, "-")
@@ -84,7 +128,7 @@ export function WorkspaceModal({
             name: name.trim(),
             description: description.trim() || undefined,
             icon,
-            slug: generatedSlug,
+            slug: finalSlug,
           },
         }).unwrap();
 
@@ -113,7 +157,7 @@ export function WorkspaceModal({
           name: name.trim(),
           description: description.trim() || undefined,
           icon,
-          slug: generatedSlug,
+          slug: finalSlug,
         }).unwrap();
 
         if (res.success && res.data) {
@@ -218,17 +262,7 @@ export function WorkspaceModal({
                 type="text"
                 placeholder="e.g. Acme Corp, Design Studio"
                 value={name}
-                onChange={(e) => {
-                  setName(e.target.value);
-                  if (!isEdit && !slug) {
-                    setSlug(
-                      e.target.value
-                        .toLowerCase()
-                        .replace(/[^a-z0-9]+/g, "-")
-                        .replace(/^-|-$/g, ""),
-                    );
-                  }
-                }}
+                onChange={(e) => handleNameChange(e.target.value)}
                 className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2.5 text-sm outline-none transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
                 autoFocus
               />
@@ -242,9 +276,19 @@ export function WorkspaceModal({
                 type="text"
                 placeholder="acme-corp"
                 value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-sm outline-none font-mono text-xs transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+                onChange={(e) => handleSlugChange(e.target.value)}
+                className={`w-full rounded-xl border px-3.5 py-2 text-sm outline-none font-mono text-xs transition-all ${
+                  isSlugTaken
+                    ? "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
+                    : "border-border/60 bg-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20"
+                }`}
               />
+              {isSlugTaken && (
+                <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
+                  <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                  <span>This workspace slug already exists. Please choose a unique slug.</span>
+                </div>
+              )}
             </div>
 
             <div>
@@ -272,8 +316,8 @@ export function WorkspaceModal({
               </Button>
               <Button
                 type="submit"
-                disabled={isLoading}
-                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90"
+                disabled={isLoading || isSlugTaken || !name.trim()}
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>
