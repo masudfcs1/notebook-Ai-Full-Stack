@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
@@ -15,6 +15,9 @@ import {
   Filter,
   Building2,
   Eye,
+  RotateCcw,
+  AlertCircle,
+  X,
 } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { setView, setSelectedAdminUserId } from "@/lib/redux/appSlice";
@@ -101,6 +104,8 @@ export function AdminUsersView() {
     data: usersResponse,
     isLoading,
     isFetching,
+    isError,
+    refetch,
   } = useGetUsersQuery(params);
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
   const [updateRole] = useUpdateUserRoleMutation();
@@ -110,8 +115,37 @@ export function AdminUsersView() {
   const users = usersResponse?.data || [];
   const meta = usersResponse?.meta;
 
+  // Auto-sync searchInput with params.search (debounced)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setParams((p) => {
+        const nextSearch = searchInput.trim() || undefined;
+        if (p.search === nextSearch) return p;
+        return { ...p, page: 1, search: nextSearch };
+      });
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  // Reset page if totalPages changes and page is out of bounds
+  useEffect(() => {
+    if (meta && meta.totalPages > 0 && (params.page || 1) > meta.totalPages) {
+      setParams((p) => ({ ...p, page: 1 }));
+    }
+  }, [meta, params.page]);
+
   const handleSearch = () => {
-    setParams((p) => ({ ...p, page: 1, search: searchInput || undefined }));
+    setParams((p) => ({ ...p, page: 1, search: searchInput.trim() || undefined }));
+  };
+
+  const handleResetFilters = () => {
+    setSearchInput("");
+    setParams({
+      page: 1,
+      limit: 10,
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
   };
 
   const handleRoleFilter = (role: string) => {
@@ -289,12 +323,21 @@ export function AdminUsersView() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="border-border/60 bg-muted/40 pl-9 text-sm text-foreground placeholder:text-muted-foreground"
+                className="border-border/60 bg-muted/40 pl-9 pr-8 text-sm text-foreground placeholder:text-muted-foreground"
                 placeholder="Search by name, email, or username…"
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               />
+              {searchInput && (
+                <button
+                  onClick={() => setSearchInput("")}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5 cursor-pointer rounded-full hover:bg-muted"
+                  title="Clear search"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <Filter className="h-4 w-4 text-muted-foreground" />
@@ -334,14 +377,17 @@ export function AdminUsersView() {
                   ))}
                 </SelectContent>
               </Select>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-9 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                onClick={handleSearch}
-              >
-                Search
-              </Button>
+              {(params.search || params.role || params.status) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-9 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer gap-1"
+                  onClick={handleResetFilters}
+                  title="Reset all filters"
+                >
+                  <RotateCcw className="h-3 w-3" /> Reset
+                </Button>
+              )}
             </div>
           </div>
         </Card>
@@ -384,9 +430,39 @@ export function AdminUsersView() {
                   <Skeleton className="h-12 w-full bg-muted" />
                 </div>
               ))
+            ) : isError ? (
+              <div className="flex h-52 flex-col items-center justify-center p-6 text-center">
+                <AlertCircle className="mb-2 h-8 w-8 text-rose-500" />
+                <p className="text-sm font-semibold text-foreground">Failed to load users</p>
+                <p className="mb-4 text-xs text-muted-foreground">An error occurred while fetching user data from the server.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => refetch()}
+                  className="gap-2 text-xs cursor-pointer rounded-lg border-border bg-muted hover:bg-muted/80"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" /> Try Again
+                </Button>
+              </div>
             ) : users.length === 0 ? (
-              <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-                <Users className="mr-2 h-5 w-5" /> No users found
+              <div className="flex h-52 flex-col items-center justify-center p-6 text-center">
+                <Users className="mb-2 h-8 w-8 text-muted-foreground/60" />
+                <p className="text-sm font-semibold text-foreground">No users found</p>
+                <p className="mb-4 text-xs text-muted-foreground">
+                  {params.search || params.role || params.status
+                    ? "No users match your current filter criteria."
+                    : "There are no users registered on the platform."}
+                </p>
+                {(params.search || params.role || params.status) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleResetFilters}
+                    className="gap-2 text-xs cursor-pointer rounded-lg border-border bg-muted hover:bg-muted/80"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5 text-rose-400" /> Clear Filters
+                  </Button>
+                )}
               </div>
             ) : (
               <AnimatePresence>
