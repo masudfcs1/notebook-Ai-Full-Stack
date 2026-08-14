@@ -20,6 +20,8 @@ export interface AdminUser {
   loginCount: number;
   createdAt: string;
   updatedAt: string;
+  workspaceCount?: number;
+  teamCount?: number;
 }
 
 export interface PaginationMeta {

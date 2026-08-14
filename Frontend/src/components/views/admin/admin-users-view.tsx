@@ -356,7 +356,7 @@ export function AdminUsersView() {
         <Card className="overflow-hidden border-border/60 bg-card/70 backdrop-blur-sm">
           {/* Table header */}
           <div className="hidden border-b border-border/60 px-6 py-3 md:grid md:grid-cols-12 md:gap-4">
-            <div className="col-span-4 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            <div className="col-span-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               User
             </div>
             <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -366,9 +366,12 @@ export function AdminUsersView() {
               Status
             </div>
             <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Provider
+              Workspaces
             </div>
-            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-right">
+            <div className="col-span-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Teams
+            </div>
+            <div className="col-span-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground text-right">
               Actions
             </div>
           </div>
@@ -409,7 +412,7 @@ export function AdminUsersView() {
                       {/* User info */}
                       <div
                         onClick={() => handleUserClick(u.id)}
-                        className="col-span-4 flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-opacity"
+                        className="col-span-3 flex items-center gap-3 cursor-pointer group hover:opacity-80 transition-opacity"
                         title="Click to view workspace and team details"
                       >
                         <Avatar className="h-9 w-9 border border-border group-hover:border-rose-500/50 transition-colors">
@@ -453,15 +456,36 @@ export function AdminUsersView() {
                         </Badge>
                       </div>
 
-                      {/* Provider */}
-                      <div className="col-span-2">
-                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                          {u.provider}
-                        </span>
+                      {/* Workspaces count */}
+                      <div className="col-span-2 flex items-center">
+                        <Badge
+                          variant="outline"
+                          className="h-6 gap-1.5 border-rose-500/20 bg-rose-500/10 px-2.5 text-xs font-medium text-rose-400 dark:text-rose-300"
+                        >
+                          <Building2 className="h-3.5 w-3.5 text-rose-500" />
+                          <span>{u.workspaceCount ?? 0}</span>
+                          <span className="text-[10px] text-muted-foreground font-normal hidden lg:inline">
+                            {u.workspaceCount === 1 ? "workspace" : "workspaces"}
+                          </span>
+                        </Badge>
+                      </div>
+
+                      {/* Teams count */}
+                      <div className="col-span-2 flex items-center">
+                        <Badge
+                          variant="outline"
+                          className="h-6 gap-1.5 border-violet-500/20 bg-violet-500/10 px-2.5 text-xs font-medium text-violet-400 dark:text-violet-300"
+                        >
+                          <Users className="h-3.5 w-3.5 text-violet-500" />
+                          <span>{u.teamCount ?? 0}</span>
+                          <span className="text-[10px] text-muted-foreground font-normal hidden lg:inline">
+                            {u.teamCount === 1 ? "team" : "teams"}
+                          </span>
+                        </Badge>
                       </div>
 
                       {/* Actions */}
-                      <div className="col-span-2 flex justify-end">
+                      <div className="col-span-1 flex justify-end">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button

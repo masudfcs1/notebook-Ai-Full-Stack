@@ -29,15 +29,80 @@ export class UserRepository {
       ...(status && { status }),
     };
 
-    const [data, total] = await Promise.all([
+    const [rawUsers, total] = await Promise.all([
       prisma.user.findMany({
         where,
         skip: (page - 1) * limit,
         take: limit,
         orderBy: { [sortBy]: sortOrder },
+        include: {
+          workspaces: {
+            select: {
+              id: true,
+              teams: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          memberships: {
+            select: {
+              team: {
+                select: {
+                  id: true,
+                  workspaceId: true,
+                },
+              },
+            },
+          },
+        },
       }),
       prisma.user.count({ where }),
     ]);
+
+    const data = rawUsers.map((user: any) => {
+      const workspaceMap = new Map<string, Set<string>>();
+
+      if (user.workspaces) {
+        for (const ws of user.workspaces) {
+          if (!workspaceMap.has(ws.id)) {
+            workspaceMap.set(ws.id, new Set());
+          }
+          if (ws.teams) {
+            for (const team of ws.teams) {
+              workspaceMap.get(ws.id)!.add(team.id);
+            }
+          }
+        }
+      }
+
+      if (user.memberships) {
+        for (const mem of user.memberships) {
+          if (mem.team && mem.team.workspaceId) {
+            const wsId = mem.team.workspaceId;
+            if (!workspaceMap.has(wsId)) {
+              workspaceMap.set(wsId, new Set());
+            }
+            workspaceMap.get(wsId)!.add(mem.team.id);
+          }
+        }
+      }
+
+      const workspaceCount = workspaceMap.size;
+      const teamCount = Array.from(workspaceMap.values()).reduce(
+        (acc, teamSet) => acc + teamSet.size,
+        0
+      );
+
+      const { workspaces, memberships, ...userWithoutRelations } = user;
+
+      return {
+        ...userWithoutRelations,
+        workspaceCount,
+        teamCount,
+      };
+    });
 
     return {
       data,
@@ -175,10 +240,17 @@ export class UserRepository {
     }
 
     const formattedWorkspaces = Array.from(workspaceMap.values());
+    const workspaceCount = formattedWorkspaces.length;
+    const teamCount = formattedWorkspaces.reduce(
+      (acc: number, ws: any) => acc + (ws.teams?.length || 0),
+      0
+    );
 
     return {
       ...user,
       workspaces: formattedWorkspaces,
+      workspaceCount,
+      teamCount,
     };
   }
 
