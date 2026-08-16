@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, setSelectedAdminUserId, type ViewKey } from "@/lib/redux/appSlice"
 import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataSlice"
-import { setUser } from "@/lib/redux/authSlice"
+import { setUser, initializeAuth } from "@/lib/redux/authSlice"
 import { useGetMeQuery } from "@/lib/redux/api/authApiSlice"
 import { Sidebar, Topbar, MobileNav, MobileSidebar } from "@/features/navigation"
 import { AdminShell } from "@/features/admin"
@@ -76,8 +76,9 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
     }
   }, [dispatch, workspaceSlug, teamSlug])
 
-  // Sync view and admin user ID on initial mount if specified
+  // Sync view, auth state, and admin user ID on initial mount
   useEffect(() => {
+    dispatch(initializeAuth())
     if (adminUserId) {
       dispatch(setSelectedAdminUserId(adminUserId))
     }

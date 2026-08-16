@@ -131,7 +131,7 @@ export function LandingView() {
 
       {/* Nav */}
       <header className="sticky top-0 z-40 px-4 pt-3 md:px-8">
-        <div className="digital-hud-glass digital-scanline mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-indigo-500/30 bg-background/60 px-5 backdrop-blur-2xl transition-all duration-300">
+        <div className="digital-hud-glass mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-indigo-500/30 bg-background/60 px-5 backdrop-blur-2xl transition-all duration-300">
           <div className="flex items-center gap-3">
             <Logo
               size={36}

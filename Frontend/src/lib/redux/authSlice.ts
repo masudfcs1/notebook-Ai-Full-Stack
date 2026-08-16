@@ -17,37 +17,33 @@ interface AuthState {
   isAuthenticated: boolean;
 }
 
-const getInitialToken = (): string | null => {
-  if (typeof window !== "undefined") {
-    return localStorage.getItem("accessToken");
-  }
-  return null;
-};
-
-const getInitialUser = (): User | null => {
-  if (typeof window !== "undefined") {
-    const saved = localStorage.getItem("user");
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        return null;
-      }
-    }
-  }
-  return null;
-};
-
 const initialState: AuthState = {
-  user: getInitialUser(),
-  token: getInitialToken(),
-  isAuthenticated: Boolean(getInitialToken()),
+  user: null,
+  token: null,
+  isAuthenticated: false,
 };
 
 export const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    initializeAuth: (state) => {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("accessToken");
+        const saved = localStorage.getItem("user");
+        if (token) {
+          state.token = token;
+          state.isAuthenticated = true;
+          if (saved) {
+            try {
+              state.user = JSON.parse(saved);
+            } catch {
+              state.user = null;
+            }
+          }
+        }
+      }
+    },
     setCredentials: (
       state,
       action: PayloadAction<{ user: User; token: string }>
@@ -80,5 +76,5 @@ export const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, setUser, logout } = authSlice.actions;
+export const { initializeAuth, setCredentials, setUser, logout } = authSlice.actions;
 export default authSlice.reducer;
