@@ -204,7 +204,7 @@ function InteractiveProductPreview() {
         </div>
       </div>
 
-      <motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-6 -left-2 hidden w-48 rounded-2xl border border-white/80 bg-white p-3 shadow-xl shadow-slate-900/10 sm:block lg:-left-8 dark:border-white/10 dark:bg-[#132138]">
+      <motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }} className="absolute -bottom-6 -right-2 hidden w-48 rounded-2xl border border-white/80 bg-white p-3 shadow-xl shadow-slate-900/10 sm:block lg:-right-8 dark:border-white/10 dark:bg-[#132138]">
         <div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400"><Zap className="h-4 w-4" /></span><div><p className="text-[10px] font-semibold">Workspace updated</p><p className="text-[9px] text-slate-400">Everything is in sync</p></div></div>
       </motion.div>
     </motion.div>
