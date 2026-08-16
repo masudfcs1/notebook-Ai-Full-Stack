@@ -138,6 +138,14 @@
 
 /* ===== Glassmorphism utilities ===== */
 @layer utilities {
+  .landing-grid {
+    background-image:
+      linear-gradient(to right, oklch(0.65 0.04 255 / 0.12) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.65 0.04 255 / 0.12) 1px, transparent 1px);
+    background-size: 42px 42px;
+    mask-image: linear-gradient(to bottom, black 0%, transparent 82%);
+    -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 82%);
+  }
   .glass {
     background: var(--glass-bg);
     backdrop-filter: blur(20px) saturate(180%);

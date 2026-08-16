@@ -1,586 +1,100 @@
 "use client";
 
+import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Sparkles,
-  FileText,
-  CheckSquare,
-  ArrowRight,
-  Zap,
-  Shield,
-  Globe,
-  Upload,
-  Brain,
-  TrendingUp,
-  Star,
-  Play,
-} from "lucide-react";
+import { ArrowRight, ArrowUpRight, BarChart3, BrainCircuit, CalendarDays, Check, CheckCircle2, Clock3, FileText, ListChecks, Menu, MessageSquareText, Moon, Play, ShieldCheck, Sparkles, Sun, Users, X, Zap } from "lucide-react";
+import { useTheme } from "next-themes";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { setView } from "@/lib/redux/appSlice";
-import { logout } from "@/lib/redux/authSlice";
 import { Button } from "@/components/ui/button";
 import { Logo, Wordmark } from "@/components/app/logo";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { useTheme } from "next-themes";
-import {
-  Moon,
-  Sun,
-  ChevronDown,
-  LayoutDashboard,
-  Settings,
-  LogOut,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils";
 
-const FEATURES = [
-  {
-    icon: Brain,
-    title: "AI Summaries",
-    desc: "Turn hours of notes into executive summaries in seconds.",
-    gradient: "from-indigo-500 to-violet-500",
-  },
-  {
-    icon: CheckSquare,
-    title: "Action Items",
-    desc: "Auto-extract tasks, assignees, and due dates.",
-    gradient: "from-emerald-500 to-teal-500",
-  },
-  {
-    icon: Zap,
-    title: "Live Capture",
-    desc: "Take notes during the meeting, export & summarize after.",
-    gradient: "from-amber-500 to-orange-500",
-  },
-  {
-    icon: Shield,
-    title: "Enterprise Ready",
-    desc: "SSO, audit logs, and granular access control.",
-    gradient: "from-rose-500 to-pink-500",
-  },
-  {
-    icon: Globe,
-    title: "Any Source",
-    desc: "Upload TXT, DOCX, or PDF — or paste raw notes.",
-    gradient: "from-sky-500 to-cyan-500",
-  },
-  {
-    icon: TrendingUp,
-    title: "Productivity",
-    desc: "Track team velocity and meeting ROI over time.",
-    gradient: "from-violet-500 to-fuchsia-500",
-  },
+const benefits = [
+  { icon: MessageSquareText, number: "01", title: "Every conversation, captured", text: "Import transcripts, upload notes, or capture meetings live. Every important detail stays searchable and organized.", color: "bg-blue-600", visual: "transcript" },
+  { icon: BrainCircuit, number: "02", title: "Context, not just a summary", text: "AI understands decisions, risks, and themes, then turns them into a concise brief your team can trust.", color: "bg-violet-600", visual: "summary" },
+  { icon: ListChecks, number: "03", title: "Momentum after the meeting", text: "Action items arrive with owners and due dates, ready to review, assign, and move into your workflow.", color: "bg-emerald-600", visual: "tasks" },
 ];
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Capture",
-    desc: "Upload files or write notes live during your meeting.",
-    icon: Upload,
-  },
-  {
-    n: "02",
-    title: "Summarize",
-    desc: "AI generates an executive summary, key points, and decisions.",
-    icon: Sparkles,
-  },
-  {
-    n: "03",
-    title: "Act",
-    desc: "Action items land on your team board, ready to assign and ship.",
-    icon: CheckSquare,
-  },
+const workflow = [
+  ["Capture", "Upload notes, paste a transcript, or record your meeting live."],
+  ["Understand", "AI identifies the signal: themes, decisions, risks, and questions."],
+  ["Move forward", "Share the brief and send every action item to the right owner."],
 ];
 
-const STATS = [
-  { value: "10k+", label: "Meetings summarized" },
-  { value: "98%", label: "Action item accuracy" },
-  { value: "4.9★", label: "Average rating" },
-  { value: "60s", label: "Avg. summary time" },
-];
+const fadeUp = { initial: { opacity: 0, y: 24 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true, margin: "-70px" } };
 
 export function LandingView() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((s) => s.auth.user);
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setMounted(true), []);
-
-  const avatarSrc = getAvatarUrl(user?.avatar);
-  const displayName = getUserDisplayName(user, "Account");
-  const displayEmail = user?.email || "";
-  const initials = getUserInitials(user?.name, user?.email);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const start = () => dispatch(setView(isAuthenticated ? "dashboard" : "signup"));
+  const nav = [["Product", "#product"], ["How it works", "#workflow"], ["Results", "#results"], ["Security", "#security"]];
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-mesh">
-      {/* ambient orbs */}
-      <div className="pointer-events-none absolute -left-32 top-10 h-72 w-72 rounded-full bg-indigo-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute -right-32 top-40 h-80 w-80 rounded-full bg-violet-500/20 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
-
-      {/* Nav */}
-      <header className="sticky top-0 z-40 px-4 pt-3 md:px-8">
-        <div className="digital-hud-glass mx-auto flex h-16 max-w-7xl items-center justify-between rounded-2xl border border-indigo-500/30 bg-background/60 px-5 backdrop-blur-2xl transition-all duration-300">
-          <div className="flex items-center gap-3">
-            <Logo
-              size={36}
-              className="neon-glow-indigo transition-transform hover:scale-105"
-            />
-            <div className="flex items-center gap-2">
-              <Wordmark className="text-base" />
-              <span className="hidden rounded-full border border-indigo-500/20 bg-indigo-500/10 px-2 py-0.5 font-mono text-[9px] font-bold text-indigo-500 dark:text-indigo-400 sm:inline-block">
-                SYS.V3.5
-              </span>
-            </div>
-          </div>
-
-          <nav className="hidden items-center gap-8 text-xs font-semibold uppercase tracking-wider text-muted-foreground md:flex">
-            <a
-              href="#features"
-              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-            >
-              Features
-            </a>
-            <a
-              href="#how"
-              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-            >
-              How it works
-            </a>
-            <a
-              href="#stats"
-              className="transition-all hover:text-indigo-500 hover:drop-shadow-[0_0_8px_rgba(99,102,241,0.5)]"
-            >
-              Stats
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            {/* Live system status indicator pill */}
-            <div className="hidden items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 font-mono text-[10px] text-emerald-500 lg:flex">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-bold">ONLINE</span>
-            </div>
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-xl border border-border/60 bg-background/50 hover:border-indigo-500/30 hover:bg-indigo-500/10 hover:text-indigo-500"
-              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              aria-label="Toggle theme"
-            >
-              {mounted && theme === "dark" ? (
-                <Sun className="h-4 w-4 text-amber-400" />
-              ) : (
-                <Moon className="h-4 w-4 text-indigo-500" />
-              )}
-            </Button>
-
-            {isAuthenticated && user ? (
-              <div className="flex items-center gap-2">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
-                      <Avatar className="h-7 w-7 border border-indigo-500/30">
-                        {avatarSrc && (
-                          <AvatarImage src={avatarSrc} alt={displayName} />
-                        )}
-                        <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
-                          {initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="hidden text-xs font-semibold text-foreground sm:inline-block max-w-[110px] truncate">
-                        {displayName}
-                      </span>
-                      <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 p-1">
-                    <DropdownMenuLabel className="font-normal px-2 py-1.5">
-                      <div className="flex flex-col space-y-0.5">
-                        <p className="text-xs font-semibold leading-tight">
-                          {displayName}
-                        </p>
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          {displayEmail}
-                        </p>
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => dispatch(setView("dashboard"))}
-                      className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
-                    >
-                      <LayoutDashboard className="h-3.5 w-3.5 text-indigo-500" />{" "}
-                      Go to Dashboard
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => dispatch(setView("settings"))}
-                      className="gap-2 text-xs font-medium cursor-pointer rounded-lg"
-                    >
-                      <Settings className="h-3.5 w-3.5 text-indigo-500" />{" "}
-                      Account Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        dispatch(logout());
-                        dispatch(setView("login"));
-                      }}
-                      className="gap-2 text-xs font-medium text-rose-500 focus:text-rose-500 focus:bg-rose-500/10 cursor-pointer rounded-lg"
-                    >
-                      <LogOut className="h-3.5 w-3.5" /> Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button
-                  onClick={() => dispatch(setView("dashboard"))}
-                  className="h-9 gap-2 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
-                >
-                  Dashboard <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => dispatch(setView("login"))}
-                  className="h-9 px-3 text-xs font-semibold text-muted-foreground hover:text-foreground hover:bg-indigo-500/10 rounded-xl cursor-pointer"
-                >
-                  Log In
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => dispatch(setView("signup"))}
-                  className="h-9 px-3 text-xs font-semibold border-indigo-500/30 bg-indigo-500/10 text-indigo-600 hover:bg-indigo-500/20 dark:text-indigo-300 rounded-xl cursor-pointer"
-                >
-                  Sign Up
-                </Button>
-
-                <Button
-                  onClick={() =>
-                    dispatch(setView(isAuthenticated ? "dashboard" : "login"))
-                  }
-                  className="h-9 gap-2 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 cursor-pointer"
-                >
-                  Open App <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )}
+    <div className="min-h-screen overflow-x-hidden bg-[#f8fafc] text-slate-950 dark:bg-[#07101f] dark:text-white">
+      <header className="fixed inset-x-0 top-0 z-50 border-b border-slate-200/70 bg-white/85 backdrop-blur-xl dark:border-white/10 dark:bg-[#07101f]/85">
+        <div className="mx-auto flex h-[72px] max-w-[1240px] items-center justify-between px-5 lg:px-8">
+          <a href="#top" className="flex items-center gap-2.5" aria-label="NoteFlow AI home"><Logo size={34} /><Wordmark className="text-[15px]" /></a>
+          <nav className="hidden items-center gap-8 lg:flex" aria-label="Primary navigation">{nav.map(([label, href]) => <a key={label} href={href} className="text-sm font-medium text-slate-600 hover:text-slate-950 dark:text-slate-300 dark:hover:text-white">{label}</a>)}</nav>
+          <div className="flex items-center gap-2">
+            <button onClick={() => setTheme(theme === "dark" ? "light" : "dark")} className="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-white/10" aria-label="Toggle color theme"><Sun className="hidden h-[18px] w-[18px] dark:block" /><Moon className="h-[18px] w-[18px] dark:hidden" /></button>
+            {!isAuthenticated && <Button variant="ghost" onClick={() => dispatch(setView("login"))} className="hidden rounded-full px-4 text-sm sm:inline-flex">Log in</Button>}
+            <Button onClick={start} className="h-10 rounded-full bg-blue-600 px-4 text-sm font-semibold text-white hover:bg-blue-700 sm:px-5"><span className="hidden sm:inline">{isAuthenticated ? "Open dashboard" : "Start for free"}</span><span className="sm:hidden">Start</span><ArrowUpRight className="ml-1.5 h-4 w-4" /></Button>
+            <button onClick={() => setMenuOpen(!menuOpen)} className="grid h-9 w-9 place-items-center rounded-full lg:hidden" aria-label="Toggle navigation menu">{menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}</button>
           </div>
         </div>
+        {menuOpen && <nav className="border-t border-slate-200 bg-white px-5 py-4 lg:hidden dark:border-white/10 dark:bg-[#07101f]">{nav.map(([label, href]) => <a key={label} href={href} onClick={() => setMenuOpen(false)} className="block rounded-xl px-3 py-3 text-sm font-medium">{label}</a>)}</nav>}
       </header>
 
-      {/* Hero */}
-      <section className="relative mx-auto max-w-7xl px-4 pb-16 pt-16 md:px-8 md:pt-24">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mx-auto max-w-3xl text-center"
-        >
-          <div className="mx-auto mb-6 inline-flex items-center gap-2 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-3 py-1.5 text-xs font-medium text-indigo-600 dark:text-indigo-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            AI Meeting Intelligence, reimagined
-          </div>
-          <h1 className="text-balance text-4xl font-bold leading-[1.05] tracking-tight md:text-6xl lg:text-7xl">
-            Turn meeting chaos
-            <br />
-            into <span className="text-gradient animate-gradient">clarity</span>
-            .
-          </h1>
-          <p className="mx-auto mt-6 max-w-xl text-pretty text-base text-muted-foreground md:text-lg">
-            Upload notes, generate AI summaries, and extract actionable tasks —
-            all in one beautiful workspace your team will actually enjoy using.
-          </p>
-          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-            <Button
-              onClick={() => dispatch(setView("dashboard"))}
-              className="h-12 gap-2 rounded-xl  from-indigo-500 to-violet-500 px-6 text-sm font-medium text-white shadow-lg shadow-indigo-500/30 hover:opacity-95"
-            >
-              Start for free <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => dispatch(setView("ongoing"))}
-              className="h-12 gap-2 rounded-xl border-border/60 bg-background/60 px-6 text-sm font-medium backdrop-blur-sm"
-            >
-              <Play className="h-4 w-4" /> Watch live demo
-            </Button>
-          </div>
-          <p className="mt-4 text-xs text-muted-foreground">
-            No credit card required · Free 14-day trial
-          </p>
-        </motion.div>
-
-        {/* Floating glass preview card */}
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.2 }}
-          className="relative mx-auto mt-14 max-w-5xl"
-        >
-          <div className="absolute inset-0 -z-10 rounded-3xl  from-indigo-500/30 via-violet-500/30 to-emerald-500/20 blur-2xl" />
-          <div className="overflow-hidden rounded-3xl border border-white/40 bg-white/70 shadow-2xl shadow-indigo-500/10 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/70">
-            <div className="flex items-center gap-2 border-b border-border/40 px-4 py-3">
-              <div className="flex gap-1.5">
-                <span className="h-3 w-3 rounded-full bg-rose-400" />
-                <span className="h-3 w-3 rounded-full bg-amber-400" />
-                <span className="h-3 w-3 rounded-full bg-emerald-400" />
-              </div>
-              <div className="mx-auto flex items-center gap-2 rounded-md bg-muted/50 px-3 py-1 text-[11px] text-muted-foreground">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                app.noteflow.ai/dashboard
-              </div>
-            </div>
-            <div className="grid gap-4 p-4 md:grid-cols-3 md:p-6">
-              {[
-                {
-                  icon: FileText,
-                  label: "Total Notes",
-                  value: "128",
-                  grad: "from-indigo-500 to-violet-500",
-                },
-                {
-                  icon: Sparkles,
-                  label: "AI Summaries",
-                  value: "96",
-                  grad: "from-violet-500 to-fuchsia-500",
-                },
-                {
-                  icon: CheckSquare,
-                  label: "Action Items",
-                  value: "243",
-                  grad: "from-emerald-500 to-teal-500",
-                },
-              ].map((c, i) => (
-                <motion.div
-                  key={c.label}
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 + i * 0.1 }}
-                  className="rounded-2xl border border-border/40 bg-card/60 p-4 backdrop-blur-sm"
-                >
-                  <div
-                    className={`mb-3 inline-flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br ${c.grad} text-white`}
-                  >
-                    <c.icon className="h-4 w-4" />
-                  </div>
-                  <p className="text-2xl font-bold">{c.value}</p>
-                  <p className="text-xs text-muted-foreground">{c.label}</p>
-                </motion.div>
-              ))}
-            </div>
-            <div className="border-t border-border/40 p-4 md:p-6">
-              <div className="rounded-2xl from-indigo-500/10 to-violet-500/10 p-4">
-                <div className="mb-3 flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-indigo-500" />
-                  <span className="text-sm font-medium">Latest AI Summary</span>
-                </div>
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  The Q3 planning meeting aligned the team on shipping dashboard
-                  v2, launching mobile beta, and reducing p95 latency below
-                  200ms via a cache-layer migration…
-                </p>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Stats band */}
-      <section
-        id="stats"
-        className="border-y border-border/40 bg-white/40 py-10 backdrop-blur-sm dark:bg-slate-900/40"
-      >
-        <div className="mx-auto grid max-w-5xl grid-cols-2 gap-6 px-4 md:grid-cols-4 md:px-8">
-          {STATS.map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.08 }}
-              className="text-center"
-            >
-              <p className="text-3xl font-bold text-gradient md:text-4xl">
-                {s.value}
-              </p>
-              <p className="mt-1 text-xs text-muted-foreground md:text-sm">
-                {s.label}
-              </p>
+      <main id="top">
+        <section className="relative overflow-hidden pb-16 pt-32 sm:pb-20 sm:pt-40 lg:pb-28 lg:pt-44">
+          <div className="landing-grid pointer-events-none absolute inset-0 opacity-65 dark:opacity-30" />
+          <div className="pointer-events-none absolute left-1/2 top-20 h-[540px] w-[900px] -translate-x-1/2 rounded-full bg-blue-400/20 blur-[130px] dark:bg-blue-600/20" />
+          <div className="relative mx-auto grid max-w-[1240px] items-center gap-14 px-5 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16 lg:px-8">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-700 dark:border-blue-400/20 dark:bg-blue-400/10 dark:text-blue-300"><span className="relative flex h-2 w-2"><span className="absolute h-full w-full animate-ping rounded-full bg-blue-500 opacity-60" /><span className="relative h-2 w-2 rounded-full bg-blue-600" /></span>AI meeting intelligence for modern teams</div>
+              <h1 className="max-w-2xl text-[3.25rem] font-semibold leading-[0.98] tracking-[-0.055em] sm:text-[4.25rem] lg:text-[4.65rem]">Meetings that end with a clear next move.</h1>
+              <p className="mt-7 max-w-xl text-base leading-7 text-slate-600 sm:text-lg sm:leading-8 dark:text-slate-300">NoteFlow turns every conversation into an accurate brief, clear decisions, and accountable action items before the next meeting starts.</p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row"><Button onClick={start} className="h-12 rounded-full bg-blue-600 px-6 text-[15px] font-semibold text-white shadow-[0_10px_30px_-10px_rgba(37,99,235,0.8)] hover:bg-blue-700">{isAuthenticated ? "Open your workspace" : "Start your free workspace"}<ArrowRight className="ml-2 h-4 w-4" /></Button><a href="#product" className="inline-flex h-12 items-center justify-center rounded-full border border-slate-300 bg-white/70 px-6 text-[15px] font-semibold text-slate-800 dark:border-white/15 dark:bg-white/5 dark:text-white"><span className="mr-2 grid h-6 w-6 place-items-center rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900"><Play className="ml-0.5 h-3 w-3 fill-current" /></span>See it in action</a></div>
+              <div className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-slate-500 dark:text-slate-400">{["No credit card", "Set up in 2 minutes", "Cancel anytime"].map((item) => <span key={item} className="flex items-center gap-1.5"><Check className="h-3.5 w-3.5 text-emerald-600" />{item}</span>)}</div>
             </motion.div>
-          ))}
-        </div>
-      </section>
+            <ProductPreview />
+          </div>
+        </section>
 
-      {/* Features */}
-      <section id="features" className="mx-auto max-w-7xl px-4 py-20 md:px-8">
-        <div className="mx-auto mb-12 max-w-2xl text-center">
-          <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Everything your meetings{" "}
-            <span className="text-gradient">deserve</span>
-          </h2>
-          <p className="mt-3 text-muted-foreground">
-            A complete toolkit to capture, understand, and act on every
-            conversation.
-          </p>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((f, i) => (
-            <motion.div
-              key={f.title}
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.06 }}
-              className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 p-6 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/10"
-            >
-              <div
-                className={`mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${f.gradient} text-white shadow-lg`}
-              >
-                <f.icon className="h-5 w-5" />
-              </div>
-              <h3 className="text-lg font-semibold">{f.title}</h3>
-              <p className="mt-1.5 text-sm text-muted-foreground">{f.desc}</p>
-              <div
-                className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${f.gradient} opacity-0 blur-2xl transition-opacity group-hover:opacity-20`}
-              />
-            </motion.div>
-          ))}
-        </div>
-      </section>
+        <section className="border-y border-slate-200/80 bg-white py-8 dark:border-white/10 dark:bg-white/[0.02]"><div className="mx-auto flex max-w-[1100px] flex-col items-center gap-7 px-5 sm:flex-row sm:justify-between"><p className="text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-400 sm:text-left">Built for teams that value clarity</p><div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-4 sm:gap-x-10">{["Northstar", "Vertex", "Spherule", "Capsule", "Arc Labs"].map((name, i) => <span key={name} className="flex items-center gap-1.5 text-sm font-bold tracking-tight text-slate-400 dark:text-slate-500"><span className={`h-3.5 w-3.5 ${i % 2 ? "rotate-45 rounded-[3px]" : "rounded-full"} bg-slate-300 dark:bg-slate-600`} />{name}</span>)}</div></div></section>
 
-      {/* How it works */}
-      <section
-        id="how"
-        className="border-y border-border/40 bg-white/40 py-20 backdrop-blur-sm dark:bg-slate-900/40"
-      >
-        <div className="mx-auto max-w-7xl px-4 md:px-8">
-          <div className="mx-auto mb-12 max-w-2xl text-center">
-            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
-              From notes to <span className="text-gradient">outcomes</span> in 3
-              steps
-            </h2>
-          </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {STEPS.map((s, i) => (
-              <motion.div
-                key={s.n}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="relative rounded-2xl border border-border/50 bg-card/60 p-6 backdrop-blur-sm"
-              >
-                <div className="mb-4 flex items-center justify-between">
-                  <span className="text-4xl font-bold text-gradient">
-                    {s.n}
-                  </span>
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg">
-                    <s.icon className="h-5 w-5" />
-                  </div>
-                </div>
-                <h3 className="text-lg font-semibold">{s.title}</h3>
-                <p className="mt-1.5 text-sm text-muted-foreground">{s.desc}</p>
-                {i < STEPS.length - 1 && (
-                  <ArrowRight className="absolute -right-3 top-1/2 hidden h-5 w-5 -translate-y-1/2 text-indigo-500/40 md:block" />
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+        <section className="py-20 sm:py-28" aria-labelledby="benefit-heading"><div className="mx-auto max-w-[1240px] px-5 lg:px-8"><motion.div {...fadeUp} className="mx-auto max-w-3xl text-center"><p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-600">From talk to traction</p><h2 id="benefit-heading" className="text-3xl font-semibold tracking-[-0.04em] sm:text-5xl">Make every meeting count.</h2><p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg dark:text-slate-300">One focused workspace to capture what was said, understand what matters, and make sure the work actually moves forward.</p></motion.div><div className="mt-14 grid gap-5 lg:grid-cols-3">{benefits.map((benefit, index) => <motion.article key={benefit.title} {...fadeUp} transition={{ duration: 0.5, delay: index * 0.08 }} className="overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.35)] transition-transform hover:-translate-y-1 dark:border-white/10 dark:bg-white/[0.035] sm:p-7"><div className="flex items-center justify-between"><span className={`grid h-11 w-11 place-items-center rounded-xl ${benefit.color} text-white`}><benefit.icon className="h-5 w-5" /></span><span className="text-xs font-bold tracking-[0.18em] text-slate-300">{benefit.number}</span></div><h3 className="mt-7 text-xl font-semibold tracking-[-0.025em]">{benefit.title}</h3><p className="mt-3 min-h-20 text-sm leading-6 text-slate-600 dark:text-slate-400">{benefit.text}</p><BenefitVisual type={benefit.visual} /></motion.article>)}</div></div></section>
 
-      {/* Testimonial */}
-      <section className="mx-auto max-w-4xl px-4 py-20 md:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-emerald-500/10 p-8 backdrop-blur-xl md:p-12"
-        >
-          <div className="mb-4 flex gap-1">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star key={i} className="h-5 w-5 fill-amber-400 text-amber-400" />
-            ))}
-          </div>
-          <blockquote className="text-pretty text-xl font-medium leading-relaxed md:text-2xl">
-            “NoteFlow AI replaced three tools for us. We walk out of every
-            meeting with a summary and a task board — no more lost action
-            items.”
-          </blockquote>
-          <div className="mt-6 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 text-sm font-semibold text-white">
-              JM
-            </div>
-            <div>
-              <p className="text-sm font-semibold">Jordan Mensah</p>
-              <p className="text-xs text-muted-foreground">
-                Head of Product, Lattice Labs
-              </p>
-            </div>
-          </div>
-        </motion.div>
-      </section>
+        <section id="workflow" className="scroll-mt-20 bg-slate-950 py-20 text-white sm:py-28 dark:bg-black/30"><div className="mx-auto grid max-w-[1160px] gap-10 px-5 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20 lg:px-8"><motion.div {...fadeUp}><p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-400">A simpler workflow</p><h2 className="text-3xl font-semibold leading-tight tracking-[-0.04em] sm:text-5xl">Clarity in.<br />Momentum out.</h2><p className="mt-5 max-w-md text-base leading-7 text-slate-400">No complex setup, no manual formatting, and no chasing people after the call. Just a reliable path from conversation to action.</p></motion.div><motion.div {...fadeUp} className="divide-y divide-white/10 border-y border-white/10">{workflow.map(([title, text], index) => <div key={title} className="grid grid-cols-[42px_1fr] gap-4 py-7 sm:grid-cols-[52px_150px_1fr] sm:items-center"><span className="grid h-10 w-10 place-items-center rounded-full border border-white/15 text-xs font-semibold text-blue-300">0{index + 1}</span><h3 className="text-base font-semibold sm:text-lg">{title}</h3><p className="col-start-2 text-sm leading-6 text-slate-400 sm:col-start-auto">{text}</p></div>)}</motion.div></div></section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-7xl px-4 pb-24 md:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-10 text-center text-white shadow-2xl shadow-indigo-500/30 md:p-16">
-          <div className="pointer-events-none absolute -left-20 -top-20 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-white/10 blur-3xl" />
-          <h2 className="relative text-3xl font-bold tracking-tight md:text-4xl">
-            Ready to transform your meetings?
-          </h2>
-          <p className="relative mx-auto mt-3 max-w-xl text-white/80">
-            Join thousands of teams shipping faster with AI-powered meeting
-            intelligence.
-          </p>
-          <Button
-            onClick={() => dispatch(setView("dashboard"))}
-            className="relative mt-7 h-12 gap-2 rounded-xl bg-white px-7 text-sm font-semibold text-indigo-600 shadow-lg hover:bg-white/95"
-          >
-            Open the dashboard <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
-      </section>
+        <section id="results" className="scroll-mt-20 px-5 py-20 sm:py-28"><motion.div {...fadeUp} className="mx-auto max-w-[1160px] overflow-hidden rounded-[2rem] bg-blue-600 text-white"><div className="grid lg:grid-cols-[1.15fr_0.85fr]"><div className="p-8 sm:p-12 lg:p-16"><div className="mb-7 flex gap-1">{Array.from({ length: 5 }).map((_, i) => <Sparkles key={i} className="h-4 w-4 fill-blue-200 text-blue-200" />)}</div><blockquote className="max-w-2xl text-2xl font-medium leading-[1.35] tracking-[-0.025em] sm:text-4xl">&ldquo;NoteFlow gave us back the first ten minutes of every workday. Everyone arrives informed, and every decision has an owner.&rdquo;</blockquote><div className="mt-8 flex items-center gap-3"><div className="grid h-11 w-11 place-items-center rounded-full bg-white/15 text-sm font-bold">MK</div><div><p className="text-sm font-semibold">Maya Khan</p><p className="text-xs text-blue-100">VP of Product, Northstar</p></div></div></div><div className="grid grid-cols-2 border-t border-white/15 lg:grid-cols-1 lg:border-l lg:border-t-0"><Metric value="6.4 hrs" label="saved per person, every month" /><Metric value="91%" label="of action items completed on time" divider /><Metric value="2.3x" label="faster decision follow-through" divider className="col-span-2 lg:col-span-1" /></div></div></motion.div></section>
 
-      {/* Footer */}
-      <footer className="border-t border-border/40 bg-background/60 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground md:flex-row md:px-8">
-          <div className="flex items-center gap-2">
-            <Logo size={24} />
-            <Wordmark className="text-sm" />
-          </div>
-          <p>© {new Date().getFullYear()} NoteFlow AI. Crafted with care.</p>
-          <div className="flex gap-5">
-            <a href="#" className="hover:text-foreground">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-foreground">
-              Terms
-            </a>
-            <a href="#" className="hover:text-foreground">
-              Contact
-            </a>
-          </div>
-        </div>
-      </footer>
+        <section id="security" className="scroll-mt-20 border-y border-slate-200 bg-white py-16 dark:border-white/10 dark:bg-white/[0.02]"><div className="mx-auto grid max-w-[1100px] gap-8 px-5 sm:grid-cols-[auto_1fr] sm:items-center lg:px-8"><div className="grid h-16 w-16 place-items-center rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10"><ShieldCheck className="h-8 w-8" /></div><div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-center"><div><h2 className="text-2xl font-semibold tracking-[-0.03em]">Your conversations stay yours.</h2><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600 dark:text-slate-400">Encrypted data, workspace permissions, and privacy-minded AI processing keep your team knowledge protected.</p></div><div className="flex flex-wrap gap-3 text-xs font-semibold text-slate-600 dark:text-slate-300">{["Encrypted", "Role-based access", "Audit ready"].map((item) => <span key={item} className="rounded-full border border-slate-200 px-3 py-1.5 dark:border-white/10">{item}</span>)}</div></div></div></section>
+
+        <section className="px-5 py-20 sm:py-28"><motion.div {...fadeUp} className="mx-auto max-w-3xl text-center"><p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-600">Your next meeting can be different</p><h2 className="text-4xl font-semibold leading-tight tracking-[-0.045em] sm:text-6xl">Less meeting debt.<br />More meaningful progress.</h2><p className="mx-auto mt-6 max-w-xl text-base leading-7 text-slate-600 dark:text-slate-300">Create your workspace today and turn the next conversation into a plan everyone understands.</p><Button onClick={start} className="mt-8 h-12 rounded-full bg-blue-600 px-7 text-[15px] font-semibold text-white hover:bg-blue-700">{isAuthenticated ? "Go to your dashboard" : "Get started for free"}<ArrowRight className="ml-2 h-4 w-4" /></Button></motion.div></section>
+      </main>
+
+      <footer className="border-t border-slate-200 bg-white dark:border-white/10 dark:bg-[#07101f]"><div className="mx-auto max-w-[1240px] px-5 py-10 lg:px-8"><div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between"><div><div className="flex items-center gap-2.5"><Logo size={30} /><Wordmark className="text-sm" /></div><p className="mt-3 text-xs text-slate-500">Where conversations become progress.</p></div><div className="flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-slate-500">{nav.slice(0, 3).map(([label, href]) => <a key={label} href={href}>{label}</a>)}<a href="#">Privacy</a><a href="#">Terms</a></div></div><div className="mt-8 flex flex-col gap-3 border-t border-slate-200 pt-6 text-xs text-slate-400 sm:flex-row sm:justify-between dark:border-white/10"><p>Copyright {new Date().getFullYear()} NoteFlow AI.</p><span className="flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" /> All systems operational</span></div></div></footer>
     </div>
   );
+}
+
+function ProductPreview() {
+  return <motion.div id="product" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.75, delay: 0.15 }} className="relative scroll-mt-28"><div className="absolute -inset-6 rounded-[2.5rem] bg-gradient-to-br from-blue-300/30 via-violet-300/10 to-cyan-200/20 blur-2xl" /><div className="relative overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white shadow-[0_32px_80px_-32px_rgba(15,23,42,0.38)] dark:border-white/10 dark:bg-[#0d1829]"><div className="flex h-12 items-center border-b border-slate-200 px-4 dark:border-white/10"><div className="flex gap-1.5"><i className="h-2.5 w-2.5 rounded-full bg-rose-400" /><i className="h-2.5 w-2.5 rounded-full bg-amber-400" /><i className="h-2.5 w-2.5 rounded-full bg-emerald-400" /></div><div className="mx-auto flex h-7 w-44 items-center justify-center gap-1.5 rounded-md bg-slate-100 text-[10px] text-slate-500 dark:bg-white/5"><ShieldCheck className="h-3 w-3" /> app.noteflow.ai</div></div><div className="grid min-h-[420px] grid-cols-[54px_1fr] sm:grid-cols-[145px_1fr]"><aside className="border-r border-slate-200 bg-slate-50/80 p-2 sm:p-3 dark:border-white/10 dark:bg-white/[0.025]"><div className="mb-6 flex items-center gap-2"><Logo size={24} /><b className="hidden text-[10px] sm:block">Acme Studio</b></div>{[BarChart3, FileText, ListChecks, Users].map((Icon, i) => <div key={i} className={`mb-1 flex items-center gap-2 rounded-lg px-2 py-2 text-[10px] ${i === 1 ? "bg-blue-600 text-white" : "text-slate-500"}`}><Icon className="h-3.5 w-3.5" /><span className="hidden sm:block">{["Overview", "Meetings", "Actions", "Team"][i]}</span></div>)}</aside><div className="min-w-0 p-3.5 sm:p-5"><div className="mb-5 flex justify-between"><div><p className="text-[9px] text-slate-400">MEETING BRIEF</p><h3 className="mt-1 text-sm font-semibold sm:text-base">Weekly product sync</h3></div><div className="grid h-7 w-7 place-items-center rounded-full bg-violet-600 text-[9px] font-bold text-white">AM</div></div><div className="mb-3 grid grid-cols-2 gap-2 sm:grid-cols-3"><MiniStat icon={Clock3} label="Duration" value="42 min" /><MiniStat icon={Users} label="People" value="6 people" /><MiniStat icon={CalendarDays} label="Date" value="Aug 16" hide /></div><div className="grid gap-3 sm:grid-cols-[1.2fr_0.8fr]"><div className="rounded-xl border border-slate-200 p-3.5 dark:border-white/10"><b className="flex items-center gap-1.5 text-[11px]"><Sparkles className="h-3.5 w-3.5 text-blue-600" /> AI summary</b><p className="mt-3 text-[10px] leading-[1.65] text-slate-500">The team aligned on the beta launch scope and prioritized onboarding performance.</p><div className="mt-3 space-y-2 border-t border-slate-100 pt-3 dark:border-white/10">{["Ship onboarding fixes by Friday", "Begin beta with 50 users", "Review first-week metrics"].map((item) => <div key={item} className="flex gap-2 text-[9px]"><CheckCircle2 className="h-3 w-3 text-emerald-500" />{item}</div>)}</div></div><div className="rounded-xl bg-slate-950 p-3.5 text-white dark:bg-blue-600"><b className="text-[11px]">Action items</b><div className="mt-3 space-y-2.5">{[["Optimize onboarding", "SK"], ["Prepare beta list", "AM"], ["Build metric view", "JR"]].map(([task, owner]) => <div key={task} className="rounded-lg bg-white/[0.08] p-2"><p className="truncate text-[9px]">{task}</p><p className="mt-1 text-[8px] text-white/50">{owner} - This week</p></div>)}</div></div></div></div></div></div><motion.div animate={{ y: [0, -7, 0] }} transition={{ duration: 4, repeat: Infinity }} className="absolute -bottom-6 -left-2 hidden w-48 rounded-2xl border bg-white p-3 shadow-xl sm:block lg:-left-8 dark:border-white/10 dark:bg-[#132138]"><div className="flex items-center gap-2"><span className="grid h-8 w-8 place-items-center rounded-full bg-emerald-100 text-emerald-600"><Zap className="h-4 w-4" /></span><div><p className="text-[10px] font-semibold">3 actions detected</p><p className="text-[9px] text-slate-400">Ready for review</p></div></div></motion.div></motion.div>;
+}
+
+function MiniStat({ icon: Icon, label, value, hide = false }: { icon: typeof Clock3; label: string; value: string; hide?: boolean }) {
+  return <div className={`rounded-xl bg-slate-50 p-2.5 dark:bg-white/5 ${hide ? "hidden sm:block" : ""}`}><div className="flex items-center gap-1 text-[8px] uppercase text-slate-400"><Icon className="h-3 w-3" />{label}</div><p className="mt-1 text-[10px] font-semibold">{value}</p></div>;
+}
+
+function BenefitVisual({ type }: { type: string }) {
+  if (type === "transcript") return <div className="mt-7 rounded-xl bg-slate-50 p-3.5 dark:bg-white/5"><div className="mb-3 flex justify-between"><b className="text-[9px] text-slate-400">LIVE TRANSCRIPT</b><span className="text-[8px] font-semibold text-rose-500">RECORDING</span></div>{[72, 90, 63].map((width) => <div key={width} className="mb-3 flex gap-2"><i className="h-5 w-5 rounded-full bg-blue-200" /><div className="flex-1"><i className="block h-1.5 rounded bg-slate-200 dark:bg-white/10" style={{ width: `${width}%` }} /><i className="mt-1.5 block h-1.5 w-2/5 rounded bg-slate-200 dark:bg-white/10" /></div></div>)}</div>;
+  if (type === "summary") return <div className="mt-7 rounded-xl bg-violet-50 p-3.5 dark:bg-violet-500/10"><div className="mb-3 flex items-center gap-2 text-[9px] font-bold text-violet-600"><Sparkles className="h-3.5 w-3.5" /> KEY DECISION</div><p className="text-[10px] font-medium leading-4 text-slate-700 dark:text-slate-300">Launch the onboarding beta with 50 customers on August 24.</p><div className="mt-3 flex gap-2"><span className="rounded-full bg-white px-2 py-1 text-[8px] text-slate-500">Product</span><span className="rounded-full bg-white px-2 py-1 text-[8px] text-slate-500">High priority</span></div></div>;
+  return <div className="mt-7 space-y-2 rounded-xl bg-slate-50 p-3.5 dark:bg-white/5">{[["Update onboarding copy", "SK"], ["Invite beta cohort", "AM"], ["Create metrics dashboard", "JR"]].map(([task, owner], i) => <div key={task} className="flex items-center gap-2 rounded-lg bg-white p-2 shadow-sm dark:bg-white/5"><CheckCircle2 className={`h-3.5 w-3.5 ${i ? "text-slate-300" : "text-emerald-500"}`} /><span className="flex-1 truncate text-[9px] font-medium">{task}</span><span className="grid h-5 w-5 place-items-center rounded-full bg-slate-900 text-[7px] font-bold text-white">{owner}</span></div>)}</div>;
+}
+
+function Metric({ value, label, divider = false, className = "" }: { value: string; label: string; divider?: boolean; className?: string }) {
+  return <div className={`p-6 sm:p-8 lg:px-10 ${divider ? "border-l border-white/15 lg:border-l-0 lg:border-t" : ""} ${className}`}><p className="text-3xl font-semibold tracking-[-0.04em] sm:text-4xl">{value}</p><p className="mt-2 max-w-40 text-xs leading-5 text-blue-100">{label}</p></div>;
 }
