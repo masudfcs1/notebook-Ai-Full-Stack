@@ -143,6 +143,19 @@
     font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
     text-rendering: optimizeLegibility;
   }
+  .landing-atmosphere {
+    position: relative;
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(96, 165, 250, 0.16), transparent 28%),
+      radial-gradient(circle at 88% 15%, rgba(167, 139, 250, 0.14), transparent 30%),
+      linear-gradient(180deg, #f8faff 0%, #f4f7ff 42%, #f8faff 100%);
+  }
+  .dark .landing-atmosphere {
+    background-image:
+      radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.18), transparent 30%),
+      radial-gradient(circle at 88% 15%, rgba(124, 58, 237, 0.16), transparent 32%),
+      linear-gradient(180deg, #050817 0%, #070b19 46%, #050817 100%);
+  }
   .landing-page h1,
   .landing-page h2,
   .landing-page h3,
@@ -156,11 +169,179 @@
   }
   .landing-grid {
     background-image:
-      linear-gradient(to right, oklch(0.65 0.04 255 / 0.12) 1px, transparent 1px),
-      linear-gradient(to bottom, oklch(0.65 0.04 255 / 0.12) 1px, transparent 1px);
-    background-size: 42px 42px;
-    mask-image: linear-gradient(to bottom, black 0%, transparent 82%);
-    -webkit-mask-image: linear-gradient(to bottom, black 0%, transparent 82%);
+      linear-gradient(to right, oklch(0.65 0.04 255 / 0.11) 1px, transparent 1px),
+      linear-gradient(to bottom, oklch(0.65 0.04 255 / 0.11) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 75% 72% at 50% 30%, black 0%, transparent 82%);
+    -webkit-mask-image: radial-gradient(ellipse 75% 72% at 50% 30%, black 0%, transparent 82%);
+  }
+  .landing-nav-glass {
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    box-shadow:
+      0 18px 50px -28px rgba(30, 41, 59, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+  }
+  .dark .landing-nav-glass {
+    background: rgba(9, 15, 32, 0.68);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 20px 60px -30px rgba(0, 0, 0, 0.75),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  .landing-pill,
+  .landing-glass-button,
+  .landing-logo-cloud,
+  .landing-security-card,
+  .landing-floating-card {
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(255, 255, 255, 0.82);
+    box-shadow:
+      0 20px 60px -38px rgba(30, 41, 59, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(22px) saturate(175%);
+    -webkit-backdrop-filter: blur(22px) saturate(175%);
+  }
+  .dark .landing-pill,
+  .dark .landing-glass-button,
+  .dark .landing-logo-cloud,
+  .dark .landing-security-card,
+  .dark .landing-floating-card {
+    background: rgba(255, 255, 255, 0.045);
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 24px 60px -35px rgba(0, 0, 0, 0.65),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  .landing-glass-button {
+    transition: transform 200ms ease, background-color 200ms ease, border-color 200ms ease;
+  }
+  .landing-glass-button:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.8);
+  }
+  .dark .landing-glass-button:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.16);
+  }
+  .landing-primary-button {
+    background: linear-gradient(120deg, #2563eb 0%, #4f46e5 54%, #7c3aed 100%);
+    background-size: 180% 180%;
+    box-shadow:
+      0 16px 34px -16px rgba(79, 70, 229, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+    transition: transform 200ms ease, box-shadow 200ms ease, background-position 300ms ease;
+  }
+  .landing-primary-button:hover {
+    transform: translateY(-2px);
+    background-position: 100% 50%;
+    box-shadow:
+      0 20px 40px -16px rgba(79, 70, 229, 0.85),
+      inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  }
+  .landing-text-gradient {
+    background: linear-gradient(115deg, #2563eb 4%, #6366f1 45%, #a855f7 78%, #06b6d4 110%);
+    background-size: 180% 180%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient-shift 8s ease infinite;
+  }
+  .dark .landing-text-gradient {
+    background-image: linear-gradient(115deg, #60a5fa 4%, #a5b4fc 45%, #d8b4fe 78%, #67e8f9 110%);
+  }
+  .landing-orb {
+    filter: blur(86px);
+    opacity: 0.72;
+    animation: landing-drift 12s ease-in-out infinite;
+  }
+  .landing-orb-blue { background: rgba(96, 165, 250, 0.34); }
+  .landing-orb-violet { background: rgba(167, 139, 250, 0.3); animation-delay: -4s; }
+  .landing-orb-cyan { background: rgba(34, 211, 238, 0.22); animation-delay: -8s; }
+  .dark .landing-orb-blue { background: rgba(37, 99, 235, 0.28); }
+  .dark .landing-orb-violet { background: rgba(124, 58, 237, 0.25); }
+  .dark .landing-orb-cyan { background: rgba(8, 145, 178, 0.2); }
+  .landing-product-frame {
+    background: rgba(255, 255, 255, 0.52);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    box-shadow:
+      0 42px 100px -38px rgba(30, 41, 59, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(26px) saturate(175%);
+    -webkit-backdrop-filter: blur(26px) saturate(175%);
+  }
+  .dark .landing-product-frame {
+    background: rgba(10, 18, 35, 0.72);
+    border-color: rgba(255, 255, 255, 0.11);
+    box-shadow:
+      0 48px 120px -40px rgba(0, 0, 0, 0.9),
+      0 0 0 1px rgba(96, 165, 250, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  .landing-feature-card {
+    position: relative;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.76), rgba(255, 255, 255, 0.42));
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    box-shadow:
+      0 28px 70px -48px rgba(30, 41, 59, 0.5),
+      inset 0 1px 0 rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px) saturate(165%);
+    -webkit-backdrop-filter: blur(24px) saturate(165%);
+  }
+  .landing-feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.4), transparent);
+    opacity: 0;
+    transition: opacity 350ms ease;
+  }
+  .landing-feature-card:hover::before { opacity: 1; }
+  .dark .landing-feature-card {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.025));
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow:
+      0 28px 70px -45px rgba(0, 0, 0, 0.8),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  }
+  .landing-dark-panel,
+  .landing-cta-panel {
+    background:
+      radial-gradient(circle at 85% 12%, rgba(124, 58, 237, 0.2), transparent 30%),
+      radial-gradient(circle at 15% 88%, rgba(37, 99, 235, 0.18), transparent 32%),
+      linear-gradient(145deg, #0b1020, #080c18 58%, #0c1124);
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    box-shadow:
+      0 40px 100px -50px rgba(15, 23, 42, 0.75),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  .landing-workflow-row {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .landing-workflow-row:hover {
+    background: rgba(255, 255, 255, 0.065);
+    border-color: rgba(147, 197, 253, 0.15);
+  }
+  .landing-results-card {
+    background:
+      radial-gradient(circle at 92% 10%, rgba(216, 180, 254, 0.28), transparent 32%),
+      linear-gradient(135deg, #2563eb 0%, #4f46e5 52%, #7c3aed 120%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+      0 44px 100px -48px rgba(37, 99, 235, 0.85),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  .landing-security-card {
+    box-shadow:
+      0 30px 70px -48px rgba(30, 41, 59, 0.45),
+      inset 0 1px 0 rgba(255, 255, 255, 0.9);
   }
   .glass {
     background: var(--glass-bg);
@@ -329,6 +510,11 @@
   50% { background-position: 100% 50%; }
 }
 
+@keyframes landing-drift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(20px, -18px, 0) scale(1.06); }
+}
+
 .animate-gradient {
   background-size: 200% 200%;
   animation: gradient-shift 8s ease infinite;
@@ -341,5 +527,15 @@
 }
 .ai-dot {
   animation: ai-dot 1.4s ease-in-out infinite both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-page *,
+  .landing-page *::before,
+  .landing-page *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }
 
