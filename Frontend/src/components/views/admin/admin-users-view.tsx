@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import {
   Users,
   Search,
@@ -209,8 +210,9 @@ export function AdminUsersView() {
       setFormRole("USER");
       setFormStatus("ACTIVE");
       setParams((previous) => ({ ...previous, page: 1 }));
-    } catch {
-      // Error handled by RTK Query
+      toast.success("User created successfully");
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to create user");
     }
   };
 
@@ -223,28 +225,31 @@ export function AdminUsersView() {
     if (!deleteTarget) return;
     try {
       await deleteUser(deleteTarget.id).unwrap();
+      toast.success("User deleted successfully");
       setDeleteTarget(null);
       setParams((previous) => ({ ...previous, page: 1 }));
-    } catch {
-      // Error handled by RTK Query
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to delete user");
     }
   };
 
   const handleUpdateRole = async (userId: number, role: string) => {
     try {
       await updateRole({ userId, role }).unwrap();
+      toast.success("User role updated successfully");
       setParams((previous) => ({ ...previous, page: 1 }));
-    } catch {
-      // Error handled by RTK Query
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update role");
     }
   };
 
   const handleUpdateStatus = async (userId: number, status: string) => {
     try {
       await updateStatus({ userId, status }).unwrap();
+      toast.success("User status updated successfully");
       setParams((previous) => ({ ...previous, page: 1 }));
-    } catch {
-      // Error handled by RTK Query
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to update status");
     }
   };
 

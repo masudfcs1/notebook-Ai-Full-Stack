@@ -30,6 +30,20 @@ router.get(
   userController.getStats
 );
 
+router.patch(
+  '/status',
+  authorize(Role.SUPER_ADMIN, Role.ADMIN),
+  validate(UpdateUserStatusSchema),
+  userController.updateStatus
+);
+
+router.patch(
+  '/role',
+  authorize(Role.SUPER_ADMIN),
+  validate(UpdateUserRoleSchema),
+  userController.updateRole
+);
+
 router.get(
   '/:id',
   authorize(Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER),
@@ -56,20 +70,6 @@ router.delete(
   authorize(Role.SUPER_ADMIN),
   validate(DeleteUserParamsSchema),
   userController.delete
-);
-
-router.patch(
-  '/status',
-  authorize(Role.SUPER_ADMIN, Role.ADMIN),
-  validate(UpdateUserStatusSchema),
-  userController.updateStatus
-);
-
-router.patch(
-  '/role',
-  authorize(Role.SUPER_ADMIN),
-  validate(UpdateUserRoleSchema),
-  userController.updateRole
 );
 
 export default router;

@@ -1,6 +1,8 @@
+# Ignore build distribution folder
+dist/
+
 node_modules
 # .env
 *.log
 
-# Ignore build distribution folder
-dist/
+
