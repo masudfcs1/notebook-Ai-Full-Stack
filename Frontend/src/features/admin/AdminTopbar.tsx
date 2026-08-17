@@ -45,12 +45,12 @@ export function AdminTopbar() {
   const meta = VIEW_METADATA[view as ViewKey] || VIEW_METADATA["admin-dashboard"]
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center gap-4 border-b border-rose-500/10 bg-background/80 px-4 backdrop-blur-2xl md:px-6">
+    <header className="dashboard-topbar admin-dashboard-topbar sticky top-0 z-20 flex h-[72px] items-center gap-4 border-b px-4 md:px-7">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
         size="icon"
-        className="h-9 w-9 lg:hidden text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+        className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 text-muted-foreground shadow-sm hover:bg-white/70 hover:text-foreground dark:bg-white/[0.035] lg:hidden cursor-pointer"
         onClick={() => dispatch(toggleSidebar())}
       >
         <Menu className="h-5 w-5" />
@@ -58,14 +58,14 @@ export function AdminTopbar() {
 
       {/* View title */}
       <div className="flex items-center gap-3">
-        <div className="flex h-8 items-center gap-2 rounded-lg border border-rose-500/20 bg-rose-500/10 px-2.5">
+        <div className="flex h-9 items-center gap-2 rounded-full border border-rose-500/15 bg-rose-500/8 px-3">
           <Shield className="h-3.5 w-3.5 text-rose-400" />
-          <span className="text-[10px] font-bold uppercase tracking-wider text-rose-400">
+          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-rose-500 dark:text-rose-300">
             Administration
           </span>
         </div>
         <div className="hidden sm:block">
-          <h1 className="text-sm font-semibold text-foreground">{meta.title}</h1>
+          <h1 className="text-sm font-semibold tracking-[-0.02em] text-foreground">{meta.title}</h1>
           <p className="text-[10px] text-muted-foreground">{meta.subtitle}</p>
         </div>
       </div>
@@ -76,7 +76,7 @@ export function AdminTopbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+          className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 text-muted-foreground shadow-sm hover:border-rose-500/20 hover:bg-rose-500/5 hover:text-foreground dark:bg-white/[0.035] cursor-pointer"
         >
           <Search className="h-4 w-4" />
         </Button>
@@ -87,7 +87,7 @@ export function AdminTopbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative h-9 w-9 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+              className="relative h-10 w-10 rounded-xl border border-border/60 bg-white/40 text-muted-foreground shadow-sm hover:border-rose-500/20 hover:bg-rose-500/5 hover:text-foreground dark:bg-white/[0.035] cursor-pointer"
             >
               <Bell className="h-4 w-4" />
               {unread > 0 && (
@@ -134,7 +134,7 @@ export function AdminTopbar() {
         {/* Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-2 rounded-xl border border-rose-500/20 bg-background/60 p-1.5 shadow-sm transition-all hover:border-rose-500/40 hover:bg-muted cursor-pointer">
+            <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-rose-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer">
               <Avatar className="h-7 w-7 border border-rose-500/20">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
                 <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-[10px] font-bold text-white">

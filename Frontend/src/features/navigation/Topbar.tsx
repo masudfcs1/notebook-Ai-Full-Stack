@@ -76,7 +76,7 @@ export function Topbar() {
   const meta = VIEW_METADATA[view] ?? VIEW_METADATA.dashboard;
 
   return (
-    <header className="digital-hud-glass digital-scanline sticky top-0 z-20 flex h-16 items-center justify-between gap-3 px-4 backdrop-blur-2xl md:px-6">
+    <header className="dashboard-topbar sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b px-4 md:px-7">
       {/* Left: Mobile trigger & Digital Breadcrumbs / Titles */}
       <div className="flex items-center gap-3.5 min-w-0">
         <Button
@@ -91,14 +91,14 @@ export function Topbar() {
 
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <span className="hidden rounded bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-indigo-600 dark:text-indigo-400 sm:inline-block border border-indigo-500/20">
+            <span className="hidden rounded-full border border-indigo-500/15 bg-indigo-500/8 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.16em] text-indigo-600 dark:text-indigo-300 sm:inline-block">
               {meta.sysCode}
             </span>
             <motion.h1
               key={view}
               initial={{ opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              className="truncate text-base font-semibold leading-tight md:text-lg tracking-tight"
+              className="truncate text-base font-semibold leading-tight tracking-[-0.025em] md:text-lg"
             >
               {meta.title}
             </motion.h1>
@@ -112,18 +112,18 @@ export function Topbar() {
       {/* Center/Right controls */}
       <div className="flex items-center gap-2.5">
         {/* Live HUD status indicator */}
-        <div className="hidden items-center gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 px-2.5 py-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-400 xl:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/8 px-3 py-1.5 text-emerald-600 dark:text-emerald-400 xl:flex">
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
             <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
           </span>
-          <span className="font-semibold tracking-wider text-[10px]">
-            SYS: OPTIMAL
+          <span className="text-[10px] font-bold uppercase tracking-[0.12em]">
+            Live sync
           </span>
           {digitalTime && (
             <>
-              <span className="text-emerald-500/40">|</span>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="text-emerald-500/30">•</span>
+              <span className="text-[10px] font-medium text-muted-foreground">
                 {digitalTime}
               </span>
             </>
@@ -132,12 +132,12 @@ export function Topbar() {
 
         {/* Futuristic Search Input HUD */}
         <div className="relative hidden md:block">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-indigo-500/70" />
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={searchQuery}
             onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-            placeholder="Search telemetry, notes…"
-            className="h-9 w-52 rounded-xl border border-indigo-500/20 bg-background/50 pl-9 pr-14 text-xs tracking-tight transition-all duration-300 focus:border-indigo-500/60 focus:bg-background focus:shadow-[0_0_20px_rgba(99,102,241,0.2)] lg:w-64"
+            placeholder="Search notes, summaries..."
+            className="h-10 w-52 rounded-xl border border-border/60 bg-white/45 pl-9 pr-14 text-xs shadow-sm transition-all duration-300 focus:border-indigo-500/35 focus:bg-white/75 focus:shadow-[0_10px_30px_-18px_rgba(79,70,229,0.45)] dark:bg-white/[0.035] dark:focus:bg-white/[0.06] lg:w-64"
           />
           {searchQuery ? (
             <button
@@ -147,7 +147,7 @@ export function Topbar() {
               <X className="h-3.5 w-3.5" />
             </button>
           ) : (
-            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded border border-indigo-500/20 bg-indigo-500/10 px-1.5 py-0.5 font-mono text-[9px] font-medium text-indigo-600 dark:text-indigo-300 lg:flex">
+            <kbd className="pointer-events-none absolute right-2.5 top-1/2 hidden -translate-y-1/2 select-none items-center gap-0.5 rounded-md border border-border/60 bg-white/55 px-1.5 py-0.5 text-[9px] font-medium text-muted-foreground dark:bg-white/[0.05] lg:flex">
               <Command className="h-2.5 w-2.5" />K
             </kbd>
           )}
@@ -158,12 +158,12 @@ export function Topbar() {
           variant="outline"
           size="sm"
           onClick={() => dispatch(toggleAiWidget())}
-          className="relative hidden h-9 items-center gap-2 rounded-xl border border-indigo-500/40  from-indigo-500/10 via-violet-500/10 to-indigo-500/5 px-3 text-indigo-600 shadow-[0_0_15px_rgba(99,102,241,0.15)] hover:border-indigo-500/70 hover:bg-indigo-500/15 hover:shadow-[0_0_20px_rgba(99,102,241,0.3)] dark:text-indigo-300 sm:flex"
+          className="relative hidden h-10 items-center gap-2 rounded-xl border border-indigo-500/20 bg-gradient-to-r from-indigo-500/8 via-violet-500/8 to-indigo-500/5 px-3 text-indigo-600 shadow-sm hover:border-indigo-500/35 hover:bg-indigo-500/10 dark:text-indigo-300 sm:flex"
         >
-          <Sparkles className="h-4 w-4 animate-pulse text-indigo-500" />
+          <Sparkles className="h-4 w-4 text-indigo-500" />
           <span className="text-xs font-semibold tracking-tight">Ask AI</span>
-          <span className="rounded bg-indigo-500/20 px-1.5 py-0.5 font-mono text-[9px] font-bold text-indigo-600 dark:text-indigo-300">
-            v2.4
+          <span className="rounded-full bg-indigo-500/12 px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-300">
+            Beta
           </span>
         </Button>
 
@@ -172,7 +172,7 @@ export function Topbar() {
           variant="default"
           size="sm"
           onClick={() => dispatch(setView("upload"))}
-          className="h-9 gap-1.5 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-md shadow-indigo-500/25 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.45)] hover:opacity-95"
+          className="h-10 gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25"
         >
           <Plus className="h-4 w-4" />
           <span className="hidden text-xs font-semibold sm:inline">
@@ -184,7 +184,7 @@ export function Topbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-xl border border-border/60 bg-background/40 hover:bg-indigo-500/10 hover:border-indigo-500/30 hover:text-indigo-500"
+          className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 shadow-sm hover:border-indigo-500/20 hover:bg-indigo-500/8 hover:text-indigo-500 dark:bg-white/[0.035]"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"
         >
@@ -199,7 +199,7 @@ export function Topbar() {
         {isAuthenticated && user ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 rounded-xl border border-indigo-500/30 bg-background/60 p-1.5 shadow-sm transition-all hover:bg-indigo-500/10 hover:border-indigo-500/50 cursor-pointer">
+              <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-indigo-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer">
                 <Avatar className="h-7 w-7 border border-indigo-500/30">
                   {avatarSrc && (
                     <AvatarImage src={avatarSrc} alt={displayName} />

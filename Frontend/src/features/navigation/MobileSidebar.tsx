@@ -26,7 +26,7 @@ export function MobileSidebar() {
 
   return (
     <Sheet open={open} onOpenChange={(v) => dispatch(setMobileNav(v))}>
-      <SheetContent side="left" className="w-72 p-0">
+      <SheetContent side="left" className="dashboard-sidebar w-72 border-r p-0">
         <SheetHeader className="border-b border-border/60 p-4 text-left">
           <SheetTitle className="flex items-center gap-3">
             <Logo size={32} />
@@ -54,15 +54,15 @@ export function MobileSidebar() {
                     onClick={() => dispatch(setView(item.key))}
                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
                       active
-                        ? "bg-indigo-500/15 text-foreground"
-                        : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                        ? "bg-gradient-to-r from-indigo-500/14 to-violet-500/8 text-foreground ring-1 ring-indigo-500/10"
+                        : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]"
                     }`}
                   >
                     <span
                       className={`flex h-8 w-8 items-center justify-center rounded-lg ${
                         active
                           ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-muted text-muted-foreground"
+                          : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 dark:bg-white/[0.045] dark:ring-white/[0.05]"
                       }`}
                     >
                       <Icon className="h-4 w-4" />

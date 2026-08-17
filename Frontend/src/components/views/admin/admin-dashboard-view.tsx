@@ -58,24 +58,27 @@ export function AdminDashboardView() {
   const stats = statsResponse?.data;
 
   return (
-    <div className="mx-auto max-w-7xl space-y-8">
+    <div className="mx-auto max-w-[1320px] space-y-6">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+        className="admin-dashboard-hero relative flex flex-col gap-5 overflow-hidden rounded-[1.75rem] p-6 text-white sm:flex-row sm:items-center sm:justify-between md:p-8"
       >
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">
+        <div className="dashboard-subtle-grid pointer-events-none absolute inset-0" />
+        <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-amber-300/15 blur-3xl" />
+        <div className="relative">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-200">Platform command center</p>
+          <h1 className="text-2xl font-semibold tracking-[-0.035em] text-white md:text-3xl">
             Admin Dashboard
           </h1>
-          <p className="text-sm text-muted-foreground">
-            System overview and user analytics
+          <p className="mt-2 text-sm text-rose-100/70">
+            Monitor platform health, people, and access from one clear view.
           </p>
         </div>
         <Button
           onClick={() => dispatch(setView("admin-users"))}
-          className="gap-2 rounded-xl  from-rose-500 to-amber-500 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 hover:opacity-90 transition-opacity cursor-pointer"
+          className="relative h-11 gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-slate-950 shadow-xl shadow-rose-950/20 transition hover:-translate-y-0.5 hover:bg-rose-50 cursor-pointer"
         >
           <Plus className="h-4 w-4" /> Manage Users
         </Button>
@@ -93,7 +96,7 @@ export function AdminDashboardView() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.08 }}
             >
-              <Card className="relative overflow-hidden border-border/60 bg-card/70 p-5 backdrop-blur-sm transition-all hover:bg-muted/60 hover:-translate-y-0.5">
+              <Card className="dashboard-glass-card dashboard-stat-card relative overflow-hidden rounded-2xl p-5">
                 <div className="flex items-center justify-between">
                   <div
                     className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-lg ${card.glow}`}
@@ -135,7 +138,7 @@ export function AdminDashboardView() {
           transition={{ delay: 0.35 }}
           className="lg:col-span-2"
         >
-          <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
+          <Card className="dashboard-glass-card rounded-[1.5rem] p-6">
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="h-4 w-4 text-rose-400" />
@@ -192,7 +195,7 @@ export function AdminDashboardView() {
                                 duration: 0.8,
                                 ease: "easeOut",
                               }}
-                              className={`h-full rounded-full  ${config.color}`}
+                              className={`h-full rounded-full bg-gradient-to-r ${config.color}`}
                             />
                           </div>
                         </div>
@@ -210,7 +213,7 @@ export function AdminDashboardView() {
           transition={{ delay: 0.45 }}
           className="lg:col-span-3"
         >
-          <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
+          <Card className="dashboard-glass-card rounded-[1.5rem] p-6">
             <div className="mb-5 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-rose-400" />
@@ -248,7 +251,7 @@ export function AdminDashboardView() {
                       initial={{ opacity: 0, x: -8 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: 0.5 + i * 0.05 }}
-                      className="flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 p-3 transition-colors hover:bg-muted/60"
+                      className="dashboard-list-row flex items-center gap-3 rounded-xl p-3"
                     >
                       <Avatar className="h-9 w-9 border border-border">
                         <AvatarFallback
@@ -297,7 +300,7 @@ export function AdminDashboardView() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.55 }}
       >
-        <Card className="border-border/60 bg-card/70 p-6 backdrop-blur-sm">
+        <Card className="dashboard-glass-card rounded-[1.5rem] p-6">
           <h3 className="mb-4 text-sm font-semibold text-foreground">
             Quick Actions
           </h3>
@@ -325,7 +328,7 @@ export function AdminDashboardView() {
               <button
                 key={action.label}
                 onClick={() => dispatch(setView(action.view))}
-                className="group flex items-center gap-3 rounded-xl border border-border/60 bg-card/70 p-4 text-left transition-all hover:bg-muted/60 hover:-translate-y-0.5 cursor-pointer"
+                className="dashboard-list-row group flex items-center gap-3 rounded-xl p-4 text-left hover:-translate-y-0.5 cursor-pointer"
               >
                 <div
                   className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${action.gradient} text-white shadow-lg`}

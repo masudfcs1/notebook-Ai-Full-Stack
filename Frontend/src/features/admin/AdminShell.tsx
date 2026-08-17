@@ -27,12 +27,14 @@ export function AdminShell() {
   const ActiveView = ADMIN_VIEW_REGISTRY[view] ?? AdminDashboardView
 
   return (
-    <div className="relative flex min-h-screen bg-background text-foreground transition-colors">
+    <div className="admin-dashboard-shell relative flex min-h-screen overflow-x-hidden text-foreground transition-colors">
+      <div className="admin-ambient admin-ambient-one pointer-events-none fixed -right-48 top-4 h-[520px] w-[520px] rounded-full" />
+      <div className="admin-ambient admin-ambient-two pointer-events-none fixed -bottom-56 left-[18%] h-[560px] w-[560px] rounded-full" />
       <AdminSidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col">
         <AdminTopbar />
-        <main className="flex-1 px-4 pb-10 pt-6 md:px-6">
+        <main className="relative flex-1 px-4 pb-12 pt-6 md:px-7 md:pt-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={view}
@@ -47,7 +49,7 @@ export function AdminShell() {
         </main>
 
         {/* Admin Footer */}
-        <footer className="mt-auto border-t border-border/60 bg-background/80 px-4 py-4 backdrop-blur-xl md:px-6">
+        <footer className="dashboard-footer mt-auto border-t px-4 py-4 md:px-7">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 text-xs text-muted-foreground sm:flex-row">
             <p>© {new Date().getFullYear()} NoteFlow AI — Administration Panel</p>
             <span className="flex items-center gap-1.5">

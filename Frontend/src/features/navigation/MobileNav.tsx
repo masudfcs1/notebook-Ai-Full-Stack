@@ -26,10 +26,10 @@ export function MobileNav() {
 
   return (
     <nav
-      className="digital-hud-glass fixed inset-x-0 bottom-0 z-40 border-t border-indigo-500/30 bg-background/85 backdrop-blur-2xl lg:hidden"
+      className="dashboard-topbar fixed inset-x-3 bottom-3 z-40 rounded-2xl border shadow-[0_18px_50px_-20px_rgba(15,23,42,0.45)] lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="mx-auto grid max-w-md grid-cols-5 py-1">
+      <div className="mx-auto grid max-w-md grid-cols-5 px-1 py-1.5">
         {ITEMS.map((item) => {
           const active = view === item.key;
           const Icon = item.icon;
@@ -43,7 +43,7 @@ export function MobileNav() {
               {active && (
                 <motion.span
                   layoutId="mobile-active"
-                  className="absolute -top-1 h-1 w-7 rounded-full  from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.8)]"
+                  className="absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.45)]"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}
@@ -51,7 +51,7 @@ export function MobileNav() {
                 className={cn(
                   "flex h-8 w-8 items-center justify-center rounded-xl transition-all duration-300",
                   active
-                    ? "bg-indigo-500/15 text-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.3)] border border-indigo-500/30"
+                    ? "border border-indigo-500/20 bg-indigo-500/12 text-indigo-500 shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >

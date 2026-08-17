@@ -46,11 +46,11 @@ export function AdminSidebar() {
       animate={{ width: collapsed ? 80 : 272 }}
       transition={{ type: "spring", stiffness: 280, damping: 30 }}
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-rose-500/10 bg-sidebar/95 text-sidebar-foreground backdrop-blur-2xl lg:flex z-30",
+        "dashboard-sidebar admin-dashboard-sidebar sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r text-sidebar-foreground lg:flex",
       )}
     >
       {/* Header / Logo */}
-      <div className="flex h-16 items-center gap-3 px-4">
+      <div className="flex h-[72px] items-center gap-3 px-4">
         <button
           onClick={() => dispatch(setView("admin-dashboard"))}
           className="flex items-center gap-3 overflow-hidden text-left"
@@ -122,8 +122,8 @@ export function AdminSidebar() {
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
-                      ? " from-rose-500/15 to-amber-500/10 text-foreground shadow-sm shadow-rose-500/10"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-gradient-to-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
+                      : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]",
                   )}
                 >
                   {/* Active indicator bar */}
@@ -143,7 +143,7 @@ export function AdminSidebar() {
                       "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
                       isActive
                         ? `bg-gradient-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
-                        : "bg-muted text-muted-foreground group-hover:text-foreground",
+                        : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 group-hover:text-foreground dark:bg-white/[0.045] dark:ring-white/[0.05]",
                     )}
                   >
                     <Icon className="h-4 w-4" />
@@ -181,12 +181,12 @@ export function AdminSidebar() {
       </nav>
 
       {/* Footer — User profile + actions */}
-      <div className="border-t border-border/60 p-3">
+      <div className="border-t border-border/50 bg-white/20 p-3 dark:bg-white/[0.012]">
         {/* Switch to User Panel */}
         {!collapsed ? (
           <button
             onClick={() => dispatch(setView("dashboard"))}
-            className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/60 bg-background/40 px-3 py-2 text-xs font-medium text-muted-foreground transition-all hover:bg-muted hover:text-foreground cursor-pointer"
+            className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-foreground dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer"
           >
             <ArrowLeftRight className="h-3.5 w-3.5" />
             Switch to User Panel

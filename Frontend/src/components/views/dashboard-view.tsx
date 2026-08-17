@@ -125,35 +125,36 @@ export function DashboardView() {
   const maxWeekly = Math.max(...weekly.map((w) => w.value));
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6">
+    <div className="mx-auto max-w-[1320px] space-y-6">
       {/* Welcome banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden rounded-2xl border border-border/50 bg-gradient-to-br from-indigo-500/10 via-violet-500/10 to-emerald-500/5 p-5 backdrop-blur-sm md:p-6"
+        className="dashboard-hero relative overflow-hidden rounded-[1.75rem] p-6 text-white md:p-8"
       >
-        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-violet-500/15 blur-3xl" />
+        <div className="dashboard-subtle-grid pointer-events-none absolute inset-0" />
+        <div className="pointer-events-none absolute -right-14 -top-20 h-64 w-64 rounded-full bg-violet-300/20 blur-3xl" />
         <div className="relative flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-indigo-500 dark:text-indigo-300">
-              Welcome back, {userName} 👋
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-indigo-200">
+              Welcome back, {userName}
             </p>
-            <h2 className="mt-1 text-xl font-semibold md:text-2xl">
+            <h2 className="mt-2 text-2xl font-semibold tracking-[-0.035em] md:text-3xl">
               You have{" "}
-              <span className="text-gradient">
+              <span className="text-cyan-200">
                 {tasks.filter((t) => t.status !== "completed").length} open
                 action items
               </span>{" "}
               this week
             </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
+            <p className="mt-2 text-sm text-indigo-100/70">
               {notes.filter((n) => n.status === "draft").length} notes awaiting
               summary · {summaries.length} summaries ready
             </p>
           </div>
           <Button
             onClick={() => dispatch(setView("ongoing"))}
-            className="gap-2 rounded-xl  from-rose-500 to-orange-500 text-white shadow-md shadow-rose-500/25 hover:opacity-95"
+            className="h-11 gap-2 rounded-xl bg-white px-5 text-slate-950 shadow-xl shadow-indigo-950/20 transition hover:-translate-y-0.5 hover:bg-indigo-50"
           >
             <Zap className="h-4 w-4" /> Start a meeting
           </Button>
@@ -172,7 +173,7 @@ export function DashboardView() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.06 }}
             >
-              <Card className="group relative overflow-hidden border-border/50 p-5 backdrop-blur-sm transition-all hover:-translate-y-1 hover:shadow-xl">
+              <Card className="dashboard-glass-card dashboard-stat-card group relative overflow-hidden rounded-2xl p-5">
                 <div
                   className={cn(
                     "absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br opacity-20 blur-2xl transition-opacity group-hover:opacity-40",
@@ -222,7 +223,7 @@ export function DashboardView() {
       {/* Main grid: recent + side */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent activity */}
-        <Card className="lg:col-span-2 border-border/50 p-5 backdrop-blur-sm md:p-6">
+        <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold">Recent Activity</h3>
@@ -269,7 +270,7 @@ export function DashboardView() {
                         ),
                       );
                     }}
-                    className="group flex w-full items-center gap-3 rounded-xl border border-transparent bg-muted/30 p-3 text-left transition-all hover:border-border/60 hover:bg-muted/50"
+                    className="dashboard-list-row group flex w-full items-center gap-3 rounded-xl p-3 text-left"
                   >
                     <div
                       className={cn(
@@ -330,14 +331,14 @@ export function DashboardView() {
         {/* Side column */}
         <div className="space-y-6">
           {/* Quick actions */}
-          <Card className="border-border/50 p-5 backdrop-blur-sm md:p-6">
+          <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6">
             <h3 className="mb-4 text-base font-semibold">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2.5">
               {QUICK_ACTIONS.map((a) => (
                 <button
                   key={a.label}
                   onClick={() => dispatch(setView(a.view))}
-                  className="group flex flex-col items-start gap-2 rounded-xl border border-border/50 bg-muted/30 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:bg-muted/50"
+                  className="dashboard-list-row group flex flex-col items-start gap-2 rounded-xl p-3 text-left hover:-translate-y-0.5"
                 >
                   <div
                     className={cn(
@@ -361,7 +362,7 @@ export function DashboardView() {
           </Card>
 
           {/* Weekly chart */}
-          <Card className="border-border/50 p-5 backdrop-blur-sm md:p-6">
+          <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold">This Week</h3>

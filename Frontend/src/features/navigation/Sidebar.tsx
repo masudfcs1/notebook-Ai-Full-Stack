@@ -117,11 +117,11 @@ export function Sidebar() {
         animate={{ width: collapsed ? 80 : 272 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         className={cn(
-          "sticky top-0 hidden h-screen shrink-0 flex-col border-r border-sidebar-border/60 bg-sidebar/70 backdrop-blur-2xl lg:flex z-30",
+          "dashboard-sidebar sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r lg:flex",
         )}
       >
         {/* Header / Logo */}
-        <div className="flex h-16 items-center gap-3 px-4">
+        <div className="flex h-[72px] items-center gap-3 px-4">
           <button
             onClick={() => dispatch(setView("landing"))}
             className="flex items-center gap-3 overflow-hidden text-left"
@@ -144,12 +144,12 @@ export function Sidebar() {
         </div>
 
         {/* Workspace Switcher Component */}
-        <div className="px-3 pb-2 pt-1 border-b border-sidebar-border/40">
+        <div className="border-b border-sidebar-border/40 px-3 pb-3 pt-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
                 className={cn(
-                  "flex w-full items-center gap-2.5 rounded-xl border border-white/10 bg-background/50 p-2 text-left shadow-sm transition-all hover:bg-background hover:border-white/20",
+                  "dashboard-glass-card flex w-full items-center gap-2.5 rounded-2xl p-2.5 text-left transition-all hover:-translate-y-0.5",
                   collapsed && "justify-center p-2",
                 )}
               >
@@ -397,8 +397,8 @@ export function Sidebar() {
                         className={cn(
                           "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                           active
-                            ? "from-indigo-500/15 to-violet-500/10 text-sidebar-foreground"
-                            : "text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                            ? "bg-gradient-to-r from-indigo-500/14 to-violet-500/8 text-sidebar-foreground shadow-sm ring-1 ring-indigo-500/10"
+                            : "text-muted-foreground hover:bg-white/50 hover:text-sidebar-foreground dark:hover:bg-white/[0.045]",
                           collapsed && "justify-center",
                         )}
                       >
@@ -418,7 +418,7 @@ export function Sidebar() {
                             "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
                             active
                               ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-sidebar-accent/50 text-muted-foreground group-hover:text-sidebar-foreground",
+                              : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 group-hover:text-sidebar-foreground dark:bg-white/[0.045] dark:ring-white/[0.05]",
                           )}
                         >
                           <Icon className="h-4 w-4" strokeWidth={2.2} />
@@ -449,7 +449,7 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-sidebar-border/60 p-3">
+        <div className="border-t border-sidebar-border/50 bg-white/20 p-3 dark:bg-white/[0.012]">
           <div
             className={cn("flex items-center gap-2", collapsed && "flex-col")}
           >

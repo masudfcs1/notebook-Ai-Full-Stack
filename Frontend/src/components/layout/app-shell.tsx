@@ -85,7 +85,6 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
     if (initialView) {
       dispatch(setView(initialView))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (view === "landing" && !workspaceSlug) {
@@ -130,13 +129,15 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
   const ActiveViewComponent = VIEW_COMPONENT_REGISTRY[view] ?? DashboardView
 
   return (
-    <div className="relative flex min-h-screen bg-mesh">
+    <div className="app-dashboard-shell relative flex min-h-screen overflow-x-hidden">
+      <div className="dashboard-ambient dashboard-ambient-one pointer-events-none fixed -right-40 top-10 h-[520px] w-[520px] rounded-full" />
+      <div className="dashboard-ambient dashboard-ambient-two pointer-events-none fixed -bottom-52 left-[20%] h-[560px] w-[560px] rounded-full" />
       <Sidebar />
       <MobileSidebar />
 
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="relative flex min-w-0 flex-1 flex-col">
         <Topbar />
-        <main className="flex-1 px-4 pb-28 pt-6 md:px-6 lg:pb-10">
+        <main className="relative flex-1 px-4 pb-28 pt-6 md:px-7 md:pt-8 lg:pb-12">
           <AnimatePresence mode="wait">
             <motion.div
               key={view}
@@ -160,7 +161,7 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
 
 function Footer() {
   return (
-    <footer className="mt-auto border-t border-border/60 bg-background/60 px-4 py-5 backdrop-blur-xl md:px-6">
+    <footer className="dashboard-footer mt-auto border-t px-4 py-5 md:px-7">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-3 text-xs text-muted-foreground sm:flex-row">
         <p>© {new Date().getFullYear()} NoteFlow AI — Meeting Intelligence Platform</p>
         <div className="flex items-center gap-4">
