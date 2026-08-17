@@ -71,7 +71,8 @@ export function TeamView() {
   const currentTeam =
     activeWs?.teams.find((t) => t.id === activeTeamId) || activeWs?.teams[0];
 
-  const [updateTeamMutation, { isLoading: isUpdatingTeam }] = useUpdateTeamMutation();
+  const [updateTeamMutation, { isLoading: isUpdatingTeam }] =
+    useUpdateTeamMutation();
 
   // Editing team name/key state
   const [isEditingTeam, setIsEditingTeam] = useState(false);
@@ -165,7 +166,9 @@ export function TeamView() {
         setIsEditingTeam(false);
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to update team");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to update team",
+      );
     }
   }
 
@@ -391,7 +394,7 @@ export function TeamView() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: idx * 0.04 }}
               >
-                <div className="group relative flex items-center justify-between overflow-hidden rounded-xl border border-white/10 bg-gradient-to-br from-card/90 via-card/60 to-background/50 p-2.5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-card/95 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-0.5">
+                <div className="group relative flex items-center justify-between overflow-hidden rounded-xl border border-white/10 bg-gradient-lr from-card/90 via-card/60 to-background/50 p-2.5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-card/95 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-0.5">
                   {/* Subtle top role accent bar */}
                   <div
                     className={cn(

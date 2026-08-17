@@ -121,7 +121,7 @@ export function Sidebar() {
         )}
       >
         {/* Header / Logo */}
-        <div className="flex h-[72px] items-center gap-3 px-4">
+        <div className="flex h-18 items-center gap-3 px-4">
           <button
             onClick={() => dispatch(setView("landing"))}
             className="flex items-center gap-3 overflow-hidden text-left"
@@ -399,15 +399,15 @@ export function Sidebar() {
                         className={cn(
                           "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
                           active
-                            ? "bg-gradient-to-r from-indigo-500/14 to-violet-500/8 text-sidebar-foreground shadow-sm ring-1 ring-indigo-500/10"
-                            : "text-muted-foreground hover:bg-white/50 hover:text-sidebar-foreground dark:hover:bg-white/[0.045]",
+                            ? "bg-linear-to-r from-indigo-500/14 to-violet-500/8 text-sidebar-foreground shadow-sm ring-1 ring-indigo-500/10"
+                            : "text-muted-foreground hover:bg-white/50 hover:text-sidebar-foreground dark:hover:bg-white/4.5",
                           collapsed && "justify-center",
                         )}
                       >
                         {active && (
                           <motion.span
                             layoutId="sidebar-active"
-                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-indigo-500 to-violet-500"
+                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-linear-to-b from-indigo-500 to-violet-500"
                             transition={{
                               type: "spring",
                               stiffness: 350,
@@ -419,8 +419,8 @@ export function Sidebar() {
                           className={cn(
                             "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                             active
-                              ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-indigo-500/[0.06] text-muted-foreground ring-1 ring-indigo-500/10 group-hover:text-indigo-600 dark:bg-white/[0.03] dark:ring-white/[0.05] dark:group-hover:text-indigo-300",
+                              ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
+                              : "bg-indigo-500/6 text-muted-foreground ring-1 ring-indigo-500/10 group-hover:text-indigo-600 dark:bg-white/3 dark:ring-white/5 dark:group-hover:text-indigo-300",
                           )}
                         >
                           <Icon className="h-3.5 w-3.5" strokeWidth={2} />
@@ -514,7 +514,7 @@ export function Sidebar() {
             >
               <Avatar className="h-8 w-8 border border-sidebar-border shadow-sm">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="bg-gradient-to-br from-indigo-500 to-violet-500 text-[11px] font-semibold text-white">
+                <AvatarFallback className="bg-linear-to-br from-indigo-500 to-violet-500 text-[11px] font-semibold text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>

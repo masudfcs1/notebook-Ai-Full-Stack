@@ -2,7 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building2, X, Plus, Check, Edit3, Loader2, AlertCircle } from "lucide-react";
+import {
+  Building2,
+  X,
+  Plus,
+  Check,
+  Edit3,
+  Loader2,
+  AlertCircle,
+} from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { addWorkspace, updateWorkspaceInState } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
@@ -78,11 +86,11 @@ export function WorkspaceModal({
   // Check if slug exists in workspaces
   const isSlugTaken = Boolean(
     normalizedSlug &&
-      workspaces.some(
-        (w) =>
-          w.slug.toLowerCase() === normalizedSlug &&
-          (!isEdit || w.id !== workspaceToEdit?.id),
-      ),
+    workspaces.some(
+      (w) =>
+        w.slug.toLowerCase() === normalizedSlug &&
+        (!isEdit || w.id !== workspaceToEdit?.id),
+    ),
   );
 
   function handleNameChange(val: string) {
@@ -110,7 +118,9 @@ export function WorkspaceModal({
     }
 
     if (isSlugTaken) {
-      toast.error("This workspace slug already exists. Please choose another one.");
+      toast.error(
+        "This workspace slug already exists. Please choose another one.",
+      );
       return;
     }
 
@@ -286,7 +296,10 @@ export function WorkspaceModal({
               {isSlugTaken && (
                 <div className="mt-1.5 flex items-center gap-1 text-xs font-medium text-rose-500">
                   <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                  <span>This workspace slug already exists. Please choose a unique slug.</span>
+                  <span>
+                    This workspace slug already exists. Please choose a unique
+                    slug.
+                  </span>
                 </div>
               )}
             </div>
@@ -317,7 +330,7 @@ export function WorkspaceModal({
               <Button
                 type="submit"
                 disabled={isLoading || isSlugTaken || !name.trim()}
-                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="gap-2 rounded-xl bg-gradient-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

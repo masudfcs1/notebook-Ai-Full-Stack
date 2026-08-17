@@ -301,7 +301,7 @@ export function UploadView() {
             />
             <motion.div
               animate={dragOver ? { scale: 1.05 } : { scale: 1 }}
-              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30"
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30"
             >
               <UploadCloud className="h-8 w-8" />
             </motion.div>
@@ -351,10 +351,10 @@ export function UploadView() {
                       className={cn(
                         "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-sm",
                         f.status === "done"
-                          ? "bg-gradient-to-br from-emerald-500 to-teal-500"
+                          ? "bg-gradient-lr from-emerald-500 to-teal-500"
                           : f.status === "error"
-                            ? "bg-gradient-to-br from-rose-500 to-red-500"
-                            : "bg-gradient-to-br from-indigo-500 to-violet-500",
+                            ? "bg-gradient-lr from-rose-500 to-red-500"
+                            : "bg-gradient-lr from-indigo-500 to-violet-500",
                       )}
                     >
                       {f.status === "done" ? (

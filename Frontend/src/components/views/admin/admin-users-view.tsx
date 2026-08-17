@@ -165,7 +165,11 @@ export function AdminUsersView() {
   }, [isError, isFetching, meta?.hasNext, meta?.page]);
 
   const handleSearch = () => {
-    setParams((p) => ({ ...p, page: 1, search: searchInput.trim() || undefined }));
+    setParams((p) => ({
+      ...p,
+      page: 1,
+      search: searchInput.trim() || undefined,
+    }));
   };
 
   const handleResetFilters = () => {
@@ -493,7 +497,9 @@ export function AdminUsersView() {
             ) : isError && users.length === 0 ? (
               <div className="flex h-52 flex-col items-center justify-center p-6 text-center">
                 <AlertCircle className="mb-2 h-8 w-8 text-rose-500" />
-                <p className="text-sm font-semibold text-foreground">Failed to load users</p>
+                <p className="text-sm font-semibold text-foreground">
+                  Failed to load users
+                </p>
                 <p className="mb-4 max-w-md text-xs text-muted-foreground">
                   {errorMessage}
                 </p>
@@ -509,7 +515,9 @@ export function AdminUsersView() {
             ) : users.length === 0 ? (
               <div className="flex h-52 flex-col items-center justify-center p-6 text-center">
                 <Users className="mb-2 h-8 w-8 text-muted-foreground/60" />
-                <p className="text-sm font-semibold text-foreground">No users found</p>
+                <p className="text-sm font-semibold text-foreground">
+                  No users found
+                </p>
                 <p className="mb-4 text-xs text-muted-foreground">
                   {params.search || params.role || params.status
                     ? "No users match your current filter criteria."
@@ -522,7 +530,8 @@ export function AdminUsersView() {
                     onClick={handleResetFilters}
                     className="gap-2 text-xs cursor-pointer rounded-lg border-border bg-muted hover:bg-muted/80"
                   >
-                    <RotateCcw className="h-3.5 w-3.5 text-rose-400" /> Clear Filters
+                    <RotateCcw className="h-3.5 w-3.5 text-rose-400" /> Clear
+                    Filters
                   </Button>
                 )}
               </div>
@@ -558,7 +567,7 @@ export function AdminUsersView() {
                             <AvatarImage src={avatarSrc} alt={u.name || ""} />
                           )}
                           <AvatarFallback
-                            className={`bg-gradient-to-br ${roleConfig.color} text-[10px] font-bold text-white`}
+                            className={`bg-gradient-lr ${roleConfig.color} text-[10px] font-bold text-white`}
                           >
                             {userInitials}
                           </AvatarFallback>
@@ -603,7 +612,9 @@ export function AdminUsersView() {
                           <Building2 className="h-3.5 w-3.5 text-rose-500" />
                           <span>{u.workspaceCount ?? 0}</span>
                           <span className="text-[10px] text-muted-foreground font-normal hidden lg:inline">
-                            {u.workspaceCount === 1 ? "workspace" : "workspaces"}
+                            {u.workspaceCount === 1
+                              ? "workspace"
+                              : "workspaces"}
                           </span>
                         </Badge>
                       </div>
@@ -763,7 +774,8 @@ export function AdminUsersView() {
               </Button>
             ) : meta?.hasNext ? (
               <p className="text-[10px] text-muted-foreground">
-                Showing {users.length} of {meta.total} users · Scroll to load more
+                Showing {users.length} of {meta.total} users · Scroll to load
+                more
               </p>
             ) : meta && users.length > 0 ? (
               <p className="text-[10px] text-muted-foreground">

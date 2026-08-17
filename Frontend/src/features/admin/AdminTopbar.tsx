@@ -1,14 +1,23 @@
-'use client'
+"use client";
 
-import { toast } from "react-hot-toast"
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
-import { setView, toggleSidebar, markAllNotificationsRead } from "@/lib/redux/appSlice"
-import { logout } from "@/lib/redux/authSlice"
-import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { toast } from "react-hot-toast";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  setView,
+  toggleSidebar,
+  markAllNotificationsRead,
+} from "@/lib/redux/appSlice";
+import { logout } from "@/lib/redux/authSlice";
+import {
+  cn,
+  getUserDisplayName,
+  getUserInitials,
+  getAvatarUrl,
+} from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +25,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   Bell,
   Shield,
@@ -26,23 +35,24 @@ import {
   ChevronDown,
   Search,
   Menu,
-} from "lucide-react"
-import { VIEW_METADATA } from "@/constants"
-import type { ViewKey } from "@/types"
+} from "lucide-react";
+import { VIEW_METADATA } from "@/constants";
+import type { ViewKey } from "@/types";
 
 export function AdminTopbar() {
-  const dispatch = useAppDispatch()
-  const user = useAppSelector((s) => s.auth.user)
-  const view = useAppSelector((s) => s.app.view)
-  const notifications = useAppSelector((s) => s.app.notifications)
-  const unread = notifications.filter((n) => !n.read).length
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((s) => s.auth.user);
+  const view = useAppSelector((s) => s.app.view);
+  const notifications = useAppSelector((s) => s.app.notifications);
+  const unread = notifications.filter((n) => !n.read).length;
 
-  const avatarSrc = getAvatarUrl(user?.avatar)
-  const displayName = getUserDisplayName(user, "Admin")
-  const displayEmail = user?.email || ""
-  const initials = getUserInitials(user?.name, user?.email)
+  const avatarSrc = getAvatarUrl(user?.avatar);
+  const displayName = getUserDisplayName(user, "Admin");
+  const displayEmail = user?.email || "";
+  const initials = getUserInitials(user?.name, user?.email);
 
-  const meta = VIEW_METADATA[view as ViewKey] || VIEW_METADATA["admin-dashboard"]
+  const meta =
+    VIEW_METADATA[view as ViewKey] || VIEW_METADATA["admin-dashboard"];
 
   return (
     <header className="dashboard-topbar admin-dashboard-topbar sticky top-0 z-20 flex h-[72px] items-center gap-4 border-b px-4 md:px-7">
@@ -65,7 +75,9 @@ export function AdminTopbar() {
           </span>
         </div>
         <div className="hidden sm:block">
-          <h1 className="text-sm font-semibold tracking-[-0.02em] text-foreground">{meta.title}</h1>
+          <h1 className="text-sm font-semibold tracking-[-0.02em] text-foreground">
+            {meta.title}
+          </h1>
           <p className="text-[10px] text-muted-foreground">{meta.subtitle}</p>
         </div>
       </div>
@@ -97,7 +109,10 @@ export function AdminTopbar() {
               )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-72 border-border bg-popover p-2">
+          <DropdownMenuContent
+            align="end"
+            className="w-72 border-border bg-popover p-2"
+          >
             <DropdownMenuLabel className="flex items-center justify-between text-xs text-foreground">
               <span>Notifications</span>
               {unread > 0 && (
@@ -115,11 +130,13 @@ export function AdminTopbar() {
                 key={n.id}
                 className={cn(
                   "flex-col items-start gap-0.5 rounded-lg p-2.5 text-xs cursor-pointer",
-                  !n.read && "bg-rose-500/5"
+                  !n.read && "bg-rose-500/5",
                 )}
               >
                 <span className="font-medium text-foreground">{n.title}</span>
-                <span className="text-[10px] text-muted-foreground">{n.description}</span>
+                <span className="text-[10px] text-muted-foreground">
+                  {n.description}
+                </span>
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
@@ -137,7 +154,7 @@ export function AdminTopbar() {
             <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-rose-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer">
               <Avatar className="h-7 w-7 border border-rose-500/20">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-[10px] font-bold text-white">
+                <AvatarFallback className="bg-gradient-lr from-rose-500 to-amber-500 text-[10px] font-bold text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -147,11 +164,18 @@ export function AdminTopbar() {
               <ChevronDown className="hidden h-3 w-3 text-muted-foreground md:block" />
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56 border-border bg-popover p-1">
+          <DropdownMenuContent
+            align="end"
+            className="w-56 border-border bg-popover p-1"
+          >
             <DropdownMenuLabel className="font-normal px-2 py-1.5">
               <div className="flex flex-col space-y-0.5">
-                <p className="text-xs font-semibold text-foreground leading-tight">{displayName}</p>
-                <p className="text-[10px] text-muted-foreground truncate">{displayEmail}</p>
+                <p className="text-xs font-semibold text-foreground leading-tight">
+                  {displayName}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {displayEmail}
+                </p>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -159,7 +183,8 @@ export function AdminTopbar() {
               onClick={() => dispatch(setView("admin-dashboard"))}
               className="gap-2 text-xs font-medium cursor-pointer rounded-lg text-foreground"
             >
-              <LayoutDashboard className="h-3.5 w-3.5 text-rose-400" /> Admin Dashboard
+              <LayoutDashboard className="h-3.5 w-3.5 text-rose-400" /> Admin
+              Dashboard
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => dispatch(setView("admin-settings"))}
@@ -172,16 +197,17 @@ export function AdminTopbar() {
               onClick={() => dispatch(setView("dashboard"))}
               className="gap-2 text-xs font-medium cursor-pointer rounded-lg text-foreground"
             >
-              <LayoutDashboard className="h-3.5 w-3.5 text-indigo-400" /> User Dashboard
+              <LayoutDashboard className="h-3.5 w-3.5 text-indigo-400" /> User
+              Dashboard
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                dispatch(logout())
-                dispatch(setView("login"))
+                dispatch(logout());
+                dispatch(setView("login"));
                 toast.success("Logged out successfully", {
                   position: "bottom-right",
-                })
+                });
               }}
               className="gap-2 text-xs font-medium text-rose-400 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer rounded-lg"
             >
@@ -191,5 +217,5 @@ export function AdminTopbar() {
         </DropdownMenu>
       </div>
     </header>
-  )
+  );
 }

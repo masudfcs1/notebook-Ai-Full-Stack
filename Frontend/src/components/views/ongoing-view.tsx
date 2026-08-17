@@ -188,7 +188,7 @@ export function OngoingView() {
         className="flex flex-col gap-4 rounded-2xl border border-rose-500/20  from-rose-500/10 via-orange-500/5 to-transparent p-4 backdrop-blur-sm md:flex-row md:items-center md:justify-between"
       >
         <div className="flex items-center gap-3">
-          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/30">
+          <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-lr from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/30">
             <Radio className="h-5 w-5" />
             {running && (
               <span className="absolute inset-0 animate-ping rounded-xl bg-rose-500/40" />
@@ -353,9 +353,9 @@ Tips:
             </p>
           </Card>
 
-          <Card className="border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 to-violet-500/5 p-5 backdrop-blur-sm">
+          <Card className="border-indigo-500/20 bg-gradient-lr from-indigo-500/10 to-violet-500/5 p-5 backdrop-blur-sm">
             <div className="mb-3 flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md">
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md">
                 <Sparkles className="h-4 w-4" />
               </div>
               <div>

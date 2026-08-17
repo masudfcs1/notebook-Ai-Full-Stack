@@ -271,11 +271,11 @@ export function SummaryView() {
           </Card>
 
           {/* Right: AI summary */}
-          <Card className="relative flex flex-col overflow-hidden border-indigo-500/20 bg-gradient-to-br from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
+          <Card className="relative flex flex-col overflow-hidden border-indigo-500/20 bg-gradient-lr from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-violet-500/15 blur-3xl" />
             <div className="relative mb-3 flex items-center justify-between border-b border-indigo-500/15 pb-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
@@ -504,7 +504,7 @@ function Section({
       <div className="mb-2 flex items-center gap-2">
         <div
           className={cn(
-            "flex h-6 w-6 items-center justify-center rounded-md bg-gradient-to-br text-white",
+            "flex h-6 w-6 items-center justify-center rounded-md bg-gradient-lr text-white",
             gradient,
           )}
         >

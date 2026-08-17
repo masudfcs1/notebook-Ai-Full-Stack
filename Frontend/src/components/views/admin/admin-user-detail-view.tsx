@@ -54,13 +54,17 @@ interface AdminUserDetailViewProps {
   userId?: number;
 }
 
-export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewProps) {
+export function AdminUserDetailView({
+  userId: propUserId,
+}: AdminUserDetailViewProps) {
   const dispatch = useAppDispatch();
   const stateUserId = useAppSelector((s) => s.app.selectedAdminUserId);
   const targetUserId = propUserId || stateUserId;
 
   const [searchFilter, setSearchFilter] = useState("");
-  const [expandedWorkspaces, setExpandedWorkspaces] = useState<Record<string, boolean>>({});
+  const [expandedWorkspaces, setExpandedWorkspaces] = useState<
+    Record<string, boolean>
+  >({});
 
   const {
     data: response,
@@ -134,13 +138,24 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
         <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10 text-rose-500">
           <XCircle className="h-8 w-8" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Failed to load user details</h2>
-        <p className="text-sm text-muted-foreground">The user might not exist or an error occurred.</p>
+        <h2 className="text-xl font-bold text-foreground">
+          Failed to load user details
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          The user might not exist or an error occurred.
+        </p>
         <div className="flex justify-center gap-3">
-          <Button onClick={handleBack} variant="outline" className="gap-2 border-border">
+          <Button
+            onClick={handleBack}
+            variant="outline"
+            className="gap-2 border-border"
+          >
             <ArrowLeft className="h-4 w-4" /> Back to Users
           </Button>
-          <Button onClick={() => refetch()} className="bg-rose-500 text-white hover:bg-rose-600">
+          <Button
+            onClick={() => refetch()}
+            className="bg-rose-500 text-white hover:bg-rose-600"
+          >
             Retry
           </Button>
         </div>
@@ -159,18 +174,28 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
     .slice(0, 2);
 
   // Compute total teams across all workspaces
-  const totalTeams = workspaces.reduce((acc, ws) => acc + (ws.teams?.length || 0), 0);
+  const totalTeams = workspaces.reduce(
+    (acc, ws) => acc + (ws.teams?.length || 0),
+    0,
+  );
   const totalMemberships = workspaces.reduce((acc, ws) => {
-    return acc + (ws.teams?.reduce((tAcc, t) => tAcc + (t.members?.length || 0), 0) || 0);
+    return (
+      acc +
+      (ws.teams?.reduce((tAcc, t) => tAcc + (t.members?.length || 0), 0) || 0)
+    );
   }, 0);
 
   // Filter workspaces based on search query
   const filteredWorkspaces = workspaces.filter((ws) => {
     if (!searchFilter.trim()) return true;
     const query = searchFilter.toLowerCase();
-    const matchesWs = ws.name.toLowerCase().includes(query) || ws.slug.toLowerCase().includes(query);
+    const matchesWs =
+      ws.name.toLowerCase().includes(query) ||
+      ws.slug.toLowerCase().includes(query);
     const matchesTeams = ws.teams?.some(
-      (t) => t.name.toLowerCase().includes(query) || t.key.toLowerCase().includes(query)
+      (t) =>
+        t.name.toLowerCase().includes(query) ||
+        t.key.toLowerCase().includes(query),
     );
     return matchesWs || matchesTeams;
   });
@@ -193,21 +218,32 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
             <ArrowLeft className="h-4 w-4" /> Back to Users
           </Button>
           <span className="text-muted-foreground/40">/</span>
-          <span className="text-sm font-semibold text-foreground">User Overview</span>
+          <span className="text-sm font-semibold text-foreground">
+            User Overview
+          </span>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Quick Role Change */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 rounded-xl border-border bg-card text-xs font-semibold text-foreground hover:bg-muted cursor-pointer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-xl border-border bg-card text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
+              >
                 <Shield className="h-3.5 w-3.5 text-violet-400" />
                 Role: {roleConfig.label}
                 <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-popover border-border p-1">
-              <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">Change Role</DropdownMenuLabel>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 bg-popover border-border p-1"
+            >
+              <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">
+                Change Role
+              </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
               {ROLE_OPTIONS.map((r) => {
                 const rc = getRoleConfig(r);
@@ -229,14 +265,23 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
           {/* Quick Status Change */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 rounded-xl border-border bg-card text-xs font-semibold text-foreground hover:bg-muted cursor-pointer">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 rounded-xl border-border bg-card text-xs font-semibold text-foreground hover:bg-muted cursor-pointer"
+              >
                 <UserCog className="h-3.5 w-3.5 text-amber-400" />
                 Status: {statusConfig.label}
                 <ChevronDown className="h-3.5 w-3.5 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-popover border-border p-1">
-              <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">Change Status</DropdownMenuLabel>
+            <DropdownMenuContent
+              align="end"
+              className="w-48 bg-popover border-border p-1"
+            >
+              <DropdownMenuLabel className="text-[10px] text-muted-foreground px-2">
+                Change Status
+              </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
               {STATUS_OPTIONS.map((s) => {
                 const sc = getStatusConfig(s);
@@ -263,15 +308,19 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
       >
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-to-r from-card via-card/80 to-muted/30 p-6 backdrop-blur-xl shadow-lg">
+        <Card className="relative overflow-hidden border-border/60 bg-gradient-r from-card via-card/80 to-muted/30 p-6 backdrop-blur-xl shadow-lg">
           <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
 
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5">
               <div className="relative">
                 <Avatar className="h-20 w-20 border-2 border-border shadow-md">
-                  {avatarSrc && <AvatarImage src={avatarSrc} alt={user.name || ""} />}
-                  <AvatarFallback className={`bg-gradient-to-br ${roleConfig.color} text-lg font-bold text-white`}>
+                  {avatarSrc && (
+                    <AvatarImage src={avatarSrc} alt={user.name || ""} />
+                  )}
+                  <AvatarFallback
+                    className={`bg-gradient-lr ${roleConfig.color} text-lg font-bold text-white`}
+                  >
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
@@ -286,10 +335,14 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                   <h1 className="text-2xl font-bold text-foreground">
                     {user.name || user.username || "Unnamed User"}
                   </h1>
-                  <Badge className={`h-5 rounded-md border text-[10px] font-bold ${roleConfig.badge}`}>
+                  <Badge
+                    className={`h-5 rounded-md border text-[10px] font-bold ${roleConfig.badge}`}
+                  >
                     {roleConfig.label}
                   </Badge>
-                  <Badge className={`h-5 rounded-md border text-[10px] font-bold ${statusConfig.color}`}>
+                  <Badge
+                    className={`h-5 rounded-md border text-[10px] font-bold ${statusConfig.color}`}
+                  >
                     {statusConfig.label}
                   </Badge>
                 </div>
@@ -307,7 +360,10 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                   )}
                   <span className="flex items-center gap-1.5">
                     <Shield className="h-3.5 w-3.5 text-blue-400" />
-                    Provider: <span className="font-semibold uppercase tracking-wide">{user.provider}</span>
+                    Provider:{" "}
+                    <span className="font-semibold uppercase tracking-wide">
+                      {user.provider}
+                    </span>
                   </span>
                   <span className="flex items-center gap-1.5">
                     {user.isVerified ? (
@@ -327,17 +383,23 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
             {/* Quick Metadata Info */}
             <div className="grid grid-cols-2 gap-4 border-t border-border/60 pt-4 sm:flex sm:border-t-0 sm:pt-0 text-right">
               <div className="space-y-1 sm:px-4 sm:border-r sm:border-border/60">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Joined</p>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                  Joined
+                </p>
                 <p className="text-xs font-semibold text-foreground flex items-center justify-end gap-1">
                   <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                   {new Date(user.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <div className="space-y-1 sm:px-4">
-                <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">Last Login</p>
+                <p className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                  Last Login
+                </p>
                 <p className="text-xs font-semibold text-foreground flex items-center justify-end gap-1">
                   <Clock className="h-3.5 w-3.5 text-muted-foreground" />
-                  {user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : "Never"}
+                  {user.lastLogin
+                    ? new Date(user.lastLogin).toLocaleDateString()
+                    : "Never"}
                 </p>
               </div>
             </div>
@@ -354,8 +416,12 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
       >
         <Card className="border-border/60 bg-card/70 p-4 backdrop-blur-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Workspaces</p>
-            <p className="text-2xl font-bold text-foreground">{workspaces.length}</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Workspaces
+            </p>
+            <p className="text-2xl font-bold text-foreground">
+              {workspaces.length}
+            </p>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
             <Building2 className="h-6 w-6" />
@@ -364,7 +430,9 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
 
         <Card className="border-border/60 bg-card/70 p-4 backdrop-blur-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Teams Joined</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Teams Joined
+            </p>
             <p className="text-2xl font-bold text-foreground">{totalTeams}</p>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
@@ -374,8 +442,12 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
 
         <Card className="border-border/60 bg-card/70 p-4 backdrop-blur-sm flex items-center justify-between">
           <div className="space-y-1">
-            <p className="text-xs font-medium text-muted-foreground">Total Team Members</p>
-            <p className="text-2xl font-bold text-foreground">{totalMemberships}</p>
+            <p className="text-xs font-medium text-muted-foreground">
+              Total Team Members
+            </p>
+            <p className="text-2xl font-bold text-foreground">
+              {totalMemberships}
+            </p>
           </div>
           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-500/10 text-violet-500">
             <FolderTree className="h-6 w-6" />
@@ -393,10 +465,12 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-              <Layers className="h-5 w-5 text-rose-500" /> Workspaces & Teams Hierarchy
+              <Layers className="h-5 w-5 text-rose-500" /> Workspaces & Teams
+              Hierarchy
             </h2>
             <p className="text-xs text-muted-foreground">
-              Workspaces owned or joined by this user, including nested team details & members
+              Workspaces owned or joined by this user, including nested team
+              details & members
             </p>
           </div>
 
@@ -418,14 +492,18 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-muted/80 text-muted-foreground mb-4">
               <Building2 className="h-8 w-8" />
             </div>
-            <h3 className="text-base font-semibold text-foreground">No Workspaces Found</h3>
+            <h3 className="text-base font-semibold text-foreground">
+              No Workspaces Found
+            </h3>
             <p className="mt-1 text-xs text-muted-foreground max-w-md mx-auto">
               This user is not associated with any workspace or team yet.
             </p>
           </Card>
         ) : filteredWorkspaces.length === 0 ? (
           <Card className="border-border/60 bg-card/50 p-8 text-center">
-            <p className="text-xs text-muted-foreground">No workspace matches &quot;{searchFilter}&quot;.</p>
+            <p className="text-xs text-muted-foreground">
+              No workspace matches &quot;{searchFilter}&quot;.
+            </p>
           </Card>
         ) : (
           <div className="space-y-4">
@@ -444,13 +522,18 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                     className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 bg-muted/30 px-5 py-4 cursor-pointer hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3.5">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500/20 to-amber-500/20 text-xl font-bold border border-rose-500/20 shadow-inner">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-lr from-rose-500/20 to-amber-500/20 text-xl font-bold border border-rose-500/20 shadow-inner">
                         {ws.icon || "⚡"}
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
-                          <h3 className="text-sm font-bold text-foreground tracking-tight">{ws.name}</h3>
-                          <Badge variant="outline" className="text-[10px] font-mono border-border bg-muted/40 text-muted-foreground">
+                          <h3 className="text-sm font-bold text-foreground tracking-tight">
+                            {ws.name}
+                          </h3>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-mono border-border bg-muted/40 text-muted-foreground"
+                          >
                             /{ws.slug}
                           </Badge>
                           {ws.isOwner ? (
@@ -464,7 +547,9 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                           )}
                         </div>
                         {ws.description && (
-                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{ws.description}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                            {ws.description}
+                          </p>
                         )}
                       </div>
                     </div>
@@ -472,14 +557,19 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                     <div className="flex items-center gap-3 self-end sm:self-center">
                       <span className="text-xs text-muted-foreground flex items-center gap-1.5 font-medium">
                         <Users className="h-3.5 w-3.5 text-amber-400" />
-                        {teamsList.length} {teamsList.length === 1 ? "Team" : "Teams"}
+                        {teamsList.length}{" "}
+                        {teamsList.length === 1 ? "Team" : "Teams"}
                       </span>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="h-7 w-7 text-muted-foreground hover:text-foreground cursor-pointer"
                       >
-                        {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                        {isCollapsed ? (
+                          <ChevronRight className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
                       </Button>
                     </div>
                   </div>
@@ -501,8 +591,12 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                         ) : (
                           teamsList.map((team) => {
                             const members = team.members || [];
-                            const isCurrentUserInTeam = members.some((m) => m.userId === user.id);
-                            const currentUserRoleInTeam = members.find((m) => m.userId === user.id)?.role || "MEMBER";
+                            const isCurrentUserInTeam = members.some(
+                              (m) => m.userId === user.id,
+                            );
+                            const currentUserRoleInTeam =
+                              members.find((m) => m.userId === user.id)?.role ||
+                              "MEMBER";
 
                             return (
                               <div
@@ -517,10 +611,15 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                                     </span>
                                     <div>
                                       <div className="flex items-center gap-2">
-                                        <Badge variant="secondary" className="font-mono text-[9px] uppercase font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                        <Badge
+                                          variant="secondary"
+                                          className="font-mono text-[9px] uppercase font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20"
+                                        >
                                           {team.key}
                                         </Badge>
-                                        <span className="text-xs font-bold text-foreground">{team.name}</span>
+                                        <span className="text-xs font-bold text-foreground">
+                                          {team.name}
+                                        </span>
                                         {isCurrentUserInTeam && (
                                           <Badge className="h-4 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[8px] font-semibold">
                                             Role: {currentUserRoleInTeam}
@@ -544,9 +643,14 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                                     </p>
                                     <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3">
                                       {members.map((mem) => {
-                                        const isThisUser = mem.userId === user.id;
-                                        const memAvatar = getAvatarUrl(mem.avatar);
-                                        const memInitials = (mem.name || mem.email)
+                                        const isThisUser =
+                                          mem.userId === user.id;
+                                        const memAvatar = getAvatarUrl(
+                                          mem.avatar,
+                                        );
+                                        const memInitials = (
+                                          mem.name || mem.email
+                                        )
                                           .split(" ")
                                           .map((w) => w[0])
                                           .join("")
@@ -563,7 +667,12 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                                             }`}
                                           >
                                             <Avatar className="h-7 w-7 border border-border">
-                                              {memAvatar && <AvatarImage src={memAvatar} alt={mem.name} />}
+                                              {memAvatar && (
+                                                <AvatarImage
+                                                  src={memAvatar}
+                                                  alt={mem.name}
+                                                />
+                                              )}
                                               <AvatarFallback className="bg-muted text-[9px] font-bold text-foreground">
                                                 {memInitials}
                                               </AvatarFallback>
@@ -578,7 +687,9 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                                                   </span>
                                                 )}
                                               </p>
-                                              <p className="truncate text-[10px] text-muted-foreground">{mem.email}</p>
+                                              <p className="truncate text-[10px] text-muted-foreground">
+                                                {mem.email}
+                                              </p>
                                             </div>
 
                                             <Badge
@@ -587,8 +698,8 @@ export function AdminUserDetailView({ userId: propUserId }: AdminUserDetailViewP
                                                 mem.role === "OWNER"
                                                   ? "border-amber-500/30 text-amber-400 bg-amber-500/10"
                                                   : mem.role === "LEAD"
-                                                  ? "border-violet-500/30 text-violet-400 bg-violet-500/10"
-                                                  : "border-border text-muted-foreground"
+                                                    ? "border-violet-500/30 text-violet-400 bg-violet-500/10"
+                                                    : "border-border text-muted-foreground"
                                               }`}
                                             >
                                               {mem.role}

@@ -39,7 +39,8 @@ export function TeamModal({
   const currentWs = workspaces.find((w) => w.id === effectiveWorkspaceId);
 
   const [createTeam, { isLoading: isCreating }] = useCreateTeamMutation();
-  const [updateTeamMutation, { isLoading: isUpdating }] = useUpdateTeamMutation();
+  const [updateTeamMutation, { isLoading: isUpdating }] =
+    useUpdateTeamMutation();
 
   const [selectedWsId, setSelectedWsId] = useState(effectiveWorkspaceId);
   const [name, setName] = useState("");
@@ -106,11 +107,17 @@ export function TeamModal({
       return;
     }
 
-    let finalKey = (key.trim() || generateKeyFromName(name)).slice(0, 10).toUpperCase();
+    let finalKey = (key.trim() || generateKeyFromName(name))
+      .slice(0, 10)
+      .toUpperCase();
     if (finalKey.length < 2) {
       finalKey = (finalKey + "XX").slice(0, 2);
     }
-    const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const slug = name
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
 
     try {
       if (mode === "edit" && teamToEdit) {
@@ -171,7 +178,9 @@ export function TeamModal({
       }
     } catch (err: any) {
       const errorMsg =
-        err?.data?.message || err?.message || `Failed to ${isEdit ? "update" : "create"} team`;
+        err?.data?.message ||
+        err?.message ||
+        `Failed to ${isEdit ? "update" : "create"} team`;
       toast.error(errorMsg);
     }
   }
@@ -195,7 +204,11 @@ export function TeamModal({
           <div className="flex items-center justify-between border-b border-border/40 pb-4">
             <div className="flex items-center gap-2.5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-cyan-500/15 text-cyan-400">
-                {isEdit ? <Edit3 className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                {isEdit ? (
+                  <Edit3 className="h-5 w-5" />
+                ) : (
+                  <Users className="h-5 w-5" />
+                )}
               </div>
               <div>
                 <h2 className="text-lg font-bold">
@@ -300,7 +313,7 @@ export function TeamModal({
               <Button
                 type="submit"
                 disabled={isLoading || !name.trim()}
-                className="gap-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50"
+                className="gap-2 rounded-xl bg-gradient-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

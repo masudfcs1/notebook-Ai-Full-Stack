@@ -64,7 +64,6 @@ export function AiAssistantWidget() {
     }
   }
 
-
   return (
     <AnimatePresence>
       {open && (
@@ -85,7 +84,7 @@ export function AiAssistantWidget() {
           >
             {/* Header */}
             <div className="flex items-center gap-3 border-b border-border/40  from-indigo-500/10 to-violet-500/10 px-4 py-3">
-              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
+              <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
                 <Sparkles className="h-4 w-4" />
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500" />
               </div>
@@ -122,7 +121,7 @@ export function AiAssistantWidget() {
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg",
                       m.role === "assistant"
-                        ? "bg-gradient-to-br from-indigo-500 to-violet-500 text-white"
+                        ? "bg-gradient-lr from-indigo-500 to-violet-500 text-white"
                         : "bg-muted text-muted-foreground",
                     )}
                   >
@@ -137,7 +136,7 @@ export function AiAssistantWidget() {
                       "max-w-[78%] rounded-2xl px-3 py-2 text-sm leading-relaxed",
                       m.role === "assistant"
                         ? "rounded-tl-sm bg-muted/60 text-foreground"
-                        : "rounded-tr-sm bg-gradient-to-br from-indigo-500 to-violet-500 text-white",
+                        : "rounded-tr-sm bg-gradient-lr from-indigo-500 to-violet-500 text-white",
                     )}
                   >
                     {m.content}
@@ -146,7 +145,7 @@ export function AiAssistantWidget() {
               ))}
               {loading && (
                 <div className="flex gap-2">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-500 text-white">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-lr from-indigo-500 to-violet-500 text-white">
                     <Bot className="h-3.5 w-3.5" />
                   </div>
                   <div className="flex items-center gap-1 rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-3">
@@ -200,7 +199,7 @@ export function AiAssistantWidget() {
                 type="submit"
                 size="icon"
                 disabled={loading || !input.trim()}
-                className="h-9 w-9 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
+                className="h-9 w-9 rounded-xl bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
               >
                 <Send className="h-4 w-4" />
               </Button>

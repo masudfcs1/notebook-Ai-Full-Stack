@@ -68,7 +68,9 @@ export function AdminDashboardView() {
         <div className="dashboard-subtle-grid pointer-events-none absolute inset-0" />
         <div className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-amber-300/15 blur-3xl" />
         <div className="relative">
-          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-200">Platform command center</p>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-rose-200">
+            Platform command center
+          </p>
           <h1 className="text-2xl font-semibold tracking-[-0.035em] text-white md:text-3xl">
             Admin Dashboard
           </h1>
@@ -99,7 +101,7 @@ export function AdminDashboardView() {
               <Card className="dashboard-glass-card dashboard-stat-card relative overflow-hidden rounded-2xl p-5">
                 <div className="flex items-center justify-between">
                   <div
-                    className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-br ${card.gradient} text-white shadow-lg ${card.glow}`}
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-lr ${card.gradient} text-white shadow-lg ${card.glow}`}
                   >
                     <Icon className="h-5 w-5" />
                   </div>
@@ -122,7 +124,7 @@ export function AdminDashboardView() {
                 </div>
                 {/* Decorative glow */}
                 <div
-                  className={`absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-to-br ${card.gradient} opacity-[0.06] blur-2xl`}
+                  className={`absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-lr ${card.gradient} opacity-[0.06] blur-2xl`}
                 />
               </Card>
             </motion.div>
@@ -195,7 +197,7 @@ export function AdminDashboardView() {
                                 duration: 0.8,
                                 ease: "easeOut",
                               }}
-                              className={`h-full rounded-full bg-gradient-to-r ${config.color}`}
+                              className={`h-full rounded-full bg-gradient-r ${config.color}`}
                             />
                           </div>
                         </div>
@@ -255,7 +257,7 @@ export function AdminDashboardView() {
                     >
                       <Avatar className="h-9 w-9 border border-border">
                         <AvatarFallback
-                          className={`bg-gradient-to-br ${roleConfig.color} text-[10px] font-bold text-white`}
+                          className={`bg-gradient-lr ${roleConfig.color} text-[10px] font-bold text-white`}
                         >
                           {userInitials}
                         </AvatarFallback>
@@ -331,7 +333,7 @@ export function AdminDashboardView() {
                 className="dashboard-list-row group flex items-center gap-3 rounded-xl p-4 text-left hover:-translate-y-0.5 cursor-pointer"
               >
                 <div
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${action.gradient} text-white shadow-lg`}
+                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-lr ${action.gradient} text-white shadow-lg`}
                 >
                   <ArrowUpRight className="h-4 w-4" />
                 </div>

@@ -122,7 +122,7 @@ export function AdminSidebar() {
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
-                      ? "bg-gradient-to-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
+                      ? "bg-gradient-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
                       : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]",
                   )}
                 >
@@ -142,7 +142,7 @@ export function AdminSidebar() {
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                       isActive
-                        ? `bg-gradient-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
+                        ? `bg-gradient-lr ${item.gradient} text-white shadow-lg shadow-rose-500/20`
                         : "bg-rose-500/[0.055] text-muted-foreground ring-1 ring-rose-500/10 group-hover:text-rose-600 dark:bg-white/[0.03] dark:ring-white/[0.05] dark:group-hover:text-rose-300",
                     )}
                   >
@@ -213,7 +213,7 @@ export function AdminSidebar() {
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border border-rose-500/20">
             {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-            <AvatarFallback className="bg-gradient-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
+            <AvatarFallback className="bg-gradient-lr from-rose-500 to-amber-500 text-xs font-semibold text-white">
               {initials}
             </AvatarFallback>
           </Avatar>

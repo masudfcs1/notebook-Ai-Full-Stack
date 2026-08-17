@@ -451,106 +451,107 @@ function LinearTaskCard({
 }) {
   const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium;
   const PriorityIcon = PriorityMeta.icon;
-  const iconColor = PriorityMeta.style.match(/text-\w+-\d+/)?.[0] || "text-foreground";
+  const iconColor =
+    PriorityMeta.style.match(/text-\w+-\d+/)?.[0] || "text-foreground";
 
   return (
     <ActionItemContextMenu>
       <Card className="group relative flex flex-col gap-3 rounded-[14px] border bg-[#eeeefa] p-4 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#e8e8ef] hover:shadow-md hover:shadow-black/20">
         <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <PriorityIcon className={cn("h-4 w-4", iconColor)} />
-          <span className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground/60 transition-colors group-hover:text-muted-foreground/90">
-            {task.identifier || "ACT-100"}
-          </span>
-        </div>
+          <div className="flex items-center gap-2">
+            <PriorityIcon className={cn("h-4 w-4", iconColor)} />
+            <span className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground/60 transition-colors group-hover:text-muted-foreground/90">
+              {task.identifier || "ACT-100"}
+            </span>
+          </div>
 
-        {onDelete && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="rounded-md p-1.5 text-muted-foreground/40 opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100">
-                <MoreHorizontal className="h-4 w-4" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-44 border-white/10 bg-[#1C1C1E]/95 backdrop-blur-xl"
-            >
-              <DropdownMenuItem
-                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                onClick={() => onStatusChange?.(task.id, "todo")}
+          {onDelete && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="rounded-md p-1.5 text-muted-foreground/40 opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100">
+                  <MoreHorizontal className="h-4 w-4" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-44 border-white/10 bg-[#1C1C1E]/95 backdrop-blur-xl"
               >
-                Mark To Do
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                onClick={() => onStatusChange?.(task.id, "in_progress")}
-              >
-                Mark In Progress
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                onClick={() => onStatusChange?.(task.id, "done")}
-              >
-                Mark Done
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="cursor-pointer py-2 text-[13px] font-medium text-rose-400 focus:bg-rose-500/20 focus:text-rose-400"
-                onClick={() => onDelete(task.id)}
-              >
-                Delete Issue
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
-
-      <div className="flex-1 space-y-1.5">
-        <p className="text-[14px] font-medium leading-snug text-slate-200">
-          {task.title}
-        </p>
-        {task.description && (
-          <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground/70">
-            {task.description}
-          </p>
-        )}
-      </div>
-
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="outline"
-            className={cn(
-              "px-2 py-0.5 text-[10.5px] font-medium tracking-wide transition-colors border-white/5 bg-white/[0.02]",
-              PriorityMeta.style,
-            )}
-          >
-            {PriorityMeta.label}
-          </Badge>
-          {task.teamName && (
-            <Badge
-              variant="outline"
-              className="px-2 py-0.5 text-[10.5px] font-medium tracking-wide text-muted-foreground transition-colors border-white/5 bg-white/[0.02]"
-            >
-              {task.teamName}
-            </Badge>
+                <DropdownMenuItem
+                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
+                  onClick={() => onStatusChange?.(task.id, "todo")}
+                >
+                  Mark To Do
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
+                  onClick={() => onStatusChange?.(task.id, "in_progress")}
+                >
+                  Mark In Progress
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
+                  onClick={() => onStatusChange?.(task.id, "done")}
+                >
+                  Mark Done
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer py-2 text-[13px] font-medium text-rose-400 focus:bg-rose-500/20 focus:text-rose-400"
+                  onClick={() => onDelete(task.id)}
+                >
+                  Delete Issue
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
 
-        {task.assignee && (
-          <div
-            className="flex shrink-0 items-center transition-transform hover:scale-105"
-            title={`Assigned to ${task.assignee}`}
-          >
-            <Avatar className="h-6 w-6 border border-white/10 ring-2 ring-transparent transition-all hover:ring-white/20">
-              <AvatarImage src={task.assigneeAvatar} />
-              <AvatarFallback className="bg-gradient-to-br from-indigo-500/20 to-purple-500/20 text-[10px] font-medium text-indigo-300">
-                {task.assignee.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+        <div className="flex-1 space-y-1.5">
+          <p className="text-[14px] font-medium leading-snug text-slate-200">
+            {task.title}
+          </p>
+          {task.description && (
+            <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground/70">
+              {task.description}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className={cn(
+                "px-2 py-0.5 text-[10.5px] font-medium tracking-wide transition-colors border-white/5 bg-white/[0.02]",
+                PriorityMeta.style,
+              )}
+            >
+              {PriorityMeta.label}
+            </Badge>
+            {task.teamName && (
+              <Badge
+                variant="outline"
+                className="px-2 py-0.5 text-[10.5px] font-medium tracking-wide text-muted-foreground transition-colors border-white/5 bg-white/[0.02]"
+              >
+                {task.teamName}
+              </Badge>
+            )}
           </div>
-        )}
-      </div>
-    </Card>
+
+          {task.assignee && (
+            <div
+              className="flex shrink-0 items-center transition-transform hover:scale-105"
+              title={`Assigned to ${task.assignee}`}
+            >
+              <Avatar className="h-6 w-6 border border-white/10 ring-2 ring-transparent transition-all hover:ring-white/20">
+                <AvatarImage src={task.assigneeAvatar} />
+                <AvatarFallback className="bg-gradient-lr from-indigo-500/20 to-purple-500/20 text-[10px] font-medium text-indigo-300">
+                  {task.assignee.slice(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </div>
+      </Card>
     </ActionItemContextMenu>
   );
 }

@@ -43,7 +43,7 @@ export function MobileNav() {
               {active && (
                 <motion.span
                   layoutId="mobile-active"
-                  className="absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-to-r from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.45)]"
+                  className="absolute -top-1.5 h-1 w-7 rounded-full bg-gradient-r from-indigo-500 via-violet-500 to-cyan-400 shadow-[0_0_10px_rgba(99,102,241,0.45)]"
                   transition={{ type: "spring", stiffness: 350, damping: 30 }}
                 />
               )}

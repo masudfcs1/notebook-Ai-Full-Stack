@@ -239,8 +239,8 @@ export function HistoryView() {
                           className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm",
                             hasSummary
-                              ? "bg-gradient-to-br from-emerald-500 to-teal-500"
-                              : "bg-gradient-to-br from-amber-500 to-orange-500",
+                              ? "bg-gradient-lr from-emerald-500 to-teal-500"
+                              : "bg-gradient-lr from-amber-500 to-orange-500",
                           )}
                         >
                           {hasSummary ? (
