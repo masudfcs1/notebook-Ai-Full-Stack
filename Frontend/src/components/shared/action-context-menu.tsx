@@ -57,7 +57,7 @@ export function ActionItemContextMenu({ children }: ActionItemContextMenuProps) 
       <DropdownMenuContent 
         align="start" 
         sideOffset={8}
-        className="w-64 p-1 rounded-xl shadow-lg"
+        className="w-64 p-1 rounded-xl shadow-lg max-h-[60vh] overflow-y-auto scrollbar-thin [&::-webkit-scrollbar]:w-[3px] [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-muted-foreground/20 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-muted-foreground/40"
       >
         {/* Status */}
         <DropdownMenuSub>
