@@ -57,6 +57,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ActionItemContextMenu } from "@/components/shared/action-context-menu";
 import type { ActionItem, PriorityLevel, TaskStatus } from "@/types";
 
 // Linear-style Columns
@@ -453,8 +454,9 @@ function LinearTaskCard({
   const iconColor = PriorityMeta.style.match(/text-\w+-\d+/)?.[0] || "text-foreground";
 
   return (
-    <Card className="group relative flex flex-col gap-3 rounded-[14px] border bg-[#eeeefa] p-4 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#e8e8ef] hover:shadow-md hover:shadow-black/20">
-      <div className="flex items-center justify-between gap-2">
+    <ActionItemContextMenu>
+      <Card className="group relative flex flex-col gap-3 rounded-[14px] border bg-[#eeeefa] p-4 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#e8e8ef] hover:shadow-md hover:shadow-black/20">
+        <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <PriorityIcon className={cn("h-4 w-4", iconColor)} />
           <span className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground/60 transition-colors group-hover:text-muted-foreground/90">
@@ -549,6 +551,7 @@ function LinearTaskCard({
         )}
       </div>
     </Card>
+    </ActionItemContextMenu>
   );
 }
 
