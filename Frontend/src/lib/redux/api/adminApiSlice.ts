@@ -191,6 +191,31 @@ export const adminApi = createApi({
         if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
         return `/users?${searchParams.toString()}`;
       },
+      serializeQueryArgs: ({ endpointName, queryArgs }) => {
+        return `${endpointName}-${queryArgs.limit}-${queryArgs.search || ''}-${queryArgs.role || ''}-${queryArgs.status || ''}-${queryArgs.sortBy || ''}-${queryArgs.sortOrder || ''}`;
+      },
+      merge: (currentCache, newResponse, { arg }) => {
+        if ((arg.page || 1) === 1) {
+          Object.assign(currentCache, newResponse);
+          return;
+        }
+
+        const existingIds = new Set(currentCache.data.map((user) => user.id));
+        currentCache.data.push(
+          ...newResponse.data.filter((user) => !existingIds.has(user.id)),
+        );
+        currentCache.success = newResponse.success;
+        currentCache.message = newResponse.message;
+        currentCache.meta = newResponse.meta;
+      },
+      forceRefetch: ({ currentArg, previousArg }) =>
+        currentArg?.page !== previousArg?.page ||
+        currentArg?.limit !== previousArg?.limit ||
+        currentArg?.search !== previousArg?.search ||
+        currentArg?.role !== previousArg?.role ||
+        currentArg?.status !== previousArg?.status ||
+        currentArg?.sortBy !== previousArg?.sortBy ||
+        currentArg?.sortOrder !== previousArg?.sortOrder,
       providesTags: ["AdminUsers"],
     }),
     getUserById: builder.query<SingleUserResponse, number>({

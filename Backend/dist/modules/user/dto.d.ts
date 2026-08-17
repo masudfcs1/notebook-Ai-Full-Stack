@@ -15,6 +15,8 @@ export interface UserResponseDTO {
     loginCount: number;
     createdAt: Date;
     updatedAt: Date;
+    workspaceCount?: number;
+    teamCount?: number;
     workspaces?: any[];
     memberships?: any[];
 }

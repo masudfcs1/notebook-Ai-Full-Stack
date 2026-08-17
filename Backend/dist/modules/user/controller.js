@@ -10,7 +10,7 @@ class UserController {
         const { page, limit, search, role, status, sortBy, sortOrder } = req.query;
         const result = await service_1.userService.findAll({
             page: parseInt(page || '1', 10),
-            limit: parseInt(limit || '10', 10),
+            limit: parseInt(limit || '20', 10),
             search,
             role,
             status,

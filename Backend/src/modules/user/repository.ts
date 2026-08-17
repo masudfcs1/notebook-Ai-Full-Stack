@@ -15,6 +15,22 @@ interface FindAllOptions {
 export class UserRepository {
   async findAll(options: FindAllOptions): Promise<IPaginatedResult<User>> {
     const { page, limit, search, role, status, sortBy, sortOrder } = options;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+    const allowedSortFields = [
+      'id',
+      'createdAt',
+      'name',
+      'email',
+      'role',
+      'status',
+      'lastLogin',
+    ];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const orderBy =
+      safeSortBy === 'id'
+        ? { id: sortOrder }
+        : [{ [safeSortBy]: sortOrder }, { id: sortOrder }];
 
     const where = {
       deletedAt: null,
@@ -32,9 +48,9 @@ export class UserRepository {
     const [rawUsers, total] = await Promise.all([
       prisma.user.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
+        orderBy,
         include: {
           workspaces: {
             select: {
@@ -104,15 +120,17 @@ export class UserRepository {
       };
     });
 
+    const totalPages = Math.ceil(total / safeLimit);
+
     return {
       data,
       meta: {
-        page,
-        limit,
+        page: safePage,
+        limit: safeLimit,
         total,
-        totalPages: Math.ceil(total / limit),
-        hasNext: page < Math.ceil(total / limit),
-        hasPrev: page > 1,
+        totalPages,
+        hasNext: safePage < totalPages,
+        hasPrev: safePage > 1,
       },
     };
   }

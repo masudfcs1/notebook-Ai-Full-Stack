@@ -5,11 +5,14 @@ const zod_1 = require("zod");
 exports.GetUsersQuerySchema = zod_1.z.object({
     query: zod_1.z.object({
         page: zod_1.z.coerce.number().int().positive().optional().default(1),
-        limit: zod_1.z.coerce.number().int().positive().max(100).optional().default(10),
+        limit: zod_1.z.coerce.number().int().positive().max(100).optional().default(20),
         search: zod_1.z.string().trim().optional(),
         role: zod_1.z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'USER']).optional(),
         status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING', 'DELETED']).optional(),
-        sortBy: zod_1.z.string().optional().default('createdAt'),
+        sortBy: zod_1.z
+            .enum(['id', 'createdAt', 'name', 'email', 'role', 'status', 'lastLogin'])
+            .optional()
+            .default('createdAt'),
         sortOrder: zod_1.z.enum(['asc', 'desc']).optional().default('desc'),
     }),
 });

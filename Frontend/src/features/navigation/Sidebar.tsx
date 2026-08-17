@@ -10,12 +10,12 @@ import {
   ChevronRight,
   ChevronDown,
   Building2,
-  Users,
   Plus,
   Check,
-  Briefcase,
   Edit3,
   Trash2,
+  Globe2,
+  UsersRound,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
@@ -153,8 +153,8 @@ export function Sidebar() {
                   collapsed && "justify-center p-2",
                 )}
               >
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/20 text-sm font-semibold">
-                  {activeWorkspace?.icon || "⚡"}
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-500 ring-1 ring-indigo-500/10">
+                  <Building2 className="h-3.5 w-3.5" />
                 </div>
                 {!collapsed && (
                   <div className="min-w-0 flex-1">
@@ -168,7 +168,7 @@ export function Sidebar() {
                   </div>
                 )}
                 {!collapsed && (
-                  <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -189,7 +189,9 @@ export function Sidebar() {
                   className="flex items-center justify-between py-2 cursor-pointer group"
                 >
                   <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <span className="text-base">{ws.icon || "🏢"}</span>
+                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/8 text-indigo-500">
+                      <Building2 className="h-3.5 w-3.5" />
+                    </span>
                     <div className="truncate">
                       <p className="text-xs font-semibold">{ws.name}</p>
                       <p className="text-[10px] text-muted-foreground">
@@ -199,7 +201,7 @@ export function Sidebar() {
                   </div>
                   <div className="flex items-center gap-1">
                     {ws.id === activeWorkspaceId && (
-                      <Check className="h-4 w-4 text-indigo-500 mr-0.5" />
+                      <Check className="mr-0.5 h-3.5 w-3.5 text-indigo-500" />
                     )}
                     <button
                       type="button"
@@ -212,7 +214,7 @@ export function Sidebar() {
                       title="Edit workspace"
                       className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
                     >
-                      <Edit3 className="h-3.5 w-3.5" />
+                      <Edit3 className="h-3 w-3" />
                     </button>
                     {workspaces.length > 1 && (
                       <button
@@ -225,7 +227,7 @@ export function Sidebar() {
                         title="Delete workspace"
                         className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
                       >
-                        <Trash2 className="h-3.5 w-3.5" />
+                        <Trash2 className="h-3 w-3" />
                       </button>
                     )}
                   </div>
@@ -240,7 +242,7 @@ export function Sidebar() {
                 }}
                 className="gap-2 text-xs font-medium text-indigo-500 cursor-pointer"
               >
-                <Plus className="h-3.5 w-3.5" /> Create Workspace
+                <Plus className="h-3 w-3" /> Create Workspace
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -304,7 +306,7 @@ export function Sidebar() {
                           : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
                       )}
                     >
-                      <span className="text-xs">🌐</span>
+                      <Globe2 className="h-3 w-3 text-indigo-500" />
                       <span className="truncate">All Teams</span>
                     </button>
 
@@ -335,7 +337,7 @@ export function Sidebar() {
                           }}
                           className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
                         >
-                          <span className="text-xs">{t.icon || "💬"}</span>
+                          <UsersRound className="h-3 w-3 text-indigo-500/80" />
                           <span className="truncate">{t.name}</span>
                         </button>
                         <div className="flex items-center gap-1">
@@ -415,13 +417,13 @@ export function Sidebar() {
                         )}
                         <span
                           className={cn(
-                            "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
+                            "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                             active
                               ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 group-hover:text-sidebar-foreground dark:bg-white/[0.045] dark:ring-white/[0.05]",
+                              : "bg-indigo-500/[0.06] text-muted-foreground ring-1 ring-indigo-500/10 group-hover:text-indigo-600 dark:bg-white/[0.03] dark:ring-white/[0.05] dark:group-hover:text-indigo-300",
                           )}
                         >
-                          <Icon className="h-4 w-4" strokeWidth={2.2} />
+                          <Icon className="h-3.5 w-3.5" strokeWidth={2} />
                         </span>
                         {!collapsed && (
                           <span className="flex-1 text-left">{item.label}</span>
@@ -458,9 +460,9 @@ export function Sidebar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative h-9 w-9 rounded-lg bg-sidebar-accent/50"
+                  className="relative h-8 w-8 rounded-lg bg-sidebar-accent/50"
                 >
-                  <Bell className="h-4 w-4" />
+                  <Bell className="h-3.5 w-3.5" />
                   {unread > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
                       {unread}
@@ -527,7 +529,7 @@ export function Sidebar() {
                 </div>
               )}
               {!collapsed && (
-                <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+                <ChevronRight className="h-3 w-3 text-muted-foreground" />
               )}
             </button>
           </div>
@@ -545,10 +547,10 @@ export function Sidebar() {
               className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground cursor-pointer"
             >
               {collapsed ? (
-                <PanelLeft className="h-4 w-4" />
+                <PanelLeft className="h-3.5 w-3.5" />
               ) : (
                 <>
-                  <PanelLeftClose className="h-4 w-4" /> Collapse
+                  <PanelLeftClose className="h-3.5 w-3.5" /> Collapse
                 </>
               )}
             </Button>
@@ -570,7 +572,7 @@ export function Sidebar() {
                     collapsed && "w-8 p-0",
                   )}
                 >
-                  <LogOut className="h-3.5 w-3.5" />
+                  <LogOut className="h-3 w-3" />
                   {!collapsed && <span>Sign out</span>}
                 </Button>
               </TooltipTrigger>

@@ -5,6 +5,21 @@ const database_1 = require("../../database");
 class UserRepository {
     async findAll(options) {
         const { page, limit, search, role, status, sortBy, sortOrder } = options;
+        const safePage = Math.max(1, page);
+        const safeLimit = Math.min(Math.max(1, limit), 100);
+        const allowedSortFields = [
+            'id',
+            'createdAt',
+            'name',
+            'email',
+            'role',
+            'status',
+            'lastLogin',
+        ];
+        const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+        const orderBy = safeSortBy === 'id'
+            ? { id: sortOrder }
+            : [{ [safeSortBy]: sortOrder }, { id: sortOrder }];
         const where = {
             deletedAt: null,
             ...(search && {
@@ -17,24 +32,81 @@ class UserRepository {
             ...(role && { role }),
             ...(status && { status }),
         };
-        const [data, total] = await Promise.all([
+        const [rawUsers, total] = await Promise.all([
             database_1.prisma.user.findMany({
                 where,
-                skip: (page - 1) * limit,
-                take: limit,
-                orderBy: { [sortBy]: sortOrder },
+                skip: (safePage - 1) * safeLimit,
+                take: safeLimit,
+                orderBy,
+                include: {
+                    workspaces: {
+                        select: {
+                            id: true,
+                            teams: {
+                                select: {
+                                    id: true,
+                                },
+                            },
+                        },
+                    },
+                    memberships: {
+                        select: {
+                            team: {
+                                select: {
+                                    id: true,
+                                    workspaceId: true,
+                                },
+                            },
+                        },
+                    },
+                },
             }),
             database_1.prisma.user.count({ where }),
         ]);
+        const data = rawUsers.map((user) => {
+            const workspaceMap = new Map();
+            if (user.workspaces) {
+                for (const ws of user.workspaces) {
+                    if (!workspaceMap.has(ws.id)) {
+                        workspaceMap.set(ws.id, new Set());
+                    }
+                    if (ws.teams) {
+                        for (const team of ws.teams) {
+                            workspaceMap.get(ws.id).add(team.id);
+                        }
+                    }
+                }
+            }
+            if (user.memberships) {
+                for (const mem of user.memberships) {
+                    if (mem.team && mem.team.workspaceId) {
+                        const wsId = mem.team.workspaceId;
+                        if (!workspaceMap.has(wsId)) {
+                            workspaceMap.set(wsId, new Set());
+                        }
+                        workspaceMap.get(wsId).add(mem.team.id);
+                    }
+                }
+            }
+            const workspaceCount = workspaceMap.size;
+            const teamCount = Array.from(workspaceMap.values()).reduce((acc, teamSet) => acc + teamSet.size, 0);
+            const { workspaces, memberships, ...userWithoutRelations } = user;
+            return {
+                ...userWithoutRelations,
+                workspaceCount,
+                teamCount,
+            };
+        });
+        const totalPages = Math.ceil(total / safeLimit);
         return {
             data,
             meta: {
-                page,
-                limit,
+                page: safePage,
+                limit: safeLimit,
                 total,
-                totalPages: Math.ceil(total / limit),
-                hasNext: page < Math.ceil(total / limit),
-                hasPrev: page > 1,
+                totalPages,
+                hasNext: safePage < totalPages,
+                hasPrev: safePage > 1,
             },
         };
     }
@@ -158,9 +230,13 @@ class UserRepository {
             }
         }
         const formattedWorkspaces = Array.from(workspaceMap.values());
+        const workspaceCount = formattedWorkspaces.length;
+        const teamCount = formattedWorkspaces.reduce((acc, ws) => acc + (ws.teams?.length || 0), 0);
         return {
             ...user,
             workspaces: formattedWorkspaces,
+            workspaceCount,
+            teamCount,
         };
     }
     async findByUuid(uuid) {

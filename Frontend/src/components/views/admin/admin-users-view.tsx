@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Users,
   Search,
   Plus,
-  ChevronLeft,
-  ChevronRight,
   MoreHorizontal,
   Trash2,
   Shield,
@@ -18,6 +16,7 @@ import {
   RotateCcw,
   AlertCircle,
   X,
+  LoaderCircle,
 } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { setView, setSelectedAdminUserId } from "@/lib/redux/appSlice";
@@ -82,7 +81,7 @@ export function AdminUsersView() {
   const dispatch = useAppDispatch();
   const [params, setParams] = useState<GetUsersParams>({
     page: 1,
-    limit: 10,
+    limit: 20,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
@@ -92,6 +91,7 @@ export function AdminUsersView() {
     id: number;
     name: string;
   } | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   // Form state for create user
   const [formName, setFormName] = useState("");
@@ -105,6 +105,7 @@ export function AdminUsersView() {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useGetUsersQuery(params);
   const [createUser, { isLoading: isCreating }] = useCreateUserMutation();
@@ -114,6 +115,21 @@ export function AdminUsersView() {
 
   const users = usersResponse?.data || [];
   const meta = usersResponse?.meta;
+  const currentPage = params.page || 1;
+  const isLoadingFirstPage = isLoading && users.length === 0;
+  const isLoadingMore = isFetching && currentPage > 1;
+  const errorStatus =
+    error && typeof error === "object" && "status" in error
+      ? error.status
+      : undefined;
+  const errorMessage =
+    errorStatus === "FETCH_ERROR"
+      ? "The backend API is unavailable. Start the full application and try again."
+      : errorStatus === 401
+        ? "Your session has expired. Please sign in again."
+        : errorStatus === 403
+          ? "Your account does not have permission to view the user directory."
+          : "The server could not return the user directory. Please try again.";
 
   // Auto-sync searchInput with params.search (debounced)
   useEffect(() => {
@@ -127,12 +143,25 @@ export function AdminUsersView() {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  // Reset page if totalPages changes and page is out of bounds
   useEffect(() => {
-    if (meta && meta.totalPages > 0 && (params.page || 1) > meta.totalPages) {
-      setParams((p) => ({ ...p, page: 1 }));
-    }
-  }, [meta, params.page]);
+    const target = loadMoreRef.current;
+    if (!target || !meta?.hasNext || isFetching || isError) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        setParams((previous) => ({
+          ...previous,
+          page: (previous.page || 1) + 1,
+        }));
+      },
+      { rootMargin: "280px 0px" },
+    );
+
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [isError, isFetching, meta?.hasNext, meta?.page]);
 
   const handleSearch = () => {
     setParams((p) => ({ ...p, page: 1, search: searchInput.trim() || undefined }));
@@ -142,7 +171,7 @@ export function AdminUsersView() {
     setSearchInput("");
     setParams({
       page: 1,
-      limit: 10,
+      limit: 20,
       sortBy: "createdAt",
       sortOrder: "desc",
     });
@@ -179,6 +208,7 @@ export function AdminUsersView() {
       setFormPassword("");
       setFormRole("USER");
       setFormStatus("ACTIVE");
+      setParams((previous) => ({ ...previous, page: 1 }));
     } catch {
       // Error handled by RTK Query
     }
@@ -194,6 +224,25 @@ export function AdminUsersView() {
     try {
       await deleteUser(deleteTarget.id).unwrap();
       setDeleteTarget(null);
+      setParams((previous) => ({ ...previous, page: 1 }));
+    } catch {
+      // Error handled by RTK Query
+    }
+  };
+
+  const handleUpdateRole = async (userId: number, role: string) => {
+    try {
+      await updateRole({ userId, role }).unwrap();
+      setParams((previous) => ({ ...previous, page: 1 }));
+    } catch {
+      // Error handled by RTK Query
+    }
+  };
+
+  const handleUpdateStatus = async (userId: number, status: string) => {
+    try {
+      await updateStatus({ userId, status }).unwrap();
+      setParams((previous) => ({ ...previous, page: 1 }));
     } catch {
       // Error handled by RTK Query
     }
@@ -423,18 +472,26 @@ export function AdminUsersView() {
           </div>
 
           {/* Rows */}
-          <div className={isFetching ? "opacity-50 transition-opacity" : ""}>
-            {isLoading ? (
+          <div
+            className={
+              isFetching && currentPage === 1
+                ? "opacity-60 transition-opacity"
+                : "transition-opacity"
+            }
+          >
+            {isLoadingFirstPage ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <div key={i} className="border-b border-border/60 p-4">
                   <Skeleton className="h-12 w-full bg-muted" />
                 </div>
               ))
-            ) : isError ? (
+            ) : isError && users.length === 0 ? (
               <div className="flex h-52 flex-col items-center justify-center p-6 text-center">
                 <AlertCircle className="mb-2 h-8 w-8 text-rose-500" />
                 <p className="text-sm font-semibold text-foreground">Failed to load users</p>
-                <p className="mb-4 text-xs text-muted-foreground">An error occurred while fetching user data from the server.</p>
+                <p className="mb-4 max-w-md text-xs text-muted-foreground">
+                  {errorMessage}
+                </p>
                 <Button
                   variant="outline"
                   size="sm"
@@ -607,7 +664,7 @@ export function AdminUsersView() {
                                       disabled={u.role === role}
                                       className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
                                       onClick={() =>
-                                        updateRole({ userId: u.id, role })
+                                        handleUpdateRole(u.id, role)
                                       }
                                     >
                                       <span
@@ -640,7 +697,7 @@ export function AdminUsersView() {
                                       disabled={u.status === status}
                                       className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg"
                                       onClick={() =>
-                                        updateStatus({ userId: u.id, status })
+                                        handleUpdateStatus(u.id, status)
                                       }
                                     >
                                       <span
@@ -680,62 +737,35 @@ export function AdminUsersView() {
             )}
           </div>
 
-          {/* Pagination */}
-          {meta && meta.totalPages > 1 && (
-            <div className="flex items-center justify-between border-t border-border/60 px-6 py-3">
-              <p className="text-[10px] text-muted-foreground">
-                Showing {(meta.page - 1) * meta.limit + 1}–
-                {Math.min(meta.page * meta.limit, meta.total)} of {meta.total}{" "}
-                users
-              </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
-                  disabled={!meta.hasPrev}
-                  onClick={() =>
-                    setParams((p) => ({ ...p, page: (p.page || 1) - 1 }))
-                  }
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                {Array.from({ length: Math.min(meta.totalPages, 5) }).map(
-                  (_, i) => {
-                    const pageNum = i + 1;
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant="ghost"
-                        size="icon"
-                        className={`h-8 w-8 text-xs cursor-pointer ${
-                          meta.page === pageNum
-                            ? "bg-rose-500/15 text-rose-400 font-bold"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                        onClick={() =>
-                          setParams((p) => ({ ...p, page: pageNum }))
-                        }
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  },
-                )}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground cursor-pointer"
-                  disabled={!meta.hasNext}
-                  onClick={() =>
-                    setParams((p) => ({ ...p, page: (p.page || 1) + 1 }))
-                  }
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
+          <div
+            ref={loadMoreRef}
+            className="flex min-h-14 items-center justify-center border-t border-border/60 px-6 py-3"
+          >
+            {isLoadingMore ? (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <LoaderCircle className="h-4 w-4 animate-spin text-rose-400" />
+                Loading more users...
               </div>
-            </div>
-          )}
+            ) : isError && users.length > 0 ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refetch()}
+                className="gap-2 text-xs text-rose-400 hover:bg-rose-500/10 hover:text-rose-500"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Could not load more — try again
+              </Button>
+            ) : meta?.hasNext ? (
+              <p className="text-[10px] text-muted-foreground">
+                Showing {users.length} of {meta.total} users · Scroll to load more
+              </p>
+            ) : meta && users.length > 0 ? (
+              <p className="text-[10px] text-muted-foreground">
+                All {meta.total} users loaded
+              </p>
+            ) : null}
+          </div>
         </Card>
       </motion.div>
 

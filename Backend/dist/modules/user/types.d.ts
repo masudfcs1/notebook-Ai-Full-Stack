@@ -15,6 +15,8 @@ export interface UserResponse {
     loginCount: number;
     createdAt: Date;
     updatedAt: Date;
+    workspaceCount?: number;
+    teamCount?: number;
 }
 export interface UserListQuery {
     page?: number;

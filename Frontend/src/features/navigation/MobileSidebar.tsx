@@ -59,13 +59,13 @@ export function MobileSidebar() {
                     }`}
                   >
                     <span
-                      className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${
                         active
                           ? `bg-gradient-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 dark:bg-white/[0.045] dark:ring-white/[0.05]"
+                          : "bg-indigo-500/[0.06] text-muted-foreground ring-1 ring-indigo-500/10 dark:bg-white/[0.03] dark:ring-white/[0.05]"
                       }`}
                     >
-                      <Icon className="h-4 w-4" />
+                      <Icon className="h-3.5 w-3.5" />
                     </span>
                     <span className="flex-1 text-left">{item.label}</span>
                     {item.badge && (
@@ -95,7 +95,7 @@ export function MobileSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              className="h-7 w-7 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
               title="Sign out"
               aria-label="Sign out"
               onClick={() => {
@@ -106,7 +106,7 @@ export function MobileSidebar() {
                 })
               }}
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           </div>
         </div>

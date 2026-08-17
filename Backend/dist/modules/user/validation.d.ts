@@ -6,11 +6,11 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         search: z.ZodOptional<z.ZodString>;
         role: z.ZodOptional<z.ZodEnum<["SUPER_ADMIN", "ADMIN", "MANAGER", "EMPLOYEE", "USER"]>>;
         status: z.ZodOptional<z.ZodEnum<["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING", "DELETED"]>>;
-        sortBy: z.ZodDefault<z.ZodOptional<z.ZodString>>;
+        sortBy: z.ZodDefault<z.ZodOptional<z.ZodEnum<["id", "createdAt", "name", "email", "role", "status", "lastLogin"]>>>;
         sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
     }, "strip", z.ZodTypeAny, {
         limit: number;
-        sortBy: string;
+        sortBy: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt";
         page: number;
         sortOrder: "asc" | "desc";
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
@@ -20,7 +20,7 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
         limit?: number | undefined;
-        sortBy?: string | undefined;
+        sortBy?: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
         search?: string | undefined;
@@ -28,7 +28,7 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
 }, "strip", z.ZodTypeAny, {
     query: {
         limit: number;
-        sortBy: string;
+        sortBy: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt";
         page: number;
         sortOrder: "asc" | "desc";
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
@@ -40,7 +40,7 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
         limit?: number | undefined;
-        sortBy?: string | undefined;
+        sortBy?: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
         search?: string | undefined;

@@ -3,11 +3,14 @@ import { z } from 'zod';
 export const GetUsersQuerySchema = z.object({
   query: z.object({
     page: z.coerce.number().int().positive().optional().default(1),
-    limit: z.coerce.number().int().positive().max(100).optional().default(10),
+    limit: z.coerce.number().int().positive().max(100).optional().default(20),
     search: z.string().trim().optional(),
     role: z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'USER']).optional(),
     status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING', 'DELETED']).optional(),
-    sortBy: z.string().optional().default('createdAt'),
+    sortBy: z
+      .enum(['id', 'createdAt', 'name', 'email', 'role', 'status', 'lastLogin'])
+      .optional()
+      .default('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
   }),
 });

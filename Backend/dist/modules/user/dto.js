@@ -18,6 +18,8 @@ const toUserResponse = (user) => {
         loginCount: user.loginCount,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        ...(user.workspaceCount !== undefined && { workspaceCount: user.workspaceCount }),
+        ...(user.teamCount !== undefined && { teamCount: user.teamCount }),
         ...(user.workspaces && { workspaces: user.workspaces }),
         ...(user.memberships && { memberships: user.memberships }),
     };

@@ -19,7 +19,7 @@ export class UserController {
 
     const result = await userService.findAll({
       page: parseInt(page || '1', 10),
-      limit: parseInt(limit || '10', 10),
+      limit: parseInt(limit || '20', 10),
       search,
       role,
       status,
@@ -27,7 +27,7 @@ export class UserController {
       sortOrder: sortOrder || 'desc',
     });
 
-    return sendSuccess(res, MESSAGES.LOGIN_SUCCESS, result.data, result.meta);
+    return sendSuccess(res, MESSAGES.USERS_FETCHED, result.data, result.meta);
   });
 
   getById = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
@@ -35,7 +35,7 @@ export class UserController {
 
     const user = await userService.findById(parseInt(id, 10));
 
-    return sendSuccess(res, MESSAGES.LOGIN_SUCCESS, user);
+    return sendSuccess(res, MESSAGES.USER_FETCHED, user);
   });
 
   create = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {

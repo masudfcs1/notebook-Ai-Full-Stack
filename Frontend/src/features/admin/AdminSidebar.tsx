@@ -81,13 +81,13 @@ export function AdminSidebar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                className="h-7 w-7 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
                 onClick={() => dispatch(toggleSidebar())}
               >
                 {collapsed ? (
-                  <PanelLeft className="h-4 w-4" />
+                  <PanelLeft className="h-3.5 w-3.5" />
                 ) : (
-                  <PanelLeftClose className="h-4 w-4" />
+                  <PanelLeftClose className="h-3.5 w-3.5" />
                 )}
               </Button>
             </TooltipTrigger>
@@ -140,13 +140,13 @@ export function AdminSidebar() {
                   )}
                   <div
                     className={cn(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                       isActive
                         ? `bg-gradient-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
-                        : "bg-white/55 text-muted-foreground shadow-sm ring-1 ring-slate-200/50 group-hover:text-foreground dark:bg-white/[0.045] dark:ring-white/[0.05]",
+                        : "bg-rose-500/[0.055] text-muted-foreground ring-1 ring-rose-500/10 group-hover:text-rose-600 dark:bg-white/[0.03] dark:ring-white/[0.05] dark:group-hover:text-rose-300",
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    <Icon className="h-3.5 w-3.5" />
                   </div>
                   {!collapsed && (
                     <motion.span
@@ -188,7 +188,7 @@ export function AdminSidebar() {
             onClick={() => dispatch(setView("dashboard"))}
             className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-foreground dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer"
           >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
+            <ArrowLeftRight className="h-3 w-3" />
             Switch to User Panel
           </button>
         ) : (
@@ -200,7 +200,7 @@ export function AdminSidebar() {
                 className="mb-2 h-8 w-full text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
                 onClick={() => dispatch(setView("dashboard"))}
               >
-                <ArrowLeftRight className="h-4 w-4" />
+                <ArrowLeftRight className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="right" className="text-xs">
@@ -235,7 +235,7 @@ export function AdminSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              className="h-7 w-7 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
               title="Sign out"
               onClick={() => {
                 dispatch(logout());
@@ -245,7 +245,7 @@ export function AdminSidebar() {
                 });
               }}
             >
-              <LogOut className="h-4 w-4" />
+              <LogOut className="h-3.5 w-3.5" />
             </Button>
           ) : (
             <Tooltip>
@@ -253,7 +253,7 @@ export function AdminSidebar() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+                  className="h-7 w-7 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
                   onClick={() => {
                     dispatch(logout());
                     dispatch(setView("login"));
@@ -262,7 +262,7 @@ export function AdminSidebar() {
                     });
                   }}
                 >
-                  <LogOut className="h-4 w-4" />
+                  <LogOut className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent side="right" className="text-xs">
