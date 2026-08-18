@@ -34,10 +34,10 @@ export function MobileSidebar() {
       <SheetContent side="left" className="dashboard-sidebar w-72 border-r p-0">
         <SheetHeader className="border-b border-border/60 p-4 text-left">
           <SheetTitle className="flex items-center gap-3">
-            <Logo size={32} />
-            <div>
-              <Wordmark className="text-sm" />
-              <p className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground">
+            <Logo size={32} className="shrink-0" />
+            <div className="min-w-0 flex-1">
+              <Wordmark className="text-sm block leading-tight" />
+              <p className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground truncate">
                 Meeting Intelligence
               </p>
             </div>
@@ -57,17 +57,17 @@ export function MobileSidebar() {
                   <button
                     key={item.key}
                     onClick={() => dispatch(setView(item.key))}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all ${
+                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all cursor-pointer ${
                       active
-                        ? "bg-gradient-r from-indigo-500/14 to-violet-500/8 text-foreground ring-1 ring-indigo-500/10"
+                        ? "bg-linear-to-r from-indigo-500/14 to-violet-500/8 text-foreground ring-1 ring-indigo-500/10"
                         : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]"
                     }`}
                   >
                     <span
                       className={`flex h-7 w-7 items-center justify-center rounded-lg ${
                         active
-                          ? `bg-gradient-lr ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-indigo-500/[0.06] text-muted-foreground ring-1 ring-indigo-500/10 dark:bg-white/[0.03] dark:ring-white/[0.05]"
+                          ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
+                          : "bg-indigo-500/6 text-muted-foreground ring-1 ring-indigo-500/10 dark:bg-white/3 dark:ring-white/5"
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -92,7 +92,7 @@ export function MobileSidebar() {
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
               {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-              <AvatarFallback className="bg-gradient-lr from-indigo-500 to-violet-500 text-xs font-semibold text-white">
+              <AvatarFallback className="bg-linear-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white">
                 {initials}
               </AvatarFallback>
             </Avatar>

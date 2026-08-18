@@ -154,7 +154,7 @@ export function AdminTopbar() {
             <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-rose-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer">
               <Avatar className="h-7 w-7 border border-rose-500/20">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="bg-gradient-lr from-rose-500 to-amber-500 text-[10px] font-bold text-white">
+                <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-[10px] font-bold text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>

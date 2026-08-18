@@ -50,28 +50,21 @@ export function AdminSidebar() {
       )}
     >
       {/* Header / Logo */}
-      <div className="flex h-[72px] items-center gap-3 px-4">
+      <div className="flex h-18 shrink-0 items-center gap-3 px-4">
         <button
           onClick={() => dispatch(setView("admin-dashboard"))}
-          className="flex items-center gap-3 overflow-hidden text-left"
+          className="flex items-center gap-3 overflow-hidden text-left cursor-pointer"
           aria-label="Go to admin dashboard"
         >
-          <Logo
-            size={36}
-            className="transition-transform hover:scale-105 drop-shadow-[0_0_8px_rgba(244,63,94,0.4)]"
-          />
+          <Logo size={36} className="shrink-0" />
           {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex items-center gap-2"
-            >
+            <div className="min-w-0 flex-1 flex items-center gap-2">
               <Wordmark className="text-base text-foreground" />
-              <Badge className="h-5 rounded-md border border-rose-500/30 bg-rose-500/15 px-1.5 text-[9px] font-bold text-rose-400">
+              <Badge className="h-5 rounded-md border border-rose-500/30 bg-rose-500/15 px-1.5 text-[9px] font-bold text-rose-400 shrink-0">
                 <Shield className="mr-0.5 h-2.5 w-2.5" />
                 ADMIN
               </Badge>
-            </motion.div>
+            </div>
           )}
         </button>
 
@@ -103,13 +96,9 @@ export function AdminSidebar() {
         {ADMIN_NAVIGATION_GROUPS.map((group) => (
           <div key={group.section} className="mb-5">
             {!collapsed && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground"
-              >
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground">
                 {group.section}
-              </motion.p>
+              </p>
             )}
             {group.items.map((item) => {
               const isActive = view === item.key;
@@ -122,7 +111,7 @@ export function AdminSidebar() {
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
-                      ? "bg-gradient-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
+                      ? "bg-linear-to-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
                       : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]",
                   )}
                 >
@@ -130,7 +119,7 @@ export function AdminSidebar() {
                   {isActive && (
                     <motion.div
                       layoutId="admin-sidebar-active"
-                      className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-rose-500 to-amber-500"
+                      className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-linear-to-b from-rose-500 to-amber-500"
                       transition={{
                         type: "spring",
                         stiffness: 300,
@@ -142,20 +131,16 @@ export function AdminSidebar() {
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                       isActive
-                        ? `bg-gradient-lr ${item.gradient} text-white shadow-lg shadow-rose-500/20`
+                        ? `bg-linear-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
                         : "bg-rose-500/[0.055] text-muted-foreground ring-1 ring-rose-500/10 group-hover:text-rose-600 dark:bg-white/[0.03] dark:ring-white/[0.05] dark:group-hover:text-rose-300",
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </div>
                   {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, x: -4 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      className="truncate"
-                    >
+                    <span className="truncate">
                       {item.label}
-                    </motion.span>
+                    </span>
                   )}
                 </button>
               );
@@ -213,23 +198,19 @@ export function AdminSidebar() {
         <div className="flex items-center gap-3">
           <Avatar className="h-9 w-9 border border-rose-500/20">
             {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-            <AvatarFallback className="bg-gradient-lr from-rose-500 to-amber-500 text-xs font-semibold text-white">
+            <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
           {!collapsed && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="min-w-0 flex-1 text-left"
-            >
+            <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-xs font-semibold text-foreground">
                 {displayName}
               </p>
               <p className="truncate text-[10px] text-muted-foreground">
                 {displayEmail}
               </p>
-            </motion.div>
+            </div>
           )}
           {!collapsed ? (
             <Button

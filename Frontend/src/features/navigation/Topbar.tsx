@@ -158,7 +158,7 @@ export function Topbar() {
           variant="outline"
           size="sm"
           onClick={() => dispatch(toggleAiWidget())}
-          className="relative hidden h-10 items-center gap-2 rounded-xl border border-indigo-500/20 bg-gradient-r from-indigo-500/8 via-violet-500/8 to-indigo-500/5 px-3 text-indigo-600 shadow-sm hover:border-indigo-500/35 hover:bg-indigo-500/10 dark:text-indigo-300 sm:flex"
+          className="relative hidden h-10 items-center gap-2 rounded-xl border border-indigo-500/20 bg-linear-to-r from-indigo-500/8 via-violet-500/8 to-indigo-500/5 px-3 text-indigo-600 shadow-sm hover:border-indigo-500/35 hover:bg-indigo-500/10 dark:text-indigo-300 sm:flex cursor-pointer"
         >
           <Sparkles className="h-4 w-4 text-indigo-500" />
           <span className="text-xs font-semibold tracking-tight">Ask AI</span>
@@ -172,7 +172,7 @@ export function Topbar() {
           variant="default"
           size="sm"
           onClick={() => dispatch(setView("upload"))}
-          className="h-10 gap-1.5 rounded-xl bg-gradient-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25"
+          className="h-10 gap-1.5 rounded-xl bg-linear-to-r from-indigo-600 via-indigo-500 to-violet-600 text-white font-medium shadow-lg shadow-indigo-500/20 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-indigo-500/25 cursor-pointer"
         >
           <Plus className="h-4 w-4" />
           <span className="hidden text-xs font-semibold sm:inline">
@@ -184,7 +184,7 @@ export function Topbar() {
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 shadow-sm hover:border-indigo-500/20 hover:bg-indigo-500/8 hover:text-indigo-500 dark:bg-white/[0.035]"
+          className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 shadow-sm hover:border-indigo-500/20 hover:bg-indigo-500/8 hover:text-indigo-500 dark:bg-white/[0.035] cursor-pointer"
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           aria-label="Toggle theme"
         >
@@ -204,7 +204,7 @@ export function Topbar() {
                   {avatarSrc && (
                     <AvatarImage src={avatarSrc} alt={displayName} />
                   )}
-                  <AvatarFallback className="bg-gradient-lr from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
+                  <AvatarFallback className="bg-linear-to-br from-indigo-500 to-violet-500 text-[10px] font-bold text-white">
                     {initials}
                   </AvatarFallback>
                 </Avatar>

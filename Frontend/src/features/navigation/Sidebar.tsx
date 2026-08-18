@@ -123,24 +123,20 @@ export function Sidebar() {
         )}
       >
         {/* Header / Logo */}
-        <div className="flex h-18 items-center gap-3 px-4">
+        <div className="flex h-18 shrink-0 items-center gap-3 px-4">
           <button
             onClick={() => dispatch(setView("landing"))}
-            className="flex items-center gap-3 overflow-hidden text-left"
+            className="flex items-center gap-3 overflow-hidden text-left cursor-pointer"
             aria-label="Go to landing"
           >
-            <Logo size={36} />
+            <Logo size={36} className="shrink-0" />
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0, x: -8 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 }}
-              >
-                <Wordmark className="text-[15px] text-sidebar-foreground" />
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+              <div className="min-w-0 flex-1">
+                <Wordmark className="text-[15px] text-sidebar-foreground block leading-tight" />
+                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground truncate">
                   Meeting Intelligence
                 </p>
-              </motion.div>
+              </div>
             )}
           </button>
         </div>
