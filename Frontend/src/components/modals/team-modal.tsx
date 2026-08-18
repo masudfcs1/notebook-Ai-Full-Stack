@@ -313,7 +313,7 @@ export function TeamModal({
               <Button
                 type="submit"
                 disabled={isLoading || !name.trim()}
-                className="gap-2 rounded-xl bg-gradient-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50"
+                className="gap-2 rounded-xl bg-linear-to-r from-cyan-500 to-blue-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50"
               >
                 {isLoading ? (
                   <>

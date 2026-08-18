@@ -403,7 +403,7 @@ export function AdminUsersView() {
                 value={params.role || "ALL"}
                 onValueChange={handleRoleFilter}
               >
-                <SelectTrigger className="h-9 w-[140px] border-border/60 bg-muted/40 text-xs text-foreground">
+                <SelectTrigger className="h-9 w-35 border-border/60 bg-muted/40 text-xs text-foreground">
                   <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent className="bg-muted border-border">
@@ -421,7 +421,7 @@ export function AdminUsersView() {
                 value={params.status || "ALL"}
                 onValueChange={handleStatusFilter}
               >
-                <SelectTrigger className="h-9 w-[140px] border-border/60 bg-muted/40 text-xs text-foreground">
+                <SelectTrigger className="h-9 w-35 border-border/60 bg-muted/40 text-xs text-foreground">
                   <SelectValue placeholder="All Status" />
                 </SelectTrigger>
                 <SelectContent className="bg-muted border-border">
@@ -567,7 +567,7 @@ export function AdminUsersView() {
                             <AvatarImage src={avatarSrc} alt={u.name || ""} />
                           )}
                           <AvatarFallback
-                            className={`bg-gradient-lr ${roleConfig.color} text-[10px] font-bold text-white`}
+                            className={`bg-linear-to-br ${roleConfig.color} text-[10px] font-bold text-white`}
                           >
                             {userInitials}
                           </AvatarFallback>
