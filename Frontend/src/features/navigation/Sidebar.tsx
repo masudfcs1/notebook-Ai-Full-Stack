@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   PanelLeftClose,
@@ -61,6 +62,7 @@ import { TeamModal } from "@/components/modals/team-modal";
 import { DeleteTeamModal } from "@/components/modals/delete-team-modal";
 
 export function Sidebar() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
@@ -182,9 +184,7 @@ export function Sidebar() {
                   key={ws.id}
                   onClick={() => {
                     dispatch(setActiveWorkspace(ws.id));
-                    if (typeof window !== "undefined") {
-                      window.history.pushState(null, "", `/${ws.slug}`);
-                    }
+                    void router.push(`/${ws.slug}`);
                   }}
                   className="flex items-center justify-between py-2 cursor-pointer group"
                 >
@@ -291,12 +291,8 @@ export function Sidebar() {
                     <button
                       onClick={() => {
                         dispatch(setActiveTeam(null));
-                        if (typeof window !== "undefined" && activeWorkspace) {
-                          window.history.pushState(
-                            null,
-                            "",
-                            `/${activeWorkspace.slug}`,
-                          );
+                        if (activeWorkspace) {
+                          void router.push(`/${activeWorkspace.slug}`);
                         }
                       }}
                       className={cn(
@@ -324,13 +320,8 @@ export function Sidebar() {
                           onClick={() => {
                             dispatch(setActiveTeam(t.id));
                             dispatch(setView("team"));
-                            if (
-                              typeof window !== "undefined" &&
-                              activeWorkspace
-                            ) {
-                              window.history.pushState(
-                                null,
-                                "",
+                            if (activeWorkspace) {
+                              void router.push(
                                 `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
                               );
                             }

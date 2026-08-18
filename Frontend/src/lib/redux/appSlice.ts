@@ -66,22 +66,6 @@ const appSlice = createSlice({
     setView(state, action: PayloadAction<ViewKey>) {
       state.view = action.payload
       state.mobileNavOpen = false
-      if (typeof window !== "undefined") {
-        window.scrollTo({ top: 0, behavior: "smooth" })
-        let targetPath: string
-        const v = action.payload
-        if (v === "landing") targetPath = "/"
-        else if (v === "login") targetPath = "/login"
-        else if (v === "signup") targetPath = "/signup"
-        else if (v === "dashboard") targetPath = "/dashboard"
-        else if (v === "admin-dashboard") targetPath = "/admin"
-        else if (v === "admin-user-detail" && state.selectedAdminUserId) targetPath = `/admin/users/${state.selectedAdminUserId}`
-        else if (v.startsWith("admin-")) targetPath = `/admin/${v.replace("admin-", "")}`
-        else targetPath = `/dashboard/${v}`
-        if (window.location.pathname !== targetPath) {
-          window.history.pushState(null, "", targetPath)
-        }
-      }
     },
     setSelectedAdminUserId(state, action: PayloadAction<number | null>) {
       state.selectedAdminUserId = action.payload

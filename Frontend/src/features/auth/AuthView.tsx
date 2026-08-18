@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Mail,
@@ -39,7 +38,6 @@ interface AuthViewProps {
 
 export function AuthView({ initialMode = "login" }: AuthViewProps) {
   const dispatch = useAppDispatch();
-  const router = useRouter();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
@@ -100,7 +98,6 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
             position: "bottom-right",
           });
           dispatch(setView("dashboard"));
-          router.push("/dashboard");
         } else {
           toast.error(response.message || "Failed to log in", {
             id: toastId,
@@ -160,7 +157,6 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
                 { id: toastId },
               );
               dispatch(setView("dashboard"));
-              router.push("/dashboard");
               return;
             }
           } catch {
@@ -174,7 +170,6 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           );
           setMode("login");
           dispatch(setView("login"));
-          router.push("/login");
         } else {
           toast.error(response.message || "Registration failed", {
             id: toastId,

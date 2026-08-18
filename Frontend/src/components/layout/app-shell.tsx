@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useRef } from "react"
-import { usePathname } from "next/navigation"
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks"
 import { setView, setSelectedAdminUserId, type ViewKey } from "@/lib/redux/appSlice"
 import { setActiveWorkspaceBySlug, setActiveTeamBySlug } from "@/lib/redux/dataSlice"
@@ -45,7 +44,6 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
   const view = useAppSelector((s) => s.app.view)
   const user = useAppSelector((s) => s.auth.user)
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
-  const pathname = usePathname()
   const adminRedirected = useRef(false)
 
   // Fetch current user details if authenticated
