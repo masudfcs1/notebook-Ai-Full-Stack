@@ -1,0 +1,64 @@
+services:
+  # ==========================================
+  # Backend: Express + Prisma (Neon Cloud PostgreSQL)
+  # ==========================================
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: notebook-backend
+    restart: unless-stopped
+    ports:
+      - "5015:5015"
+    environment:
+      NODE_ENV: production
+      PORT: 5015
+      DATABASE_URL: ${DATABASE_URL:-postgresql://neondb_owner:Gd9kRyVEuf0S@ep-broad-grass-a52y9hsj-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require&connect_timeout=60}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-your_super_secret_jwt_access_key}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-your_super_secret_jwt_refresh_key}
+      JWT_ACCESS_EXPIRES: 15m
+      JWT_REFRESH_EXPIRES: 7d
+      COOKIE_SECRET: ${COOKIE_SECRET:-your_cookie_secret_key}
+      UPLOAD_PATH: uploads
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3015}
+      SUPER_ADMIN_NAME: ${SUPER_ADMIN_NAME:-Super Admin}
+      SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-admin@enterprise.com}
+      SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-Admin@123456}
+    volumes:
+      - backend_uploads:/app/uploads
+    networks:
+      - notebook-network
+
+  # ==========================================
+  # Frontend: Next.js 16
+  # ==========================================
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5015/api/v1}
+        NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:5015/api/v1}
+        NEXT_PUBLIC_GEMINI_API_KEY: ${NEXT_PUBLIC_GEMINI_API_KEY:-}
+    container_name: notebook-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "3015:3015"
+    environment:
+      NODE_ENV: production
+      PORT: 3015
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:5015/api/v1}
+      NEXT_PUBLIC_BACKEND_URL: ${NEXT_PUBLIC_BACKEND_URL:-http://localhost:5015/api/v1}
+      NEXT_PUBLIC_GEMINI_API_KEY: ${NEXT_PUBLIC_GEMINI_API_KEY:-}
+    networks:
+      - notebook-network
+
+volumes:
+  backend_uploads:
+    driver: local
+
+networks:
+  notebook-network:
+    driver: bridge
