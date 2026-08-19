@@ -20,6 +20,8 @@ import {
   Building2,
   Plus,
   Edit3,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
@@ -29,6 +31,7 @@ import { setActiveWorkspace } from "@/lib/redux/dataSlice";
 import {
   useUpdateProfileMutation,
   useUpdateProfileImageMutation,
+  useChangePasswordMutation,
 } from "@/lib/redux/api/authApiSlice";
 import { WorkspaceModal } from "@/components/modals/workspace-modal";
 import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
@@ -86,12 +89,22 @@ export function SettingsView() {
     useUpdateProfileMutation();
   const [updateProfileImage, { isLoading: isUploadingImage }] =
     useUpdateProfileImageMutation();
+  const [changePasswordApi, { isLoading: isChangingPassword }] =
+    useChangePasswordMutation();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [role, setRole] = useState(user?.role || "Member");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
+  
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [prefs, setPrefs] = useState({
     emailSummaries: true,
     weeklyDigest: true,
@@ -159,6 +172,51 @@ export function SettingsView() {
     } catch (err: any) {
       const msg = err?.data?.message || err?.error || "Failed to upload image";
       toast.error(msg, { id: loadingToast });
+    }
+  }
+
+  async function handleChangePassword() {
+    if (!currentPassword.trim() || !newPassword || !confirmPassword) {
+      toast.error("Please fill in all password fields");
+      return;
+    }
+    if (newPassword.length < 8) {
+      toast.error("New password must be at least 8 characters");
+      return;
+    }
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.error("New password must contain at least one uppercase letter");
+      return;
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      toast.error("New password must contain at least one lowercase letter");
+      return;
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      toast.error("New password must contain at least one number");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("New passwords do not match");
+      return;
+    }
+    try {
+      const res = await changePasswordApi({ currentPassword, newPassword, confirmPassword }).unwrap();
+      if (res.success || res.message) {
+        toast.success(res.message || "Password updated successfully");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      } else {
+        toast.error("Failed to update password");
+      }
+    } catch (err: any) {
+      const backendError =
+        err?.data?.errors?.map((e: any) => e.message).join(", ") ||
+        err?.data?.message ||
+        err?.error ||
+        "Failed to update password";
+      toast.error(backendError);
     }
   }
 
@@ -502,31 +560,72 @@ export function SettingsView() {
             </p>
             <div className="grid gap-4 md:grid-cols-2">
               <Field label="Current password" icon={Lock}>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  className="rounded-xl bg-muted/30"
-                />
+                <div className="relative">
+                  <Input
+                    type={showCurrent ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    className="rounded-xl bg-muted/30 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </Field>
               <div className="hidden md:block" />
               <Field label="New password" icon={Lock}>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  className="rounded-xl bg-muted/30"
-                />
+                <div className="relative">
+                  <Input
+                    type={showNew ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="rounded-xl bg-muted/30 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNew(!showNew)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Min 8 chars, 1 uppercase, 1 lowercase, and 1 number.
+                </p>
               </Field>
               <Field label="Confirm password" icon={Lock}>
-                <Input
-                  type="password"
-                  placeholder="••••••••"
-                  className="rounded-xl bg-muted/30"
-                />
+                <div className="relative">
+                  <Input
+                    type={showConfirm ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="rounded-xl bg-muted/30 pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </Field>
             </div>
             <div className="mt-5 flex justify-end">
-              <Button className="gap-2 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md">
-                <Lock className="h-4 w-4" /> Update password
+              <Button 
+                onClick={handleChangePassword}
+                disabled={isChangingPassword}
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
+              >
+                <Lock className="h-4 w-4" /> 
+                {isChangingPassword ? "Updating..." : "Update password"}
               </Button>
             </div>
           </Card>

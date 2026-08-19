@@ -735,3 +735,15 @@
   }
 }
 
+/* Light mode global icon color override */
+html:not(.dark) svg.lucide {
+  color: #6b7280;
+}
+
+/* Exclude sidebars from the global icon color override */
+html:not(.dark) .dashboard-sidebar svg.lucide,
+html:not(.dark) .admin-dashboard-sidebar svg.lucide,
+html:not(.dark) aside svg.lucide {
+  color: currentColor;
+}
+

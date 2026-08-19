@@ -40,6 +40,12 @@ export interface UpdateProfileRequest {
   phone?: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword?: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
 export const authApi = createApi({
   reducerPath: "authApi",
   baseQuery: fetchBaseQuery({
@@ -78,6 +84,13 @@ export const authApi = createApi({
         body,
       }),
     }),
+    changePassword: builder.mutation<ApiResponse<void>, ChangePasswordRequest>({
+      query: (body) => ({
+        url: "/auth/change-password",
+        method: "POST",
+        body,
+      }),
+    }),
     updateProfileImage: builder.mutation<ApiResponse<User>, FormData>({
       query: (formData) => ({
         url: "/auth/profile-image",
@@ -106,6 +119,7 @@ export const {
   useGetMeQuery,
   useLazyGetMeQuery,
   useUpdateProfileMutation,
+  useChangePasswordMutation,
   useUpdateProfileImageMutation,
   useDeleteProfileImageMutation,
   useLogoutUserMutation,
