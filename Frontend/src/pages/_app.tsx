@@ -6,7 +6,6 @@ import { Providers } from '@/components/providers'
 import { RouteStateSync } from '@/components/routing/route-state-sync'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
-import { Toaster as HotToaster } from 'react-hot-toast'
 import { SITE_CONFIG } from '@/config/site'
 
 const inter = Inter({
@@ -41,7 +40,6 @@ export default function Application({ Component, pageProps }: AppProps) {
         </div>
         <Toaster />
         <SonnerToaster position='bottom-right' richColors />
-        <HotToaster position='bottom-right' reverseOrder={false} />
       </Providers>
     </>
   )

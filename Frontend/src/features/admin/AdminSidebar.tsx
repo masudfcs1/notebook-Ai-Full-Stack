@@ -8,7 +8,7 @@ import {
   ArrowLeftRight,
   Shield,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { setView, toggleSidebar } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";

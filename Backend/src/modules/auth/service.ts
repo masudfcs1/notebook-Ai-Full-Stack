@@ -218,18 +218,19 @@ export class AuthService {
 
   async changePassword(
     userId: number,
-    data: { currentPassword: string; newPassword: string }
+    data: { currentPassword?: string; newPassword: string }
   ): Promise<void> {
     const user = await authRepository.findById(userId);
 
-    if (!user || !user.password) {
+    if (!user) {
       throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
     }
 
-    const isPasswordValid = await comparePassword(data.currentPassword, user.password);
-
-    if (!isPasswordValid) {
-      throw AppError.badRequest('Current password is incorrect');
+    if (data.currentPassword && user.password) {
+      const isPasswordValid = await comparePassword(data.currentPassword, user.password);
+      if (!isPasswordValid) {
+        throw AppError.badRequest('Current password is incorrect');
+      }
     }
 
     const hashedPassword = await hashPassword(data.newPassword);

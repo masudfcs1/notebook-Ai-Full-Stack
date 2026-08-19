@@ -98,11 +98,9 @@ export function SettingsView() {
   const [role, setRole] = useState(user?.role || "Member");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
   
-  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   
-  const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [prefs, setPrefs] = useState({
@@ -176,8 +174,8 @@ export function SettingsView() {
   }
 
   async function handleChangePassword() {
-    if (!currentPassword.trim() || !newPassword || !confirmPassword) {
-      toast.error("Please fill in all password fields");
+    if (!newPassword || !confirmPassword) {
+      toast.error("Please fill in both new password and confirm password fields");
       return;
     }
     if (newPassword.length < 8) {
@@ -201,10 +199,9 @@ export function SettingsView() {
       return;
     }
     try {
-      const res = await changePasswordApi({ currentPassword, newPassword, confirmPassword }).unwrap();
+      const res = await changePasswordApi({ newPassword, confirmPassword }).unwrap();
       if (res.success || res.message) {
         toast.success(res.message || "Password updated successfully");
-        setCurrentPassword("");
         setNewPassword("");
         setConfirmPassword("");
       } else {
@@ -559,33 +556,15 @@ export function SettingsView() {
               Update your password regularly to keep your account secure.
             </p>
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Current password" icon={Lock}>
-                <div className="relative">
-                  <Input
-                    type={showCurrent ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="rounded-xl bg-muted/30 pr-10"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrent(!showCurrent)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    {showCurrent ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                  </button>
-                </div>
-              </Field>
-              <div className="hidden md:block" />
               <Field label="New password" icon={Lock}>
                 <div className="relative">
                   <Input
                     type={showNew ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Enter new password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="rounded-xl bg-muted/30 pr-10"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"
@@ -603,10 +582,11 @@ export function SettingsView() {
                 <div className="relative">
                   <Input
                     type={showConfirm ? "text" : "password"}
-                    placeholder="••••••••"
+                    placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     className="rounded-xl bg-muted/30 pr-10"
+                    autoComplete="new-password"
                   />
                   <button
                     type="button"

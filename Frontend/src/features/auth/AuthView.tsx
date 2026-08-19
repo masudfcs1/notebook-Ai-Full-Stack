@@ -15,7 +15,7 @@ import {
   Moon,
   CheckCircle2,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useAppDispatch } from "@/lib/redux/hooks";
 import { setView, pushNotification } from "@/lib/redux/appSlice";
 import { setCredentials } from "@/lib/redux/authSlice";

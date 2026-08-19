@@ -17,7 +17,7 @@ import {
   Shield,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setMobileNav,

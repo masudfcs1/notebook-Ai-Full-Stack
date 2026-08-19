@@ -18,7 +18,7 @@ import {
   Globe2,
   UsersRound,
 } from "lucide-react";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setView,
