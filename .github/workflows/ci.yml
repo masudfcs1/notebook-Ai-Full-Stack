@@ -1,0 +1,160 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - develop
+      - 'release/**'
+  pull_request:
+    branches:
+      - main
+      - master
+      - develop
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # ==========================================
+  # JOB 1: Backend CI (Lint, Typecheck, Build, Security)
+  # ==========================================
+  backend-ci:
+    name: Backend CI (Lint, Prisma & Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Backend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Check Code Formatting (Prettier)
+        run: npx prettier --check "src/**/*.ts"
+
+      - name: Run Backend Linter (ESLint)
+        run: npm run lint
+
+      - name: TypeScript Typecheck & Build
+        run: npm run build
+        env:
+          NODE_ENV: production
+          PORT: 5000
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/notebook_ai?schema=public'
+          JWT_ACCESS_SECRET: 'ci_jwt_access_secret_sample_key_for_build'
+          JWT_REFRESH_SECRET: 'ci_jwt_refresh_secret_sample_key_for_build'
+          COOKIE_SECRET: 'ci_cookie_secret_sample_key_for_build'
+          FRONTEND_URL: 'http://localhost:3000'
+
+  # ==========================================
+  # JOB 2: Frontend CI (Lint, Next.js Build & Cache)
+  # ==========================================
+  frontend-ci:
+    name: Frontend CI (Lint, Next.js Build)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./Frontend
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: Frontend/package-lock.json
+
+      - name: Restore Next.js Build Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            Frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('Frontend/package-lock.json') }}-${{ hashFiles('Frontend/src/**/*.{js,jsx,ts,tsx}') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('Frontend/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Run Frontend Linter (ESLint)
+        run: npm run lint
+
+      - name: Build Next.js Application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5000/api/v1
+          NEXT_PUBLIC_BACKEND_URL: http://localhost:5000/api/v1
+          NEXT_PUBLIC_GEMINI_API_KEY: ${{ secrets.NEXT_PUBLIC_GEMINI_API_KEY || 'ci-build-mock-key' }}
+
+  # ==========================================
+  # JOB 3: Security & Dependency Audit
+  # ==========================================
+  security-audit:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ env.NODE_VERSION }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Audit Backend Dependencies
+        run: |
+          cd Backend
+          npm audit --audit-level=critical || true
+
+      - name: Audit Frontend Dependencies
+        run: |
+          cd Frontend
+          npm audit --audit-level=critical || true
+
+  # ==========================================
+  # JOB 4: Status Gate / Summary
+  # ==========================================
+  ci-status:
+    name: Quality Gate & Status
+    runs-on: ubuntu-latest
+    needs: [backend-ci, frontend-ci, security-audit]
+    if: always()
+    steps:
+      - name: Check Workflow Status
+        run: |
+          if [ "${{ needs.backend-ci.result }}" != "success" ] || [ "${{ needs.frontend-ci.result }}" != "success" ]; then
+            echo "❌ CI Quality Gate Failed. Please fix the build or linting issues."
+            exit 1
+          fi
+          echo "✅ All CI Checks & Builds passed successfully!"

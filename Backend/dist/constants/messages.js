@@ -43,6 +43,8 @@ exports.MESSAGES = {
     OTP_VERIFIED: 'OTP verified successfully',
     INVALID_OTP: 'Invalid or expired OTP',
     // User
+    USERS_FETCHED: 'Users fetched successfully',
+    USER_FETCHED: 'User fetched successfully',
     USER_CREATED: 'User created successfully',
     USER_UPDATED: 'User updated successfully',
     USER_DELETED: 'User deleted successfully',

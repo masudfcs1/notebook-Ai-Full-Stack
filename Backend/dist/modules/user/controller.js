@@ -17,12 +17,12 @@ class UserController {
             sortBy: sortBy || 'createdAt',
             sortOrder: sortOrder || 'desc',
         });
-        return (0, response_1.sendSuccess)(res, constants_1.MESSAGES.LOGIN_SUCCESS, result.data, result.meta);
+        return (0, response_1.sendSuccess)(res, constants_1.MESSAGES.USERS_FETCHED, result.data, result.meta);
     });
     getById = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { id } = req.params;
         const user = await service_1.userService.findById(parseInt(id, 10));
-        return (0, response_1.sendSuccess)(res, constants_1.MESSAGES.LOGIN_SUCCESS, user);
+        return (0, response_1.sendSuccess)(res, constants_1.MESSAGES.USER_FETCHED, user);
     });
     create = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { name, username, email, password, phone, role, status } = req.body;

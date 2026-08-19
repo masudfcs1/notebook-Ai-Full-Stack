@@ -35,6 +35,8 @@ export declare const MESSAGES: {
     readonly OTP_SENT: "OTP sent successfully";
     readonly OTP_VERIFIED: "OTP verified successfully";
     readonly INVALID_OTP: "Invalid or expired OTP";
+    readonly USERS_FETCHED: "Users fetched successfully";
+    readonly USER_FETCHED: "User fetched successfully";
     readonly USER_CREATED: "User created successfully";
     readonly USER_UPDATED: "User updated successfully";
     readonly USER_DELETED: "User deleted successfully";
