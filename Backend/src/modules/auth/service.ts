@@ -1,11 +1,7 @@
 import { authRepository } from './repository';
 import { workspaceRepository } from '../workspace/repository';
 import { hashPassword, comparePassword } from '@/utils/password';
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  verifyRefreshToken,
-} from '@/utils/jwt';
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/jwt';
 import { generateOTP, generateUUID, generateVerificationToken } from '@/utils/generators';
 import { addDays } from '@/utils/date';
 import { MESSAGES, USER_STATUS } from '@/constants';
@@ -51,10 +47,11 @@ export class AuthService {
     try {
       const displayName = data.name || user.username || 'Personal';
       const workspaceName = `${displayName}'s Workspace`;
-      const baseSlug = displayName
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '') || 'workspace';
+      const baseSlug =
+        displayName
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-|-$/g, '') || 'workspace';
       const uniqueSlug = `${baseSlug}-${user.id}`;
 
       await workspaceRepository.create({
@@ -130,9 +127,7 @@ export class AuthService {
     const accessToken = generateAccessToken(payload);
     const refreshToken = generateRefreshToken(payload);
 
-    const refreshTokenExpiry = data.rememberMe
-      ? addDays(new Date(), 30)
-      : addDays(new Date(), 7);
+    const refreshTokenExpiry = data.rememberMe ? addDays(new Date(), 30) : addDays(new Date(), 7);
 
     await authRepository.createRefreshToken({
       token: refreshToken,
@@ -259,10 +254,7 @@ export class AuthService {
     return { message: MESSAGES.PASSWORD_RESET_SENT };
   }
 
-  async resetPassword(
-    token: string,
-    password: string
-  ): Promise<{ message: string }> {
+  async resetPassword(token: string, password: string): Promise<{ message: string }> {
     const user = await authRepository.findByUuid(token);
 
     if (!user) {

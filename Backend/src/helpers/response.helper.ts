@@ -27,12 +27,7 @@ export class ResponseHelper {
     return res.status(204).send();
   }
 
-  static paginated<T>(
-    res: Response,
-    message: string,
-    data: T[],
-    meta: IMeta
-  ): Response {
+  static paginated<T>(res: Response, message: string, data: T[], meta: IMeta): Response {
     return this.success(res, message, data, meta);
   }
 }

@@ -1,7 +1,12 @@
 import { prisma } from '@/database';
 import { IPaginatedResult } from '@/interfaces';
 import { CreateWorkspaceData, UpdateWorkspaceData, WorkspaceListQuery } from './types';
-import { calculatePagination, calculateMeta, buildSearchQuery, buildSortQuery } from '@/utils/pagination';
+import {
+  calculatePagination,
+  calculateMeta,
+  buildSearchQuery,
+  buildSortQuery,
+} from '@/utils/pagination';
 
 export interface FindWorkspacesOptions extends WorkspaceListQuery {
   userId?: number;
@@ -13,7 +18,12 @@ export class WorkspaceRepository {
     return prisma.workspace.create({
       data: {
         name: data.name,
-        slug: data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+        slug:
+          data.slug ||
+          data.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, ''),
         icon: data.icon || '⚡',
         description: data.description,
         userId: data.userId,
@@ -85,7 +95,9 @@ export class WorkspaceRepository {
     const { page, limit, skip } = calculatePagination(options);
     const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, isAdmin } = options;
 
-    const searchQuery = search ? buildSearchQuery(search, ['name', 'slug', 'description']) : undefined;
+    const searchQuery = search
+      ? buildSearchQuery(search, ['name', 'slug', 'description'])
+      : undefined;
 
     const where: any = {
       ...(!isAdmin && userId ? { userId } : {}),

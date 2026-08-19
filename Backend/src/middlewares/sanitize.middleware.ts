@@ -27,11 +27,7 @@ const sanitize = (obj: unknown): unknown => {
   return obj;
 };
 
-export const sanitizeInput = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
+export const sanitizeInput = (req: Request, _res: Response, next: NextFunction): void => {
   if (req.body) {
     req.body = sanitize(req.body);
   }

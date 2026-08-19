@@ -5,7 +5,12 @@ export const loggerConfig = {
   prettyPrint: env.NODE_ENV !== 'production',
   redact: ['req.headers.authorization', 'req.headers.cookie', 'req.body.password'],
   serializers: {
-    req: (req: { method?: string; url?: string; headers?: Record<string, string>; body?: unknown }) => ({
+    req: (req: {
+      method?: string;
+      url?: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    }) => ({
       method: req.method,
       url: req.url,
       headers: {

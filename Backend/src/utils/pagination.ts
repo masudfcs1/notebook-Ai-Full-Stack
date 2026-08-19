@@ -1,5 +1,11 @@
 import { PAGINATION } from '@/constants';
-import { IPaginatedResult, IPaginationOptions, IFilterOptions, ISortOptions, IMeta } from '@/interfaces';
+import {
+  IPaginatedResult,
+  IPaginationOptions,
+  IFilterOptions,
+  ISortOptions,
+  IMeta,
+} from '@/interfaces';
 
 interface PrismaModel {
   findMany: (args: unknown) => Promise<unknown[]>;
@@ -14,11 +20,7 @@ export const calculatePagination = (options?: IPaginationOptions) => {
   return { page, limit, skip };
 };
 
-export const calculateMeta = (
-  page: number,
-  limit: number,
-  total: number
-): IMeta => {
+export const calculateMeta = (page: number, limit: number, total: number): IMeta => {
   const totalPages = Math.ceil(total / limit);
 
   return {
@@ -108,7 +110,9 @@ export const paginate = async <T>(
 };
 
 // Export utility for Prisma pagination
-export const createPaginationParams = (options?: IPaginationOptions & ISortOptions & IFilterOptions) => {
+export const createPaginationParams = (
+  options?: IPaginationOptions & ISortOptions & IFilterOptions
+) => {
   const { page, limit, skip } = calculatePagination(options);
   const orderBy = buildSortQuery(options);
 

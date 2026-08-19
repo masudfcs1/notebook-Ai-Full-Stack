@@ -84,7 +84,10 @@ export class UserService {
     return toUserResponse(user);
   }
 
-  async update(id: number, data: { name?: string; username?: string; email?: string; phone?: string }) {
+  async update(
+    id: number,
+    data: { name?: string; username?: string; email?: string; phone?: string }
+  ) {
     const user = await userRepository.findById(id);
 
     if (!user) {

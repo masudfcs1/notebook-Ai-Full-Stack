@@ -7,10 +7,6 @@ const router = Router();
 
 router.use(authenticate);
 
-router.get(
-  '/',
-  authorize(Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER),
-  roleController.getAll
-);
+router.get('/', authorize(Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER), roleController.getAll);
 
 export default router;

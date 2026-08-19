@@ -146,11 +146,7 @@ export const optionalAuth = async (
   }
 };
 
-export const checkOwnership = (
-  req: Request,
-  _res: Response,
-  next: NextFunction
-): void => {
+export const checkOwnership = (req: Request, _res: Response, next: NextFunction): void => {
   const { id } = req.params;
   const userId = req.user?.id?.toString();
 

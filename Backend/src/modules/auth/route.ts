@@ -27,25 +27,11 @@ import {
 const router = Router();
 
 // Public routes
-router.post(
-  '/register',
-  authRateLimiter,
-  validate(RegisterSchema),
-  authController.register
-);
+router.post('/register', authRateLimiter, validate(RegisterSchema), authController.register);
 
-router.post(
-  '/login',
-  loginRateLimiter,
-  validate(LoginSchema),
-  authController.login
-);
+router.post('/login', loginRateLimiter, validate(LoginSchema), authController.login);
 
-router.post(
-  '/refresh-token',
-  validate(RefreshTokenSchema),
-  authController.refreshToken
-);
+router.post('/refresh-token', validate(RefreshTokenSchema), authController.refreshToken);
 
 router.post(
   '/forgot-password',
@@ -61,11 +47,7 @@ router.post(
   authController.resetPassword
 );
 
-router.post(
-  '/verify-email',
-  validate(VerifyEmailSchema),
-  authController.verifyEmail
-);
+router.post('/verify-email', validate(VerifyEmailSchema), authController.verifyEmail);
 
 router.post(
   '/resend-verification',
@@ -74,37 +56,20 @@ router.post(
   authController.resendVerification
 );
 
-router.post(
-  '/send-otp',
-  otpRateLimiter,
-  validate(SendOTPSchema),
-  authController.sendOTP
-);
+router.post('/send-otp', otpRateLimiter, validate(SendOTPSchema), authController.sendOTP);
 
-router.post(
-  '/verify-otp',
-  validate(VerifyOTPSchema),
-  authController.verifyOTP
-);
+router.post('/verify-otp', validate(VerifyOTPSchema), authController.verifyOTP);
 
 // Protected routes
 router.use(authenticate);
 
 router.post('/logout', authController.logout);
 
-router.post(
-  '/change-password',
-  validate(ChangePasswordSchema),
-  authController.changePassword
-);
+router.post('/change-password', validate(ChangePasswordSchema), authController.changePassword);
 
 router.get('/me', authController.getProfile);
 
-router.patch(
-  '/profile',
-  validate(UpdateProfileSchema),
-  authController.updateProfile
-);
+router.patch('/profile', validate(UpdateProfileSchema), authController.updateProfile);
 
 router.patch(
   '/profile-image',
@@ -115,11 +80,7 @@ router.patch(
 
 router.delete('/profile-image', authController.deleteProfileImage);
 
-router.delete(
-  '/delete-account',
-  validate(DeleteAccountSchema),
-  authController.deleteAccount
-);
+router.delete('/delete-account', validate(DeleteAccountSchema), authController.deleteAccount);
 
 router.get('/login-history', authController.getLoginHistory);
 

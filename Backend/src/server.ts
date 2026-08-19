@@ -18,9 +18,7 @@ const startServer = async (): Promise<void> => {
 
     // Start server
     const server = app.listen(env.PORT, () => {
-      logger.info(
-        `Server is running on http://localhost:${env.PORT} in ${env.NODE_ENV} mode`
-      );
+      logger.info(`Server is running on http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
 
       logger.info(`Health check: http://localhost:${env.PORT}/health`);
       logger.info(`API Base URL: http://localhost:${env.PORT}/api/v1`);
@@ -39,9 +37,7 @@ const startServer = async (): Promise<void> => {
 
       // Force close after 10 seconds
       setTimeout(() => {
-        logger.error(
-          'Could not close connections in time, forcefully shutting down'
-        );
+        logger.error('Could not close connections in time, forcefully shutting down');
         process.exit(1);
       }, 10000);
     };

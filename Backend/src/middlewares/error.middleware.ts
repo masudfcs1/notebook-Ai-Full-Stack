@@ -13,7 +13,9 @@ const formatZodErrors = (errors: ZodError): unknown[] => {
   }));
 };
 
-const handlePrismaError = (error: Prisma.PrismaClientKnownRequestError): { statusCode: number; message: string } => {
+const handlePrismaError = (
+  error: Prisma.PrismaClientKnownRequestError
+): { statusCode: number; message: string } => {
   switch (error.code) {
     case 'P2002':
       return { statusCode: 409, message: `Duplicate entry: ${error.meta?.target as string}` };

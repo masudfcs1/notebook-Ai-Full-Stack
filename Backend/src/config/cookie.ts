@@ -14,7 +14,7 @@ export const cookieConfig = {
 export const accessTokenCookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax' as 'strict' | 'lax' | 'none',
+  sameSite: env.NODE_ENV === 'production' ? 'strict' : ('lax' as 'strict' | 'lax' | 'none'),
   maxAge: 15 * 60 * 1000, // 15 minutes
   path: '/',
 };
@@ -22,7 +22,7 @@ export const accessTokenCookieOptions = {
 export const refreshTokenCookieOptions = {
   httpOnly: true,
   secure: env.NODE_ENV === 'production',
-  sameSite: env.NODE_ENV === 'production' ? 'strict' : 'lax' as 'strict' | 'lax' | 'none',
+  sameSite: env.NODE_ENV === 'production' ? 'strict' : ('lax' as 'strict' | 'lax' | 'none'),
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   path: '/',
 };

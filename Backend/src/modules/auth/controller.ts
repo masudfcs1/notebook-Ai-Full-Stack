@@ -31,10 +31,7 @@ export class AuthController {
     const { email, password, rememberMe } = req.body;
     const deviceInfo = getDeviceInfo(req);
 
-    const result = await authService.login(
-      { email, password, rememberMe },
-      deviceInfo
-    );
+    const result = await authService.login({ email, password, rememberMe }, deviceInfo);
 
     setAccessTokenCookie(res, result.accessToken);
     setRefreshTokenCookie(res, result.refreshToken);

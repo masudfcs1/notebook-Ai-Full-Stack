@@ -29,11 +29,7 @@ const createStorage = (type: FileType) => {
 };
 
 const fileFilter = (allowedTypes: string[]) => {
-  return (
-    _req: Request,
-    file: Express.Multer.File,
-    cb: multer.FileFilterCallback
-  ) => {
+  return (_req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
     if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {

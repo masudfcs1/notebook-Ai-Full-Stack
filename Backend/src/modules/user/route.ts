@@ -24,11 +24,7 @@ router.get(
   userController.getAll
 );
 
-router.get(
-  '/stats',
-  authorize(Role.SUPER_ADMIN, Role.ADMIN),
-  userController.getStats
-);
+router.get('/stats', authorize(Role.SUPER_ADMIN, Role.ADMIN), userController.getStats);
 
 router.patch(
   '/status',

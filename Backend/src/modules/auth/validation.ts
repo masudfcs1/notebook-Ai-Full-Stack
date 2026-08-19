@@ -1,17 +1,19 @@
 import { z } from 'zod';
 
 export const RegisterSchema = z.object({
-  body: z.object({
-    name: z.string().max(100).optional().or(z.literal('')),
-    username: z.string().max(50).optional().or(z.literal('')),
-    email: z.string().email('Invalid email address').min(1, 'Email is required'),
-    password: z.string().min(6, 'Password must be at least 6 characters'),
-    confirmPassword: z.string(),
-    phone: z.string().optional().or(z.literal('')),
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  }),
+  body: z
+    .object({
+      name: z.string().max(100).optional().or(z.literal('')),
+      username: z.string().max(50).optional().or(z.literal('')),
+      email: z.string().email('Invalid email address').min(1, 'Email is required'),
+      password: z.string().min(6, 'Password must be at least 6 characters'),
+      confirmPassword: z.string(),
+      phone: z.string().optional().or(z.literal('')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: 'Passwords do not match',
+      path: ['confirmPassword'],
+    }),
 });
 
 export const LoginSchema = z.object({
@@ -29,19 +31,21 @@ export const RefreshTokenSchema = z.object({
 });
 
 export const ChangePasswordSchema = z.object({
-  body: z.object({
-    currentPassword: z.string().min(1, 'Current password is required'),
-    newPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
-    confirmPassword: z.string(),
-  }).refine((data) => data.newPassword === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  }),
+  body: z
+    .object({
+      currentPassword: z.string().min(1, 'Current password is required'),
+      newPassword: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .regex(/[0-9]/, 'Password must contain at least one number'),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: 'Passwords do not match',
+      path: ['confirmPassword'],
+    }),
 });
 
 export const ForgotPasswordSchema = z.object({
@@ -51,19 +55,21 @@ export const ForgotPasswordSchema = z.object({
 });
 
 export const ResetPasswordSchema = z.object({
-  body: z.object({
-    token: z.string().min(1, 'Token is required'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
-    confirmPassword: z.string(),
-  }).refine((data) => data.password === data.confirmPassword, {
-    message: 'Passwords do not match',
-    path: ['confirmPassword'],
-  }),
+  body: z
+    .object({
+      token: z.string().min(1, 'Token is required'),
+      password: z
+        .string()
+        .min(8, 'Password must be at least 8 characters')
+        .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
+        .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
+        .regex(/[0-9]/, 'Password must contain at least one number'),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: 'Passwords do not match',
+      path: ['confirmPassword'],
+    }),
 });
 
 export const VerifyEmailSchema = z.object({

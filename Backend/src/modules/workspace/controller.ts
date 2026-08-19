@@ -17,7 +17,13 @@ export class WorkspaceController {
       userId,
     });
 
-    return sendSuccess(res, 'Workspace created successfully', workspace, undefined, HTTP_STATUS.CREATED);
+    return sendSuccess(
+      res,
+      'Workspace created successfully',
+      workspace,
+      undefined,
+      HTTP_STATUS.CREATED
+    );
   });
 
   getAll = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {

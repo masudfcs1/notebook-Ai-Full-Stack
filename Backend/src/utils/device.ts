@@ -4,7 +4,9 @@ import { IDeviceInfo } from '@/interfaces';
 export const getClientIp = (req: Request): string => {
   const forwarded = req.headers['x-forwarded-for'];
   const ip = forwarded
-    ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0])
+    ? Array.isArray(forwarded)
+      ? forwarded[0]
+      : forwarded.split(',')[0]
     : req.socket?.remoteAddress || 'unknown';
 
   return ip.trim();

@@ -3,19 +3,15 @@ import { jwtConfig } from '@/config/jwt';
 import { IJWTPayload, ITokenPayload } from '@/interfaces';
 
 export const generateAccessToken = (payload: IJWTPayload): string => {
-  return (jwt as unknown as { sign: (p: object, s: string, o: { expiresIn: string }) => string }).sign(
-    payload,
-    jwtConfig.access.secret,
-    { expiresIn: jwtConfig.access.expiresIn }
-  );
+  return (
+    jwt as unknown as { sign: (p: object, s: string, o: { expiresIn: string }) => string }
+  ).sign(payload, jwtConfig.access.secret, { expiresIn: jwtConfig.access.expiresIn });
 };
 
 export const generateRefreshToken = (payload: IJWTPayload): string => {
-  return (jwt as unknown as { sign: (p: object, s: string, o: { expiresIn: string }) => string }).sign(
-    payload,
-    jwtConfig.refresh.secret,
-    { expiresIn: jwtConfig.refresh.expiresIn }
-  );
+  return (
+    jwt as unknown as { sign: (p: object, s: string, o: { expiresIn: string }) => string }
+  ).sign(payload, jwtConfig.refresh.secret, { expiresIn: jwtConfig.refresh.expiresIn });
 };
 
 export const verifyAccessToken = (token: string): ITokenPayload => {
