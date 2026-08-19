@@ -50,7 +50,7 @@ jobs:
           cache-dependency-path: Backend/package-lock.json
 
       - name: Install Backend Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Generate Prisma Client
         run: npx prisma generate
@@ -104,7 +104,7 @@ jobs:
             ${{ runner.os }}-nextjs-
 
       - name: Install Frontend Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Frontend Linter (ESLint)
         run: npm run lint
