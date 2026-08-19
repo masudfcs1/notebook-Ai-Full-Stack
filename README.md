@@ -83,7 +83,7 @@ NoteMeet-Ai/
    npm run prisma:migrate
    ```
 
-### Running the Application
+### Running Locally (Without Docker)
 
 To run both the frontend and backend development servers concurrently from the root directory:
 
@@ -91,8 +91,80 @@ To run both the frontend and backend development servers concurrently from the r
 npm run dev
 ```
 
-- **Frontend** will typically be available at `http://localhost:3000`
-- **Backend** will typically be available at the port specified in your `.env` file (e.g., `http://localhost:5000`)
+- **Frontend**: `http://localhost:3015`
+- **Backend**: `http://localhost:5015`
+
+---
+
+## 🐳 Docker Installation & Setup (Step-by-Step)
+
+With Docker, you can run the entire full-stack application on any machine (Windows, macOS, Linux) without manually configuring Node.js or local dependencies.
+
+### Prerequisites
+- Install **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** (Windows / macOS) or **Docker Engine & Docker Compose** (Linux).
+- Ensure Docker is running. *(No Docker account login is required to run locally)*.
+
+---
+
+### Step 1: Clone the Repository
+```bash
+git clone <repository-url>
+cd notebook-Ai-Full-Stack
+```
+
+---
+
+### Step 2: Configure Environment Variables (Optional)
+The project comes pre-configured with a `.env.docker` template and default values in `docker-compose.yml`. If you wish to customize secrets or ports, copy `.env.docker` to `.env`:
+```bash
+cp .env.docker .env
+```
+
+---
+
+### Step 3: Build & Start All Containers
+Run the following command from the root directory:
+
+```bash
+docker compose up --build -d
+```
+
+> **What this command does automatically:**
+> 1. Builds the **Next.js 16 Frontend** (multi-stage standalone image).
+> 2. Builds the **Node.js/Express Backend** with TypeScript compilation & Prisma client generation.
+> 3. Connects both services and hooks into the **Neon Cloud PostgreSQL** database.
+
+---
+
+### Step 4: Run Database Migrations & Seed (First Time Setup)
+Once the containers are running, execute database migrations and initialize sample seed data:
+
+```bash
+# Apply database schema
+docker compose exec backend npx prisma migrate deploy
+
+# Seed database with initial data
+docker compose exec backend npm run seed
+```
+
+---
+
+### Step 5: Access the Application
+- 🌐 **Frontend Web App**: [http://localhost:3015](http://localhost:3015)
+- 🔌 **Backend REST API**: [http://localhost:5015/api/v1](http://localhost:5015/api/v1)
+
+---
+
+### 📋 Useful Docker Commands
+
+| Task | Command |
+| :--- | :--- |
+| **View Live Logs** | `docker compose logs -f` |
+| **View Specific Service Logs** | `docker compose logs -f backend` or `docker compose logs -f frontend` |
+| **Stop All Containers** | `docker compose down` |
+| **Stop & Remove Volumes** | `docker compose down -v` |
+| **Restart Containers** | `docker compose restart` |
+| **Rebuild After Code Changes** | `docker compose up --build -d` |
 
 ## 🏗 Frontend Architecture Analysis
 
