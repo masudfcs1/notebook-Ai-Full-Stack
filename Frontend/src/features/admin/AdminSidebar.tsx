@@ -120,10 +120,27 @@ export function AdminSidebar() {
               const isActive = view === item.key;
               const Icon = item.icon;
 
+              const handleNavClick = () => {
+                dispatch(setView(item.key));
+                // Sync Next.js route if desired
+                const routeMap: Record<string, string> = {
+                  "admin-dashboard": "/admin",
+                  "admin-users": "/admin/users",
+                  "admin-roles": "/admin/roles",
+                  "admin-activity": "/admin/activity",
+                  "admin-notifications": "/admin/notifications",
+                  "admin-settings": "/admin/settings",
+                };
+                const targetPath = routeMap[item.key];
+                if (targetPath && router.pathname !== targetPath) {
+                  void router.push(targetPath);
+                }
+              };
+
               const btn = (
                 <button
                   key={item.key}
-                  onClick={() => dispatch(setView(item.key))}
+                  onClick={handleNavClick}
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
@@ -160,6 +177,7 @@ export function AdminSidebar() {
                   )}
                 </button>
               );
+
 
               if (collapsed) {
                 return (
