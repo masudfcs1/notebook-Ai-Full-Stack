@@ -1,13 +1,13 @@
-"use client";
-
 import { toast } from "sonner";
+import { useRouter } from "next/router";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+
 import {
   setView,
   toggleSidebar,
-  markAllNotificationsRead,
 } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   cn,
   getUserDisplayName,
@@ -40,11 +40,26 @@ import { VIEW_METADATA } from "@/constants";
 import type { ViewKey } from "@/types";
 
 export function AdminTopbar() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
   const view = useAppSelector((s) => s.app.view);
-  const notifications = useAppSelector((s) => s.app.notifications);
-  const unread = notifications.filter((n) => !n.read).length;
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+
+  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
+
+  const handleGoToUserDashboard = () => {
+    dispatch(setView("dashboard"));
+    if (activeWorkspace?.slug) {
+      void router.push(`/${activeWorkspace.slug}`);
+    } else {
+      void router.push("/");
+    }
+  };
+
+
 
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
@@ -102,22 +117,22 @@ export function AdminTopbar() {
               className="relative h-10 w-10 rounded-xl border border-border/60 bg-white/40 text-muted-foreground shadow-sm hover:border-rose-500/20 hover:bg-rose-500/5 hover:text-foreground dark:bg-white/[0.035] cursor-pointer"
             >
               <Bell className="h-4 w-4" />
-              {unread > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-rose-500 text-[9px] font-bold text-white shadow-lg shadow-rose-500/40">
-                  {unread}
+                  {unreadCount}
                 </span>
               )}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            className="w-72 border-border bg-popover p-2"
+            className="w-80 border-border bg-popover p-2"
           >
             <DropdownMenuLabel className="flex items-center justify-between text-xs text-foreground">
               <span>Notifications</span>
-              {unread > 0 && (
+              {unreadCount > 0 && (
                 <button
-                  onClick={() => dispatch(markAllNotificationsRead())}
+                  onClick={() => void markAllAsRead()}
                   className="text-[10px] text-rose-400 hover:text-rose-300 cursor-pointer"
                 >
                   Mark all read
@@ -125,22 +140,43 @@ export function AdminTopbar() {
               )}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {notifications.slice(0, 4).map((n) => (
-              <DropdownMenuItem
-                key={n.id}
-                className={cn(
-                  "flex-col items-start gap-0.5 rounded-lg p-2.5 text-xs cursor-pointer",
-                  !n.read && "bg-rose-500/5",
-                )}
-              >
-                <span className="font-medium text-foreground">{n.title}</span>
-                <span className="text-[10px] text-muted-foreground">
-                  {n.description}
-                </span>
-              </DropdownMenuItem>
-            ))}
+            {notifications.length === 0 ? (
+              <div className="py-4 text-center text-xs text-muted-foreground">
+                No notifications yet
+              </div>
+            ) : (
+              <div className="max-h-80 overflow-y-auto scrollbar-thin">
+                {notifications.slice(0, 8).map((n) => (
+                  <DropdownMenuItem
+                    key={n.id}
+                    onClick={() => void markAsRead(n.id)}
+                    className={cn(
+                      "flex-col items-start gap-0.5 rounded-lg p-2.5 text-xs cursor-pointer",
+                      !n.read && "bg-rose-500/5 font-medium",
+                    )}
+                  >
+                    <div className="flex w-full items-center justify-between gap-2">
+                      <span className="font-semibold text-foreground">{n.title}</span>
+                      <span className="text-[9px] text-muted-foreground">{n.time}</span>
+                    </div>
+                    <span className="text-[11px] text-muted-foreground leading-relaxed">
+                      {n.description}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </div>
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() => dispatch(setView("admin-notifications"))}
+              className="justify-center text-xs font-semibold text-rose-500 hover:text-rose-600 cursor-pointer"
+            >
+              Open Notification Manager →
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+
 
         {/* Theme */}
         <ThemeToggle />
@@ -194,12 +230,13 @@ export function AdminTopbar() {
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => dispatch(setView("dashboard"))}
+              onClick={handleGoToUserDashboard}
               className="gap-2 text-xs font-medium cursor-pointer rounded-lg text-foreground"
             >
               <LayoutDashboard className="h-3.5 w-3.5 text-indigo-400" /> User
               Dashboard
             </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {

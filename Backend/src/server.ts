@@ -1,11 +1,13 @@
 import dotenv from 'dotenv';
 import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env'), override: true });
+import http from 'http';
 import app from './app';
 import { env } from './config';
 import { prisma } from './database';
 import { seedSuperAdmin } from './database/seed';
 import { logger } from './logger';
+import { initSocket } from './socket';
 
 const startServer = async (): Promise<void> => {
   try {
@@ -16,13 +18,20 @@ const startServer = async (): Promise<void> => {
     // Seed super admin
     await seedSuperAdmin();
 
+    // Create HTTP server
+    const httpServer = http.createServer(app);
+
+    // Initialize Socket.io
+    initSocket(httpServer);
+
     // Start server
-    const server = app.listen(env.PORT, () => {
+    const server = httpServer.listen(env.PORT, () => {
       logger.info(`Server is running on http://localhost:${env.PORT} in ${env.NODE_ENV} mode`);
 
       logger.info(`Health check: http://localhost:${env.PORT}/health`);
       logger.info(`API Base URL: http://localhost:${env.PORT}/api/v1`);
     });
+
 
     // Graceful shutdown
     const shutdown = async (signal: string): Promise<void> => {

@@ -1,5 +1,8 @@
 import { userRepository } from './repository';
+import { notificationService } from '../notification/service';
+import { NotificationType } from '@prisma/client';
 import { hashPassword } from '@/utils/password';
+
 import { generateUUID } from '@/utils/generators';
 import { MESSAGES } from '@/constants';
 import { AppError } from '@/helpers/error.helper';
@@ -81,7 +84,24 @@ export class UserService {
 
     logger.info({ userId: user.id, email: user.email }, 'User created by admin');
 
+    try {
+      await notificationService.create({
+        type: NotificationType.USER_CREATED,
+        title: 'User Created',
+        message: `User ${user.name || user.username || user.email} was created with role ${user.role}.`,
+        data: {
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (notifErr) {
+      logger.error({ notifErr }, 'Failed to emit USER_CREATED notification in userService.create');
+    }
+
     return toUserResponse(user);
+
   }
 
   async update(
@@ -150,12 +170,32 @@ export class UserService {
       throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
     }
 
+    const previousRole = user.role;
     const updatedUser = await userRepository.updateRole(userId, role);
 
-    logger.info({ userId, role }, 'User role updated');
+    logger.info({ userId, role, previousRole }, 'User role updated');
+
+    try {
+      await notificationService.create({
+        type: NotificationType.ROLE_UPDATED,
+        title: 'User Role Updated',
+        message: `Role for ${updatedUser.name || updatedUser.username || updatedUser.email} was changed from ${previousRole} to ${role}.`,
+        userId: updatedUser.id,
+        data: {
+          userId: updatedUser.id,
+          name: updatedUser.name,
+          email: updatedUser.email,
+          previousRole,
+          newRole: role,
+        },
+      });
+    } catch (notifErr) {
+      logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification');
+    }
 
     return toUserResponse(updatedUser);
   }
+
 
   async getStats() {
     const stats = await userRepository.getStats();

@@ -44,7 +44,7 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
   const view = useAppSelector((s) => s.app.view)
   const user = useAppSelector((s) => s.auth.user)
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated)
-  const adminRedirected = useRef(false)
+  const initialized = useRef(false)
 
   // Fetch current user details if authenticated
   const { data: meResponse } = useGetMeQuery(undefined, { skip: !isAuthenticated })
@@ -52,14 +52,8 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
   useEffect(() => {
     if (meResponse?.success && meResponse?.data) {
       dispatch(setUser(meResponse.data))
-      // Auto-redirect SUPER_ADMIN to admin panel on first load
-      const role = meResponse.data.role
-      if (!adminRedirected.current && (role === "SUPER_ADMIN") && !view.startsWith("admin-")) {
-        adminRedirected.current = true
-        dispatch(setView("admin-dashboard"))
-      }
     }
-  }, [meResponse, dispatch, view])
+  }, [meResponse, dispatch])
 
   // Sync workspace and team from URL slugs
   useEffect(() => {
@@ -83,7 +77,7 @@ export function AppShell({ initialView, workspaceSlug, teamSlug, adminUserId }: 
     if (initialView) {
       dispatch(setView(initialView))
     }
-  }, [])
+  }, [adminUserId, dispatch, initialView])
 
   if (view === "landing" && !workspaceSlug) {
     return (

@@ -31,33 +31,9 @@ const initialState: AppState = {
   selectedAdminUserId: null,
   aiWidgetOpen: false,
   searchQuery: "",
-  notifications: [
-    {
-      id: "n1",
-      title: "Summary ready",
-      description: "Q3 Planning meeting summary was generated.",
-      time: "2m ago",
-      read: false,
-      type: "success",
-    },
-    {
-      id: "n2",
-      title: "New action item assigned",
-      description: "You were assigned 'Draft API spec' — due Friday.",
-      time: "1h ago",
-      read: false,
-      type: "info",
-    },
-    {
-      id: "n3",
-      title: "Storage almost full",
-      description: "You've used 86% of your plan's storage.",
-      time: "3h ago",
-      read: true,
-      type: "warning",
-    },
-  ],
+  notifications: [],
 }
+
 
 const appSlice = createSlice({
   name: "app",
@@ -88,6 +64,9 @@ const appSlice = createSlice({
     setSearchQuery(state, action: PayloadAction<string>) {
       state.searchQuery = action.payload
     },
+    setNotifications(state, action: PayloadAction<NotificationItem[]>) {
+      state.notifications = action.payload
+    },
     markAllNotificationsRead(state) {
       state.notifications.forEach((n) => (n.read = true))
     },
@@ -95,13 +74,36 @@ const appSlice = createSlice({
       const n = state.notifications.find((x) => x.id === action.payload)
       if (n) n.read = true
     },
-    pushNotification(state, action: PayloadAction<Omit<NotificationItem, "id" | "time" | "read">>) {
-      state.notifications.unshift({
-        ...action.payload,
-        id: `n${Date.now()}`,
-        time: "just now",
-        read: false,
-      })
+    pushNotification(
+      state,
+      action: PayloadAction<{
+        id?: string
+        title: string
+        description?: string
+        message?: string
+        time?: string
+        read?: boolean
+        type?: "info" | "success" | "warning"
+      }>
+    ) {
+      const payload = action.payload
+      const id = payload.id || `n${Date.now()}`
+      const description = payload.description || payload.message || ""
+      const time = payload.time || "just now"
+      const read = payload.read ?? false
+      const type = payload.type || "info"
+
+      const existing = state.notifications.find((n) => n.id === id)
+      if (!existing) {
+        state.notifications.unshift({
+          id,
+          title: payload.title,
+          description,
+          time,
+          read,
+          type,
+        })
+      }
     },
   },
 })
@@ -115,6 +117,7 @@ export const {
   toggleAiWidget,
   setAiWidget,
   setSearchQuery,
+  setNotifications,
   markAllNotificationsRead,
   markNotificationRead,
   pushNotification,

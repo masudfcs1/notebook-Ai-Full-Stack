@@ -45,9 +45,12 @@ class ApiService {
    */
   async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
     try {
+      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
           ...options?.headers,
         },
         ...options,
@@ -72,6 +75,69 @@ class ApiService {
       };
     }
   }
+
+  /**
+   * Get all notifications with cursor or offset pagination and filters
+   */
+  async getNotifications(params?: {
+    page?: number;
+    limit?: number;
+    cursor?: string;
+    search?: string;
+    type?: string;
+    read?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const sp = new URLSearchParams();
+    if (params?.page) sp.set("page", String(params.page));
+    if (params?.limit) sp.set("limit", String(params.limit));
+    if (params?.cursor) sp.set("cursor", params.cursor);
+    if (params?.search) sp.set("search", params.search);
+    if (params?.type) sp.set("type", params.type);
+    if (typeof params?.read === "boolean") sp.set("read", String(params.read));
+    if (params?.sortBy) sp.set("sortBy", params.sortBy);
+    if (params?.sortOrder) sp.set("sortOrder", params.sortOrder);
+
+    const qs = sp.toString() ? `?${sp.toString()}` : "";
+    return this.request<any>(`/notifications${qs}`);
+  }
+
+  /**
+   * Delete a notification (Admin only)
+   */
+  async deleteNotification(id: string) {
+    return this.request<any>(`/notifications/${id}`, {
+      method: "DELETE",
+    });
+  }
+
+
+  /**
+   * Mark a single notification as read
+   */
+  async markNotificationRead(id: string) {
+    return this.request<any>(`/notifications/${id}/read`, {
+      method: "PATCH",
+    });
+  }
+
+  /**
+   * Mark all notifications as read
+   */
+  async markAllNotificationsRead() {
+    return this.request<any>("/notifications/read-all", {
+      method: "PATCH",
+    });
+  }
+
+  /**
+   * Get unread notifications count
+   */
+  async getUnreadNotificationCount() {
+    return this.request<{ unreadCount: number }>("/notifications/unread-count");
+  }
+
 
   /**
    * Summarize notes with Gemini AI

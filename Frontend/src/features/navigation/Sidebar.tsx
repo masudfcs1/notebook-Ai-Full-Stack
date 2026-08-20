@@ -23,9 +23,9 @@ import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setView,
   toggleSidebar,
-  markAllNotificationsRead,
 } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
+import { useNotifications } from "@/hooks/useNotifications";
 import {
   setActiveWorkspace,
   setActiveTeam,
@@ -68,8 +68,8 @@ export function Sidebar() {
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
-  const notifications = useAppSelector((s) => s.app.notifications);
-  const unread = notifications.filter((n) => !n.read).length;
+  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
+
 
   // Sync user workspaces from API
   const { data: wsRes } = useGetAllWorkspacesQuery(undefined, {
@@ -450,9 +450,9 @@ export function Sidebar() {
                   className="relative h-8 w-8 rounded-lg bg-sidebar-accent/50"
                 >
                   <Bell className="h-3.5 w-3.5" />
-                  {unread > 0 && (
+                  {unreadCount > 0 && (
                     <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
-                      {unread}
+                      {unreadCount}
                     </span>
                   )}
                 </Button>
@@ -460,37 +460,50 @@ export function Sidebar() {
               <DropdownMenuContent align="end" side="top" className="w-80">
                 <DropdownMenuLabel className="flex items-center justify-between">
                   <span>Notifications</span>
-                  <button
-                    className="text-xs text-indigo-500 hover:underline"
-                    onClick={() => dispatch(markAllNotificationsRead())}
-                  >
-                    Mark all read
-                  </button>
+                  {unreadCount > 0 && (
+                    <button
+                      className="text-xs text-indigo-500 hover:underline cursor-pointer"
+                      onClick={() => void markAllAsRead()}
+                    >
+                      Mark all read
+                    </button>
+                  )}
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <div className="max-h-80 overflow-y-auto scrollbar-thin">
-                  {notifications.map((n) => (
-                    <DropdownMenuItem
-                      key={n.id}
-                      className="flex flex-col items-start gap-0.5 py-2.5"
-                    >
-                      <div className="flex w-full items-center justify-between gap-2">
-                        <span className="text-sm font-medium">{n.title}</span>
-                        {!n.read && (
-                          <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                {notifications.length === 0 ? (
+                  <div className="py-4 text-center text-xs text-muted-foreground">
+                    No notifications yet
+                  </div>
+                ) : (
+                  <div className="max-h-80 overflow-y-auto scrollbar-thin">
+                    {notifications.map((n) => (
+                      <DropdownMenuItem
+                        key={n.id}
+                        onClick={() => void markAsRead(n.id)}
+                        className={cn(
+                          "flex flex-col items-start gap-0.5 py-2.5 cursor-pointer",
+                          !n.read && "bg-indigo-500/5 font-medium",
                         )}
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {n.description}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground/70">
-                        {n.time}
-                      </span>
-                    </DropdownMenuItem>
-                  ))}
-                </div>
+                      >
+                        <div className="flex w-full items-center justify-between gap-2">
+                          <span className="text-sm font-medium">{n.title}</span>
+                          {!n.read && (
+                            <span className="h-2 w-2 rounded-full bg-indigo-500" />
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground leading-relaxed">
+                          {n.description}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground/70">
+                          {n.time}
+                        </span>
+                      </DropdownMenuItem>
+                    ))}
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
+
 
             <button
               onClick={() => dispatch(setView("settings"))}

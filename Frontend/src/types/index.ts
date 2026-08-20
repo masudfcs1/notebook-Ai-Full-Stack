@@ -20,7 +20,9 @@ export type ViewKey =
   | "admin-user-detail"
   | "admin-roles"
   | "admin-activity"
+  | "admin-notifications"
   | "admin-settings"
+
 
 export type PriorityLevel = "urgent" | "high" | "medium" | "low"
 export type TaskStatus = "backlog" | "todo" | "in_progress" | "done" | "pending" | "completed"

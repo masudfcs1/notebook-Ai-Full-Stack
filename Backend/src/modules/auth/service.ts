@@ -1,6 +1,9 @@
 import { authRepository } from './repository';
 import { workspaceRepository } from '../workspace/repository';
+import { notificationService } from '../notification/service';
+import { NotificationType } from '@prisma/client';
 import { hashPassword, comparePassword } from '@/utils/password';
+
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/jwt';
 import { generateOTP, generateUUID, generateVerificationToken } from '@/utils/generators';
 import { addDays } from '@/utils/date';
@@ -68,10 +71,28 @@ export class AuthService {
 
     logger.info({ userId: user.id, email: user.email }, 'User registered');
 
+    // Notify admins about new user registration
+    try {
+      await notificationService.create({
+        type: NotificationType.USER_CREATED,
+        title: 'New User Registered',
+        message: `${user.name || user.username || user.email} just registered an account.`,
+        data: {
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
+    } catch (notifErr) {
+      logger.error({ notifErr }, 'Failed to emit USER_CREATED notification on register');
+    }
+
     return {
       user: toUserResponse(user),
       message: MESSAGES.REGISTER_SUCCESS,
     };
+
   }
 
   async login(

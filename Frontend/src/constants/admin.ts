@@ -10,7 +10,9 @@ import {
   ShieldCheck,
   Activity,
   Settings,
+  Bell,
 } from "lucide-react"
+
 
 export const ADMIN_ROLES = [
   {
@@ -76,8 +78,10 @@ export const ADMIN_NAVIGATION_GROUPS = [
     items: [
       { key: "admin-dashboard" as ViewKey, label: "Dashboard", icon: LayoutDashboard, gradient: "from-rose-500 to-amber-500" },
       { key: "admin-users" as ViewKey, label: "User Management", icon: Users, gradient: "from-violet-500 to-indigo-500" },
+      { key: "admin-notifications" as ViewKey, label: "Notifications", icon: Bell, gradient: "from-amber-500 to-rose-500" },
     ],
   },
+
   {
     section: "Access Control",
     items: [

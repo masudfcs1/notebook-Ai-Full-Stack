@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { useRouter } from "next/router";
 import {
   PanelLeftClose,
   PanelLeft,
@@ -8,6 +9,7 @@ import {
   ArrowLeftRight,
   Shield,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { setView, toggleSidebar } from "@/lib/redux/appSlice";
@@ -30,10 +32,24 @@ import {
 import { ADMIN_NAVIGATION_GROUPS } from "@/constants/admin";
 
 export function AdminSidebar() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
+  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+
+  const handleSwitchToUserPanel = () => {
+    dispatch(setView("dashboard"));
+    if (activeWorkspace?.slug) {
+      void router.push(`/${activeWorkspace.slug}`);
+    } else {
+      void router.push("/");
+    }
+  };
+
 
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
@@ -170,7 +186,7 @@ export function AdminSidebar() {
         {/* Switch to User Panel */}
         {!collapsed ? (
           <button
-            onClick={() => dispatch(setView("dashboard"))}
+            onClick={handleSwitchToUserPanel}
             className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-foreground dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer"
           >
             <ArrowLeftRight className="h-3 w-3" />
@@ -183,7 +199,7 @@ export function AdminSidebar() {
                 variant="ghost"
                 size="icon"
                 className="mb-2 h-8 w-full text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-                onClick={() => dispatch(setView("dashboard"))}
+                onClick={handleSwitchToUserPanel}
               >
                 <ArrowLeftRight className="h-3.5 w-3.5" />
               </Button>
@@ -193,6 +209,7 @@ export function AdminSidebar() {
             </TooltipContent>
           </Tooltip>
         )}
+
 
         {/* User info */}
         <div className="flex items-center gap-3">

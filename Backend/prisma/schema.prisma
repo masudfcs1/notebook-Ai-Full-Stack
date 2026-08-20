@@ -58,6 +58,7 @@ model User {
   notes        MeetingNote[]
   memberships  TeamMember[]
   workspaces   Workspace[]
+  notifications Notification[]
 
   @@index([email])
   @@index([uuid])
@@ -211,3 +212,31 @@ model ActionItem {
   @@index([teamId])
   @@map("action_items")
 }
+
+enum NotificationType {
+  USER_CREATED
+  WORKSPACE_CREATED
+  TEAM_CREATED
+  ROLE_UPDATED
+  SYSTEM
+}
+
+
+model Notification {
+  id        String           @id @default(cuid())
+  type      NotificationType @default(SYSTEM)
+  title     String
+  message   String
+  read      Boolean          @default(false)
+  data      Json?
+  userId    Int?
+  user      User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+

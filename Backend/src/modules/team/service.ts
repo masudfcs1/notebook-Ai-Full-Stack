@@ -1,5 +1,7 @@
 import { teamRepository } from './repository';
 import { workspaceRepository } from '../workspace/repository';
+import { notificationService } from '../notification/service';
+import { NotificationType } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
 import { toTeamResponse, toTeamListResponse } from './dto';
 import { CreateTeamData, UpdateTeamData } from './types';
@@ -20,8 +22,27 @@ export class TeamService {
     });
 
     logger.info(`Team created: ${team.name} (${team.id}) in workspace ${data.workspaceId}`);
+
+    try {
+      await notificationService.create({
+        type: NotificationType.TEAM_CREATED,
+        title: 'New Team Created',
+        message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
+        data: {
+          teamId: team.id,
+          name: team.name,
+          key: team.key,
+          workspaceId: workspace.id,
+          workspaceName: workspace.name,
+        },
+      });
+    } catch (notifErr) {
+      logger.error({ notifErr }, 'Failed to emit TEAM_CREATED notification');
+    }
+
     return toTeamResponse(team);
   }
+
 
   async findByWorkspaceId(workspaceId: string) {
     const teams = await teamRepository.findByWorkspaceId(workspaceId);

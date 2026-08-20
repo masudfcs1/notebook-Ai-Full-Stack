@@ -1,4 +1,6 @@
 import { workspaceRepository, FindWorkspacesOptions } from './repository';
+import { notificationService } from '../notification/service';
+import { NotificationType } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
 import { toWorkspaceResponse, toWorkspaceListResponse } from './dto';
 import { CreateWorkspaceData, UpdateWorkspaceData } from './types';
@@ -28,8 +30,26 @@ export class WorkspaceService {
     });
 
     logger.info(`Workspace created: ${workspace.name} (${workspace.id}) by user ${data.userId}`);
+
+    try {
+      await notificationService.create({
+        type: NotificationType.WORKSPACE_CREATED,
+        title: 'New Workspace Created',
+        message: `Workspace "${workspace.name}" was created.`,
+        data: {
+          workspaceId: workspace.id,
+          name: workspace.name,
+          slug: workspace.slug,
+          userId: data.userId,
+        },
+      });
+    } catch (notifErr) {
+      logger.error({ notifErr }, 'Failed to emit WORKSPACE_CREATED notification');
+    }
+
     return toWorkspaceResponse(workspace);
   }
+
 
   async findAll(options: FindWorkspacesOptions) {
     const result = await workspaceRepository.findAll(options);

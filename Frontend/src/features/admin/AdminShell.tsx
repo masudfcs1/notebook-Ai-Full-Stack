@@ -8,6 +8,7 @@ import { AdminUsersView } from "@/components/views/admin/admin-users-view"
 import { AdminUserDetailView } from "@/components/views/admin/admin-user-detail-view"
 import { AdminRolesView } from "@/components/views/admin/admin-roles-view"
 import { AdminActivityView } from "@/components/views/admin/admin-activity-view"
+import { AdminNotificationsView } from "@/components/views/admin/admin-notifications-view"
 import { AdminSettingsView } from "@/components/views/admin/admin-settings-view"
 import { AnimatePresence, motion } from "framer-motion"
 import type { ViewKey } from "@/types"
@@ -18,6 +19,7 @@ const ADMIN_VIEW_REGISTRY: Record<string, React.ComponentType> = {
   "admin-user-detail": AdminUserDetailView,
   "admin-roles": AdminRolesView,
   "admin-activity": AdminActivityView,
+  "admin-notifications": AdminNotificationsView,
   "admin-settings": AdminSettingsView,
 }
 

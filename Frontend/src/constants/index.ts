@@ -39,8 +39,10 @@ export const VIEW_METADATA: Record<ViewKey, ViewMetadata> = {
   "admin-user-detail": { title: "User Overview", subtitle: "Workspace & team hierarchy details", sysCode: "SYS.ADMIN.USER_DETAIL" },
   "admin-roles": { title: "Roles & Permissions", subtitle: "Role hierarchy & access control", sysCode: "SYS.ADMIN.RBAC" },
   "admin-activity": { title: "Activity Log", subtitle: "System activity & audit trail", sysCode: "SYS.ADMIN.AUDIT" },
+  "admin-notifications": { title: "Notification Manager", subtitle: "Real-time system events & alert telemetry", sysCode: "SYS.ADMIN.NOTIF" },
   "admin-settings": { title: "Admin Settings", subtitle: "System configuration & preferences", sysCode: "SYS.ADMIN.CONFIG" },
 }
+
 
 export const NAVIGATION_GROUPS = [
   {
