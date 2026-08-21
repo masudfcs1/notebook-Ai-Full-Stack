@@ -265,7 +265,7 @@ export function SummaryView() {
                 {note.source}
               </Badge>
             </div>
-            <div className="max-h-[560px] overflow-y-auto scrollbar-thin whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+            <div className="max-h-[560] overflow-y-auto scrollbar-thin whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
               {note.content}
             </div>
           </Card>
@@ -290,7 +290,7 @@ export function SummaryView() {
               {summary && <SentimentBadge sentiment={summary.sentiment} />}
             </div>
 
-            <div className="relative max-h-[560px] space-y-4 overflow-y-auto scrollbar-thin">
+            <div className="relative max-h-[560] space-y-4 overflow-y-auto scrollbar-thin">
               <AnimatePresence mode="wait">
                 {generating ? (
                   <motion.div

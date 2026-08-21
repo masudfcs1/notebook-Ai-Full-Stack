@@ -60,7 +60,7 @@ export function MobileSidebar() {
                     className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all cursor-pointer ${
                       active
                         ? "bg-linear-to-r from-indigo-500/14 to-violet-500/8 text-foreground ring-1 ring-indigo-500/10"
-                        : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/[0.045]"
+                        : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/2"
                     }`}
                   >
                     <span

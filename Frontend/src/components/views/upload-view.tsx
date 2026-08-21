@@ -439,7 +439,7 @@ export function UploadView() {
               value={manualContent}
               onChange={(e) => setManualContent(e.target.value)}
               placeholder="Paste or write your meeting notes here…"
-              className="min-h-[320px] w-full resize-none rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm leading-relaxed outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
+              className="min-h-[320] w-full resize-none rounded-xl border border-border/60 bg-muted/30 px-4 py-3 text-sm leading-relaxed outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20"
             />
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
