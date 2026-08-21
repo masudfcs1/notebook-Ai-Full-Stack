@@ -76,7 +76,7 @@ export function Topbar() {
   const meta = VIEW_METADATA[view] ?? VIEW_METADATA.dashboard;
 
   return (
-    <header className="dashboard-topbar sticky top-0 z-20 flex h-[72px] items-center justify-between gap-3 border-b px-4 md:px-7">
+    <header className="dashboard-topbar sticky top-0 z-20 flex h-[72] items-center justify-between gap-3 border-b px-4 md:px-7">
       {/* Left: Mobile trigger & Digital Breadcrumbs / Titles */}
       <div className="flex items-center gap-3.5 min-w-0">
         <Button

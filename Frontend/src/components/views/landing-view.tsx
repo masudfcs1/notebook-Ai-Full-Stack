@@ -92,7 +92,7 @@ export function LandingView() {
   return (
     <div className="landing-page landing-atmosphere min-h-screen overflow-x-hidden bg-[#f5f7ff] text-slate-950 selection:bg-blue-600 selection:text-white dark:bg-[#050817] dark:text-white">
       <header className="fixed inset-x-0 top-0 z-50 px-3 pt-3 sm:px-5 sm:pt-4">
-        <div className="landing-nav-glass mx-auto flex h-[62px] max-w-[1180px] items-center justify-between rounded-[20px] px-4 sm:px-5 lg:px-6">
+        <div className="landing-nav-glass mx-auto flex h-[62] max-w-[1180] items-center justify-between rounded-[20px] px-4 sm:px-5 lg:px-6">
           <a
             href="#top"
             className="flex items-center gap-2.5"
@@ -121,8 +121,8 @@ export function LandingView() {
               className="grid h-9 w-9 place-items-center rounded-full border border-transparent text-slate-500 transition hover:border-slate-200 hover:bg-white/70 dark:text-slate-400 dark:hover:border-white/10 dark:hover:bg-white/10"
               aria-label="Toggle color theme"
             >
-              <Sun className="hidden h-[18px] w-[18px] dark:block" />
-              <Moon className="h-[18px] w-[18px] dark:hidden" />
+              <Sun className="hidden h-[18] w-[18] dark:block" />
+              <Moon className="h-[18] w-[18] dark:hidden" />
             </button>
             {!isAuthenticated && (
               <Button
@@ -157,7 +157,7 @@ export function LandingView() {
           </div>
         </div>
         {menuOpen && (
-          <nav className="landing-nav-glass mx-auto mt-2 max-w-[1180px] rounded-[20px] p-3 lg:hidden">
+          <nav className="landing-nav-glass mx-auto mt-2 max-w-[1180] rounded-[20px] p-3 lg:hidden">
             {nav.map(([label, href]) => (
               <a
                 key={label}
@@ -173,12 +173,12 @@ export function LandingView() {
       </header>
 
       <main id="top">
-        <section className="relative overflow-hidden pb-20 pt-36 sm:pb-24 sm:pt-44 lg:min-h-[820px] lg:pb-32 lg:pt-48">
+        <section className="relative overflow-hidden pb-20 pt-36 sm:pb-24 sm:pt-44 lg:min-h-[820] lg:pb-32 lg:pt-48">
           <div className="landing-grid pointer-events-none absolute inset-0 opacity-70 dark:opacity-35" />
-          <div className="landing-orb landing-orb-blue pointer-events-none absolute -left-40 top-20 h-[520px] w-[520px] rounded-full" />
-          <div className="landing-orb landing-orb-violet pointer-events-none absolute -right-36 top-32 h-[560px] w-[560px] rounded-full" />
-          <div className="landing-orb landing-orb-cyan pointer-events-none absolute left-[42%] top-[62%] h-[360px] w-[360px] rounded-full" />
-          <div className="relative mx-auto grid max-w-[1240px] items-center gap-16 px-5 lg:grid-cols-[0.88fr_1.12fr] lg:gap-14 lg:px-8">
+          <div className="landing-orb landing-orb-blue pointer-events-none absolute -left-40 top-20 h-[520] w-[520] rounded-full" />
+          <div className="landing-orb landing-orb-violet pointer-events-none absolute -right-36 top-32 h-[560] w-[560] rounded-full" />
+          <div className="landing-orb landing-orb-cyan pointer-events-none absolute left-[42%] top-[62%] h-[360] w-[360] rounded-full" />
+          <div className="relative mx-auto grid max-w-[1240] items-center gap-16 px-5 lg:grid-cols-[0.88fr_1.12fr] lg:gap-14 lg:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -193,7 +193,7 @@ export function LandingView() {
                 Turn every meeting into{" "}
                 <span className="landing-text-gradient">momentum.</span>
               </h1>
-              <p className="mt-7 max-w-[35rem] text-[1.05rem] leading-[1.75] tracking-[-0.01em] text-slate-600 sm:text-lg dark:text-slate-300">
+              <p className="mt-7 max-w-[35] text-[1.05rem] leading-[1.75] tracking-[-0.01em] text-slate-600 sm:text-lg dark:text-slate-300">
                 NoteFlow captures the conversation, finds the signal, and turns
                 every decision into accountable action&mdash;before momentum is
                 lost.
@@ -236,7 +236,7 @@ export function LandingView() {
         </section>
 
         <section className="relative z-10 px-5">
-          <div className="landing-logo-cloud mx-auto flex max-w-[1120px] -translate-y-7 flex-col items-center gap-7 rounded-[1.6rem] px-6 py-7 sm:flex-row sm:justify-between">
+          <div className="landing-logo-cloud mx-auto flex max-w-[1120] -translate-y-7 flex-col items-center gap-7 rounded-[1.6rem] px-6 py-7 sm:flex-row sm:justify-between">
             <p className="text-center text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 sm:text-left">
               Trusted by teams building what&apos;s next
             </p>
@@ -262,8 +262,8 @@ export function LandingView() {
           className="relative py-20 sm:py-28"
           aria-labelledby="benefit-heading"
         >
-          <div className="landing-orb landing-orb-violet pointer-events-none absolute -left-64 top-1/3 h-[460px] w-[460px] rounded-full opacity-50" />
-          <div className="mx-auto max-w-[1240px] px-5 lg:px-8">
+          <div className="landing-orb landing-orb-violet pointer-events-none absolute -left-64 top-1/3 h-[460] w-[460] rounded-full opacity-50" />
+          <div className="mx-auto max-w-[1240] px-5 lg:px-8">
             <motion.div {...fadeUp} className="mx-auto max-w-3xl text-center">
               <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
                 From talk to traction
@@ -298,7 +298,7 @@ export function LandingView() {
                       {benefit.number}
                     </span>
                   </div>
-                  <h3 className="mt-7 text-xl font-semibold tracking-[-0.025em]">
+                  <h3 className="mt-7 text-xl font-semibold tracking-[-0.025]">
                     {benefit.title}
                   </h3>
                   <p className="mt-3 min-h-20 text-sm leading-6 text-slate-600 dark:text-slate-400">
@@ -315,11 +315,11 @@ export function LandingView() {
           id="workflow"
           className="relative scroll-mt-24 px-5 py-10 text-white sm:py-16"
         >
-          <div className="landing-dark-panel relative mx-auto max-w-[1220px] overflow-hidden rounded-[2.25rem] px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
+          <div className="landing-dark-panel relative mx-auto max-w-[1220] overflow-hidden rounded-[2.25rem] px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
             <div className="landing-grid pointer-events-none absolute inset-0 opacity-15" />
             <div className="pointer-events-none absolute -right-32 -top-32 h-96 w-96 rounded-full bg-violet-500/25 blur-[100px]" />
             <div className="pointer-events-none absolute -bottom-32 left-1/4 h-96 w-96 rounded-full bg-blue-500/20 blur-[110px]" />
-            <div className="relative mx-auto grid max-w-[1080px] gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
+            <div className="relative mx-auto grid max-w-[1080] gap-12 lg:grid-cols-[0.72fr_1.28fr] lg:gap-20">
               <motion.div {...fadeUp}>
                 <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-300">
                   A simpler workflow
@@ -341,7 +341,7 @@ export function LandingView() {
                     key={title}
                     className="landing-workflow-row group grid grid-cols-[42px_1fr] gap-4 rounded-2xl p-5 transition-colors sm:grid-cols-[52px_150px_1fr] sm:items-center"
                   >
-                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-white/[0.06] text-xs font-semibold text-blue-200 transition group-hover:border-blue-300/40 group-hover:bg-blue-400/10">
+                    <span className="grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-white/6 text-xs font-semibold text-blue-200 transition group-hover:border-blue-300/40 group-hover:bg-blue-400/10">
                       0{index + 1}
                     </span>
                     <h3 className="text-base font-semibold sm:text-lg">
@@ -361,10 +361,10 @@ export function LandingView() {
           id="results"
           className="relative scroll-mt-24 px-5 py-20 sm:py-28"
         >
-          <div className="landing-orb landing-orb-cyan pointer-events-none absolute -right-48 top-12 h-[480px] w-[480px] rounded-full opacity-60" />
+          <div className="landing-orb landing-orb-cyan pointer-events-none absolute -right-48 top-12 h-[480] w-[480] rounded-full opacity-60" />
           <motion.div
             {...fadeUp}
-            className="landing-results-card relative mx-auto max-w-[1160px] overflow-hidden rounded-[2.25rem] text-white"
+            className="landing-results-card relative mx-auto max-w-[1160] overflow-hidden rounded-[2.25rem] text-white"
           >
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.12),transparent_42%)]" />
             <div className="relative grid lg:grid-cols-[1.15fr_0.85fr]">
@@ -373,7 +373,7 @@ export function LandingView() {
                   <Sparkles className="h-4 w-4 fill-blue-200 text-blue-200" />{" "}
                   Customer story
                 </div>
-                <blockquote className="max-w-2xl text-2xl font-medium leading-[1.35] tracking-[-0.025em] sm:text-4xl">
+                <blockquote className="max-w-2xl text-2xl font-medium leading-[1.35] tracking-[-0.025] sm:text-4xl">
                   &ldquo;NoteFlow gave us back the first ten minutes of every
                   workday. Everyone arrives informed, and every decision has an
                   owner.&rdquo;
@@ -390,7 +390,7 @@ export function LandingView() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-2 border-t border-white/15 bg-white/[0.06] backdrop-blur-xl lg:grid-cols-1 lg:border-l lg:border-t-0">
+              <div className="grid grid-cols-2 border-t border-white/15 bg-white/6 backdrop-blur-xl lg:grid-cols-1 lg:border-l lg:border-t-0">
                 <Metric value="6.4 hrs" label="saved per person, every month" />
                 <Metric
                   value="91%"
@@ -411,7 +411,7 @@ export function LandingView() {
         <section id="security" className="scroll-mt-24 px-5 py-6">
           <motion.div
             {...fadeUp}
-            className="landing-security-card mx-auto grid max-w-[1100px] gap-8 rounded-[1.75rem] p-7 sm:grid-cols-[auto_1fr] sm:items-center sm:p-9"
+            className="landing-security-card mx-auto grid max-w-[1100] gap-8 rounded-[1.75rem] p-7 sm:grid-cols-[auto_1fr] sm:items-center sm:p-9"
           >
             <div className="grid h-16 w-16 place-items-center rounded-2xl border border-emerald-200/60 bg-emerald-50/80 text-emerald-600 shadow-[0_12px_30px_-16px_rgba(5,150,105,0.5)] dark:border-emerald-400/15 dark:bg-emerald-500/10">
               <ShieldCheck className="h-8 w-8" />
@@ -445,10 +445,10 @@ export function LandingView() {
         <section className="px-5 py-20 sm:py-28">
           <motion.div
             {...fadeUp}
-            className="landing-cta-panel relative mx-auto max-w-[1040px] overflow-hidden rounded-[2.25rem] px-6 py-16 text-center sm:px-10 sm:py-20"
+            className="landing-cta-panel relative mx-auto max-w-[1040] overflow-hidden rounded-[2.25rem] px-6 py-16 text-center sm:px-10 sm:py-20"
           >
             <div className="landing-grid pointer-events-none absolute inset-0 opacity-25" />
-            <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/30 blur-[90px]" />
+            <div className="pointer-events-none absolute left-1/2 top-0 h-72 w-[620] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-400/30 blur-[90px]" />
             <div className="relative">
               <p className="mb-4 text-xs font-bold uppercase tracking-[0.2em] text-blue-200">
                 Your next meeting can be different
@@ -476,8 +476,8 @@ export function LandingView() {
         </section>
       </main>
 
-      <footer className="border-t border-slate-200/60 bg-white/35 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.02]">
-        <div className="mx-auto max-w-[1240px] px-5 py-10 lg:px-8">
+      <footer className="border-t border-slate-200/60 bg-white/35 backdrop-blur-xl dark:border-white/10 dark:bg-white/2">
+        <div className="mx-auto max-w-[1240] px-5 py-10 lg:px-8">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <div className="flex items-center gap-2.5">
@@ -575,8 +575,8 @@ function InteractiveProductPreview() {
           <span className="h-6 w-6 rounded-full bg-gradient-lr from-blue-500 to-violet-600 sm:hidden" />
         </div>
 
-        <div className="grid min-h-[445px] grid-cols-[58px_1fr] sm:grid-cols-[158px_1fr]">
-          <aside className="flex flex-col border-r border-slate-200/60 bg-white/30 p-2.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.025] sm:p-3">
+        <div className="grid min-h-445px grid-cols-[58px_1fr] sm:grid-cols-[158px_1fr]">
+          <aside className="flex flex-col border-r border-slate-200/60 bg-white/30 p-2.5 backdrop-blur-xl dark:border-white/10 dark:bg-white/2 sm:p-3">
             <div className="mb-5 flex items-center gap-2 px-1 py-1.5">
               <Logo size={26} />
               <div className="hidden min-w-0 sm:block">
@@ -638,7 +638,7 @@ function InteractiveProductPreview() {
                 <p className="text-[8px] font-bold uppercase tracking-[0.16em] text-blue-600 dark:text-blue-400">
                   NoteFlow workspace
                 </p>
-                <h3 className="mt-1 text-sm font-semibold tracking-[-0.025em] sm:text-base">
+                <h3 className="mt-1 text-sm font-semibold tracking-[-0.025] sm:text-base">
                   {previewTabs[activeTab].label}
                 </h3>
               </div>
@@ -667,7 +667,7 @@ function InteractiveProductPreview() {
           </div>
         </div>
 
-        <div className="absolute bottom-0 left-[58px] right-0 h-0.5 bg-slate-100 dark:bg-white/5 sm:left-[158px]">
+        <div className="absolute bottom-0 left-[58] right-0 h-0.5 bg-slate-100 dark:bg-white/5 sm:left-[158]">
           <motion.div
             key={`progress-${activeTab}`}
             initial={{ width: 0 }}
@@ -923,9 +923,9 @@ function PreviewStat({
 }) {
   return (
     <div
-      className={`rounded-xl border border-slate-200 bg-white p-2.5 dark:border-white/10 dark:bg-white/[0.025] ${hide ? "hidden sm:block" : ""}`}
+      className={`rounded-xl border border-slate-200 bg-white p-2.5 dark:border-white/10 dark:bg-white/2 ${hide ? "hidden sm:block" : ""}`}
     >
-      <p className="text-[7px] font-bold uppercase tracking-[0.1em] text-slate-400">
+      <p className="text-[7px] font-bold uppercase tracking-[0.1] text-slate-400">
         {label}
       </p>
       <div className="mt-1 flex items-end justify-between gap-1">
