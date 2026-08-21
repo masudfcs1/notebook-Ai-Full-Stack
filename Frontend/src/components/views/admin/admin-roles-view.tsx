@@ -41,7 +41,7 @@ export function AdminRolesView() {
               <Card className="relative overflow-hidden border-border/60 bg-card/70 p-0 backdrop-blur-sm transition-all hover:bg-muted/60">
                 <div className="flex items-stretch">
                   {/* Level bar */}
-                  <div className={`w-1.5 bg-gradient-to-b ${role.color}`} />
+                  <div className={`w-1.5 bg-gradient-to-lr ${role.color}`} />
 
                   <div className="flex flex-1 items-center gap-4 p-5">
                     {/* Icon */}

@@ -125,7 +125,7 @@ export function DashboardView() {
   const maxWeekly = Math.max(...weekly.map((w) => w.value));
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-6">
+    <div className="mx-auto max-w-[1320] space-y-6">
       {/* Welcome banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -223,7 +223,7 @@ export function DashboardView() {
       {/* Main grid: recent + side */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Recent activity */}
-        <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6 lg:col-span-2">
+        <Card className="dashboard-glass-card rounded-[1.5] p-5 md:p-6 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold">Recent Activity</h3>
@@ -331,7 +331,7 @@ export function DashboardView() {
         {/* Side column */}
         <div className="space-y-6">
           {/* Quick actions */}
-          <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6">
+          <Card className="dashboard-glass-card rounded-[1.5] p-5 md:p-6">
             <h3 className="mb-4 text-base font-semibold">Quick Actions</h3>
             <div className="grid grid-cols-2 gap-2.5">
               {QUICK_ACTIONS.map((a) => (
@@ -362,7 +362,7 @@ export function DashboardView() {
           </Card>
 
           {/* Weekly chart */}
-          <Card className="dashboard-glass-card rounded-[1.5rem] p-5 md:p-6">
+          <Card className="dashboard-glass-card rounded-[1.5] p-5 md:p-6">
             <div className="mb-4 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold">This Week</h3>
@@ -387,7 +387,7 @@ export function DashboardView() {
                       stiffness: 120,
                       damping: 18,
                     }}
-                    className="w-full rounded-t-md bg-gradient-to-t from-indigo-500 to-violet-400"
+                    className="w-full rounded-t-md bg-gradient-to-lr from-indigo-500 to-violet-400"
                     style={{ minHeight: 6 }}
                   />
                   <span className="text-[10px] text-muted-foreground">

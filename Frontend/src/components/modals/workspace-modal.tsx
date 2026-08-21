@@ -287,7 +287,7 @@ export function WorkspaceModal({
                 placeholder="acme-corp"
                 value={slug}
                 onChange={(e) => handleSlugChange(e.target.value)}
-                className={`w-full rounded-xl border px-3.5 py-2 text-sm outline-none font-mono text-xs transition-all ${
+                className={`w-full rounded-xl border px-3.5 py-2 text-md outline-none font-mono text-xs transition-all ${
                   isSlugTaken
                     ? "border-rose-500 bg-rose-500/10 text-rose-600 dark:text-rose-400 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20"
                     : "border-border/60 bg-muted/30 focus:border-primary focus:ring-2 focus:ring-primary/20"

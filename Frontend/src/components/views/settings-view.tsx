@@ -97,10 +97,10 @@ export function SettingsView() {
   const [email, setEmail] = useState(user?.email || "");
   const [role, setRole] = useState(user?.role || "Member");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
-  
+
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  
+
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [prefs, setPrefs] = useState({
@@ -175,7 +175,9 @@ export function SettingsView() {
 
   async function handleChangePassword() {
     if (!newPassword || !confirmPassword) {
-      toast.error("Please fill in both new password and confirm password fields");
+      toast.error(
+        "Please fill in both new password and confirm password fields",
+      );
       return;
     }
     if (newPassword.length < 8) {
@@ -199,7 +201,10 @@ export function SettingsView() {
       return;
     }
     try {
-      const res = await changePasswordApi({ newPassword, confirmPassword }).unwrap();
+      const res = await changePasswordApi({
+        newPassword,
+        confirmPassword,
+      }).unwrap();
       if (res.success || res.message) {
         toast.success(res.message || "Password updated successfully");
         setNewPassword("");
@@ -571,7 +576,11 @@ export function SettingsView() {
                     onClick={() => setShowNew(!showNew)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    {showNew ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showNew ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-1">
@@ -593,18 +602,22 @@ export function SettingsView() {
                     onClick={() => setShowConfirm(!showConfirm)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showConfirm ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </Field>
             </div>
             <div className="mt-5 flex justify-end">
-              <Button 
+              <Button
                 onClick={handleChangePassword}
                 disabled={isChangingPassword}
-                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
+                className="gap-2 rounded-xl bg-gradient-to-lr from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
               >
-                <Lock className="h-4 w-4" /> 
+                <Lock className="h-4 w-4" />
                 {isChangingPassword ? "Updating..." : "Update password"}
               </Button>
             </div>
