@@ -67,6 +67,46 @@ class UserController {
         const stats = await service_1.userService.getStats();
         return (0, response_1.sendSuccess)(res, 'Admin stats fetched successfully', stats);
     });
+    getLoginHistory = (0, async_1.catchAsync)(async (req, res, _next) => {
+        const { page, limit, search, userId, successful, sortBy, sortOrder } = req.query;
+        const isSuccessful = successful === 'true' ? true : successful === 'false' ? false : undefined;
+        const result = await service_1.userService.getLoginHistory({
+            page: parseInt(page || '1', 10),
+            limit: parseInt(limit || '20', 10),
+            search,
+            userId: userId ? parseInt(userId, 10) : undefined,
+            successful: isSuccessful,
+            sortBy: sortBy || 'createdAt',
+            sortOrder: sortOrder || 'desc',
+        });
+        return res.status(constants_1.HTTP_STATUS.OK).json({
+            success: true,
+            message: 'Login history retrieved successfully',
+            data: result.data,
+            stats: result.stats,
+            meta: result.meta,
+        });
+    });
+    getUserLoginHistory = (0, async_1.catchAsync)(async (req, res, _next) => {
+        const { id } = req.params;
+        const { page, limit, search, successful, sortBy, sortOrder } = req.query;
+        const isSuccessful = successful === 'true' ? true : successful === 'false' ? false : undefined;
+        const result = await service_1.userService.getUserLoginHistory(parseInt(id, 10), {
+            page: parseInt(page || '1', 10),
+            limit: parseInt(limit || '20', 10),
+            search,
+            successful: isSuccessful,
+            sortBy: sortBy || 'createdAt',
+            sortOrder: sortOrder || 'desc',
+        });
+        return res.status(constants_1.HTTP_STATUS.OK).json({
+            success: true,
+            message: 'User login history retrieved successfully',
+            data: result.data,
+            stats: result.stats,
+            meta: result.meta,
+        });
+    });
 }
 exports.UserController = UserController;
 exports.userController = new UserController();

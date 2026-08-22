@@ -10,6 +10,8 @@ import {
   UpdateUserStatusSchema,
   UpdateUserRoleSchema,
   DeleteUserParamsSchema,
+  GetLoginHistoryQuerySchema,
+  GetUserLoginHistoryParamsSchema,
 } from './validation';
 import { Role } from '@prisma/client';
 
@@ -26,6 +28,13 @@ router.get(
 
 router.get('/stats', authorize(Role.SUPER_ADMIN, Role.ADMIN), userController.getStats);
 
+router.get(
+  '/login-history',
+  authorize(Role.SUPER_ADMIN, Role.ADMIN),
+  validate(GetLoginHistoryQuerySchema),
+  userController.getLoginHistory
+);
+
 router.patch(
   '/status',
   authorize(Role.SUPER_ADMIN, Role.ADMIN),
@@ -38,6 +47,13 @@ router.patch(
   authorize(Role.SUPER_ADMIN),
   validate(UpdateUserRoleSchema),
   userController.updateRole
+);
+
+router.get(
+  '/:id/login-history',
+  authorize(Role.SUPER_ADMIN, Role.ADMIN, Role.MANAGER),
+  validate(GetUserLoginHistoryParamsSchema),
+  userController.getUserLoginHistory
 );
 
 router.get(
@@ -69,3 +85,4 @@ router.delete(
 );
 
 export default router;
+

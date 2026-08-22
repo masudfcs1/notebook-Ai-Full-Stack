@@ -97,6 +97,72 @@ export class UserController {
 
     return sendSuccess(res, 'Admin stats fetched successfully', stats);
   });
+
+  getLoginHistory = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+    const { page, limit, search, userId, successful, sortBy, sortOrder } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+      userId?: string;
+      successful?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    };
+
+    const isSuccessful =
+      successful === 'true' ? true : successful === 'false' ? false : undefined;
+
+    const result = await userService.getLoginHistory({
+      page: parseInt(page || '1', 10),
+      limit: parseInt(limit || '20', 10),
+      search,
+      userId: userId ? parseInt(userId, 10) : undefined,
+      successful: isSuccessful,
+      sortBy: sortBy || 'createdAt',
+      sortOrder: sortOrder || 'desc',
+    });
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'Login history retrieved successfully',
+      data: result.data,
+      stats: result.stats,
+      meta: result.meta,
+    });
+  });
+
+  getUserLoginHistory = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+    const { id } = req.params;
+    const { page, limit, search, successful, sortBy, sortOrder } = req.query as {
+      page?: string;
+      limit?: string;
+      search?: string;
+      successful?: string;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    };
+
+    const isSuccessful =
+      successful === 'true' ? true : successful === 'false' ? false : undefined;
+
+    const result = await userService.getUserLoginHistory(parseInt(id, 10), {
+      page: parseInt(page || '1', 10),
+      limit: parseInt(limit || '20', 10),
+      search,
+      successful: isSuccessful,
+      sortBy: sortBy || 'createdAt',
+      sortOrder: sortOrder || 'desc',
+    });
+
+    return res.status(HTTP_STATUS.OK).json({
+      success: true,
+      message: 'User login history retrieved successfully',
+      data: result.data,
+      stats: result.stats,
+      meta: result.meta,
+    });
+  });
 }
 
 export const userController = new UserController();
+

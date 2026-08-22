@@ -392,6 +392,136 @@ export class UserRepository {
       recentUsers,
     };
   }
+
+  async getLoginHistory(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    userId?: number;
+    successful?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const { page, limit, search, userId, successful, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(Math.max(1, limit), 100);
+
+    const where: any = {
+      ...(userId && { userId }),
+      ...(typeof successful === 'boolean' && { successful }),
+      ...(search && {
+        OR: [
+          { ipAddress: { contains: search, mode: 'insensitive' as const } },
+          { browser: { contains: search, mode: 'insensitive' as const } },
+          { os: { contains: search, mode: 'insensitive' as const } },
+          { device: { contains: search, mode: 'insensitive' as const } },
+          { message: { contains: search, mode: 'insensitive' as const } },
+          {
+            user: {
+              OR: [
+                { name: { contains: search, mode: 'insensitive' as const } },
+                { email: { contains: search, mode: 'insensitive' as const } },
+                { username: { contains: search, mode: 'insensitive' as const } },
+              ],
+            },
+          },
+        ],
+      }),
+    };
+
+    const allowedSortFields = ['id', 'createdAt', 'ipAddress', 'device', 'browser', 'os'];
+    const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
+    const orderBy = [{ [safeSortBy]: sortOrder }, { id: sortOrder }];
+
+    const [data, total] = await Promise.all([
+      prisma.loginHistory.findMany({
+        where,
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
+        orderBy: orderBy as any,
+        include: {
+          user: {
+            select: {
+              id: true,
+              uuid: true,
+              name: true,
+              username: true,
+              email: true,
+              avatar: true,
+              role: true,
+              status: true,
+            },
+          },
+        },
+      }),
+      prisma.loginHistory.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(total / safeLimit);
+
+    return {
+      data,
+      meta: {
+        page: safePage,
+        limit: safeLimit,
+        total,
+        totalPages,
+        hasNext: safePage < totalPages,
+        hasPrev: safePage > 1,
+      },
+    };
+  }
+
+  async getLoginStats(userId?: number) {
+    const where = userId ? { userId } : {};
+
+    const [totalLogins, successfulLogins, failedLogins, lastLoginRecord, allRecords] =
+      await Promise.all([
+        prisma.loginHistory.count({ where }),
+        prisma.loginHistory.count({ where: { ...where, successful: true } }),
+        prisma.loginHistory.count({ where: { ...where, successful: false } }),
+        prisma.loginHistory.findFirst({
+          where: { ...where, successful: true },
+          orderBy: { createdAt: 'desc' },
+          select: { createdAt: true },
+        }),
+        prisma.loginHistory.findMany({
+          where,
+          select: { ipAddress: true, device: true, browser: true, os: true },
+          take: 500,
+          orderBy: { createdAt: 'desc' },
+        }),
+      ]);
+
+    const uniqueIps = new Set(allRecords.map((r) => r.ipAddress).filter(Boolean)).size;
+    const uniqueDevices = new Set(allRecords.map((r) => r.device).filter(Boolean)).size;
+    const successRate =
+      totalLogins > 0 ? Number(((successfulLogins / totalLogins) * 100).toFixed(1)) : 100;
+
+    const browserCounts: Record<string, number> = {};
+    const osCounts: Record<string, number> = {};
+    const deviceCounts: Record<string, number> = {};
+
+    for (const r of allRecords) {
+      if (r.browser) browserCounts[r.browser] = (browserCounts[r.browser] || 0) + 1;
+      if (r.os) osCounts[r.os] = (osCounts[r.os] || 0) + 1;
+      if (r.device) deviceCounts[r.device] = (deviceCounts[r.device] || 0) + 1;
+    }
+
+    return {
+      totalLogins,
+      successfulLogins,
+      failedLogins,
+      successRate,
+      uniqueIps,
+      uniqueDevices,
+      lastLogin: lastLoginRecord?.createdAt ? lastLoginRecord.createdAt.toISOString() : null,
+      browsers: Object.entries(browserCounts).map(([name, count]) => ({ name, count })),
+      operatingSystems: Object.entries(osCounts).map(([name, count]) => ({ name, count })),
+      devices: Object.entries(deviceCounts).map(([name, count]) => ({ name, count })),
+    };
+  }
 }
 
 export const userRepository = new UserRepository();
+

@@ -18,6 +18,7 @@ interface AppState {
   mobileNavOpen: boolean
   activeNoteId: string | null
   selectedAdminUserId: number | null
+  adminUserDetailTab: "hierarchy" | "login-history"
   notifications: NotificationItem[]
   aiWidgetOpen: boolean
   searchQuery: string
@@ -29,6 +30,7 @@ const initialState: AppState = {
   mobileNavOpen: false,
   activeNoteId: null,
   selectedAdminUserId: null,
+  adminUserDetailTab: "hierarchy",
   aiWidgetOpen: false,
   searchQuery: "",
   notifications: [],
@@ -46,9 +48,13 @@ const appSlice = createSlice({
     setSelectedAdminUserId(state, action: PayloadAction<number | null>) {
       state.selectedAdminUserId = action.payload
     },
+    setAdminUserDetailTab(state, action: PayloadAction<"hierarchy" | "login-history">) {
+      state.adminUserDetailTab = action.payload
+    },
     toggleSidebar(state) {
       state.sidebarCollapsed = !state.sidebarCollapsed
     },
+
     setMobileNav(state, action: PayloadAction<boolean>) {
       state.mobileNavOpen = action.payload
     },
@@ -111,6 +117,7 @@ const appSlice = createSlice({
 export const {
   setView,
   setSelectedAdminUserId,
+  setAdminUserDetailTab,
   toggleSidebar,
   setMobileNav,
   setActiveNote,
@@ -124,3 +131,4 @@ export const {
 } = appSlice.actions
 
 export default appSlice.reducer
+

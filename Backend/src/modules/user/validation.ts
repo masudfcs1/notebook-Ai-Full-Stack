@@ -73,6 +73,46 @@ export const DeleteUserParamsSchema = z.object({
   }),
 });
 
+export const GetLoginHistoryQuerySchema = z.object({
+  query: z.object({
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+    search: z.string().trim().optional(),
+    userId: z.coerce.number().int().positive().optional(),
+    successful: z
+      .string()
+      .optional()
+      .transform((val) => (val === 'true' ? true : val === 'false' ? false : undefined)),
+    sortBy: z
+      .enum(['id', 'createdAt', 'ipAddress', 'device', 'browser', 'os'])
+      .optional()
+      .default('createdAt'),
+    sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  }),
+});
+
+export const GetUserLoginHistoryParamsSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'ID is required'),
+  }),
+  query: z.object({
+    page: z.coerce.number().int().positive().optional().default(1),
+    limit: z.coerce.number().int().positive().max(100).optional().default(20),
+    search: z.string().trim().optional(),
+    successful: z
+      .string()
+      .optional()
+      .transform((val) => (val === 'true' ? true : val === 'false' ? false : undefined)),
+    sortBy: z
+      .enum(['id', 'createdAt', 'ipAddress', 'device', 'browser', 'os'])
+      .optional()
+      .default('createdAt'),
+    sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
+  }),
+});
+
 export type GetUsersQuery = z.infer<typeof GetUsersQuerySchema>['query'];
 export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>['body'];
+export type GetLoginHistoryQuery = z.infer<typeof GetLoginHistoryQuerySchema>['query'];
+

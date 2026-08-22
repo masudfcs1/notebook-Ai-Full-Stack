@@ -49,6 +49,129 @@ export declare class UserService {
         };
         recentUsers: import("./dto").UserResponseDTO[];
     }>;
+    getLoginHistory(options: {
+        page: number;
+        limit: number;
+        search?: string;
+        userId?: number;
+        successful?: boolean;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+    }): Promise<{
+        data: ({
+            user: {
+                status: import(".prisma/client").$Enums.UserStatus;
+                id: number;
+                uuid: string;
+                name: string | null;
+                username: string | null;
+                email: string;
+                avatar: string | null;
+                role: import(".prisma/client").$Enums.Role;
+            };
+        } & {
+            message: string | null;
+            id: number;
+            createdAt: Date;
+            userAgent: string | null;
+            userId: number;
+            ipAddress: string | null;
+            device: string | null;
+            browser: string | null;
+            os: string | null;
+            successful: boolean;
+        })[];
+        stats: {
+            totalLogins: number;
+            successfulLogins: number;
+            failedLogins: number;
+            successRate: number;
+            uniqueIps: number;
+            uniqueDevices: number;
+            lastLogin: string | null;
+            browsers: {
+                name: string;
+                count: number;
+            }[];
+            operatingSystems: {
+                name: string;
+                count: number;
+            }[];
+            devices: {
+                name: string;
+                count: number;
+            }[];
+        };
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+            hasNext: boolean;
+            hasPrev: boolean;
+        };
+    }>;
+    getUserLoginHistory(userId: number, options: {
+        page: number;
+        limit: number;
+        search?: string;
+        successful?: boolean;
+        sortBy?: string;
+        sortOrder?: 'asc' | 'desc';
+    }): Promise<{
+        data: ({
+            user: {
+                status: import(".prisma/client").$Enums.UserStatus;
+                id: number;
+                uuid: string;
+                name: string | null;
+                username: string | null;
+                email: string;
+                avatar: string | null;
+                role: import(".prisma/client").$Enums.Role;
+            };
+        } & {
+            message: string | null;
+            id: number;
+            createdAt: Date;
+            userAgent: string | null;
+            userId: number;
+            ipAddress: string | null;
+            device: string | null;
+            browser: string | null;
+            os: string | null;
+            successful: boolean;
+        })[];
+        stats: {
+            totalLogins: number;
+            successfulLogins: number;
+            failedLogins: number;
+            successRate: number;
+            uniqueIps: number;
+            uniqueDevices: number;
+            lastLogin: string | null;
+            browsers: {
+                name: string;
+                count: number;
+            }[];
+            operatingSystems: {
+                name: string;
+                count: number;
+            }[];
+            devices: {
+                name: string;
+                count: number;
+            }[];
+        };
+        meta: {
+            page: number;
+            limit: number;
+            total: number;
+            totalPages: number;
+            hasNext: boolean;
+            hasPrev: boolean;
+        };
+    }>;
 }
 export declare const userService: UserService;
 //# sourceMappingURL=service.d.ts.map

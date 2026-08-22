@@ -150,6 +150,62 @@ export interface RolesResponse {
   data: RoleInfo[];
 }
 
+export interface LoginHistoryUser {
+  id: number;
+  uuid: string;
+  name: string | null;
+  username: string | null;
+  email: string;
+  avatar: string | null;
+  role: string;
+  status: string;
+}
+
+export interface LoginHistoryItem {
+  id: number;
+  userId: number;
+  ipAddress: string | null;
+  userAgent: string | null;
+  device: string | null;
+  browser: string | null;
+  os: string | null;
+  successful: boolean;
+  message: string | null;
+  createdAt: string;
+  user?: LoginHistoryUser;
+}
+
+export interface LoginHistoryStats {
+  totalLogins: number;
+  successfulLogins: number;
+  failedLogins: number;
+  successRate: number;
+  uniqueIps: number;
+  uniqueDevices: number;
+  lastLogin: string | null;
+  browsers?: { name: string; count: number }[];
+  operatingSystems?: { name: string; count: number }[];
+  devices?: { name: string; count: number }[];
+}
+
+export interface LoginHistoryResponse {
+  success: boolean;
+  message: string;
+  data: LoginHistoryItem[];
+  stats: LoginHistoryStats;
+  meta: PaginationMeta;
+}
+
+export interface GetLoginHistoryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  userId?: number;
+  successful?: boolean;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
 /* ---------- API ---------- */
 
 const getBaseUrl = () => {
@@ -173,7 +229,7 @@ export const adminApi = createApi({
       return headers;
     },
   }),
-  tagTypes: ["AdminUsers", "AdminStats"],
+  tagTypes: ["AdminUsers", "AdminStats", "AdminLoginHistory"],
   endpoints: (builder) => ({
     getAdminStats: builder.query<AdminStatsResponse, void>({
       query: () => "/users/stats",
@@ -263,6 +319,48 @@ export const adminApi = createApi({
     getRoles: builder.query<RolesResponse, void>({
       query: () => "/roles",
     }),
+    getGlobalLoginHistory: builder.query<LoginHistoryResponse, GetLoginHistoryParams>({
+      query: (params) => {
+        const searchParams = new URLSearchParams();
+        if (params.page) searchParams.set("page", String(params.page));
+        if (params.limit) searchParams.set("limit", String(params.limit));
+        if (params.search) searchParams.set("search", params.search);
+        if (params.userId) searchParams.set("userId", String(params.userId));
+        if (typeof params.successful === "boolean") {
+          searchParams.set("successful", String(params.successful));
+        }
+        if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+        if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
+        return `/users/login-history?${searchParams.toString()}`;
+      },
+      providesTags: ["AdminLoginHistory", "AdminStats"],
+    }),
+    getUserLoginHistory: builder.query<
+      LoginHistoryResponse,
+      {
+        userId: number;
+        page?: number;
+        limit?: number;
+        search?: string;
+        successful?: boolean;
+        sortBy?: string;
+        sortOrder?: "asc" | "desc";
+      }
+    >({
+      query: ({ userId, ...params }) => {
+        const searchParams = new URLSearchParams();
+        if (params.page) searchParams.set("page", String(params.page));
+        if (params.limit) searchParams.set("limit", String(params.limit));
+        if (params.search) searchParams.set("search", params.search);
+        if (typeof params.successful === "boolean") {
+          searchParams.set("successful", String(params.successful));
+        }
+        if (params.sortBy) searchParams.set("sortBy", params.sortBy);
+        if (params.sortOrder) searchParams.set("sortOrder", params.sortOrder);
+        return `/users/${userId}/login-history?${searchParams.toString()}`;
+      },
+      providesTags: ["AdminLoginHistory"],
+    }),
   }),
 });
 
@@ -276,4 +374,7 @@ export const {
   useUpdateUserStatusMutation,
   useUpdateUserRoleMutation,
   useGetRolesQuery,
+  useGetGlobalLoginHistoryQuery,
+  useGetUserLoginHistoryQuery,
 } = adminApi;
+

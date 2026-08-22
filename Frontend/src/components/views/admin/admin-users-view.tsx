@@ -18,9 +18,15 @@ import {
   AlertCircle,
   X,
   LoaderCircle,
+  ShieldCheck,
 } from "lucide-react";
 import { useAppDispatch } from "@/lib/redux/hooks";
-import { setView, setSelectedAdminUserId } from "@/lib/redux/appSlice";
+import {
+  setView,
+  setSelectedAdminUserId,
+  setAdminUserDetailTab,
+} from "@/lib/redux/appSlice";
+
 import {
   useGetUsersQuery,
   useCreateUserMutation,
@@ -222,8 +228,16 @@ export function AdminUsersView() {
 
   const handleUserClick = (userId: number) => {
     dispatch(setSelectedAdminUserId(userId));
+    dispatch(setAdminUserDetailTab("hierarchy"));
     dispatch(setView("admin-user-detail"));
   };
+
+  const handleViewLoginHistory = (userId: number) => {
+    dispatch(setSelectedAdminUserId(userId));
+    dispatch(setAdminUserDetailTab("login-history"));
+    dispatch(setView("admin-user-detail"));
+  };
+
 
   const handleDeleteUser = async () => {
     if (!deleteTarget) return;
@@ -662,6 +676,16 @@ export function AdminUsersView() {
                               <Building2 className="h-3.5 w-3.5 text-rose-400" />
                               Workspaces & Teams
                             </DropdownMenuItem>
+
+                            {/* View Login History */}
+                            <DropdownMenuItem
+                              onClick={() => handleViewLoginHistory(u.id)}
+                              className="gap-2 text-xs text-foreground/80 cursor-pointer rounded-lg font-medium"
+                            >
+                              <ShieldCheck className="h-3.5 w-3.5 text-sky-400" />
+                              Login History & Security
+                            </DropdownMenuItem>
+
 
                             <DropdownMenuSeparator className="bg-border" />
 

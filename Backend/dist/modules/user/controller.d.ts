@@ -8,6 +8,8 @@ export declare class UserController {
     updateStatus: (req: Request, res: Response, next: NextFunction) => void;
     updateRole: (req: Request, res: Response, next: NextFunction) => void;
     getStats: (req: Request, res: Response, next: NextFunction) => void;
+    getLoginHistory: (req: Request, res: Response, next: NextFunction) => void;
+    getUserLoginHistory: (req: Request, res: Response, next: NextFunction) => void;
 }
 export declare const userController: UserController;
 //# sourceMappingURL=controller.d.ts.map

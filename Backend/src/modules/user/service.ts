@@ -208,6 +208,56 @@ export class UserService {
       recentUsers: toUserListResponse(stats.recentUsers),
     };
   }
+
+  async getLoginHistory(options: {
+    page: number;
+    limit: number;
+    search?: string;
+    userId?: number;
+    successful?: boolean;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  }) {
+    const [result, stats] = await Promise.all([
+      userRepository.getLoginHistory(options),
+      userRepository.getLoginStats(options.userId),
+    ]);
+
+    return {
+      data: result.data,
+      stats,
+      meta: result.meta,
+    };
+  }
+
+  async getUserLoginHistory(
+    userId: number,
+    options: {
+      page: number;
+      limit: number;
+      search?: string;
+      successful?: boolean;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    }
+  ) {
+    const user = await userRepository.findById(userId);
+    if (!user) {
+      throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
+    }
+
+    const [result, stats] = await Promise.all([
+      userRepository.getLoginHistory({ ...options, userId }),
+      userRepository.getLoginStats(userId),
+    ]);
+
+    return {
+      data: result.data,
+      stats,
+      meta: result.meta,
+    };
+  }
 }
 
 export const userService = new UserService();
+

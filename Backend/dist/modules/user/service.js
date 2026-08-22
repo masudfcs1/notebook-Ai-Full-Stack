@@ -151,6 +151,32 @@ class UserService {
             recentUsers: (0, dto_1.toUserListResponse)(stats.recentUsers),
         };
     }
+    async getLoginHistory(options) {
+        const [result, stats] = await Promise.all([
+            repository_1.userRepository.getLoginHistory(options),
+            repository_1.userRepository.getLoginStats(options.userId),
+        ]);
+        return {
+            data: result.data,
+            stats,
+            meta: result.meta,
+        };
+    }
+    async getUserLoginHistory(userId, options) {
+        const user = await repository_1.userRepository.findById(userId);
+        if (!user) {
+            throw error_helper_1.AppError.notFound(constants_1.MESSAGES.USER_NOT_FOUND);
+        }
+        const [result, stats] = await Promise.all([
+            repository_1.userRepository.getLoginHistory({ ...options, userId }),
+            repository_1.userRepository.getLoginStats(userId),
+        ]);
+        return {
+            data: result.data,
+            stats,
+            meta: result.meta,
+        };
+    }
 }
 exports.UserService = UserService;
 exports.userService = new UserService();

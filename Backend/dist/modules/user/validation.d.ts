@@ -216,7 +216,110 @@ export declare const DeleteUserParamsSchema: z.ZodObject<{
         id: string;
     };
 }>;
+export declare const GetLoginHistoryQuerySchema: z.ZodObject<{
+    query: z.ZodObject<{
+        page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        search: z.ZodOptional<z.ZodString>;
+        userId: z.ZodOptional<z.ZodNumber>;
+        successful: z.ZodEffects<z.ZodOptional<z.ZodString>, boolean | undefined, string | undefined>;
+        sortBy: z.ZodDefault<z.ZodOptional<z.ZodEnum<["id", "createdAt", "ipAddress", "device", "browser", "os"]>>>;
+        sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
+    }, "strip", z.ZodTypeAny, {
+        limit: number;
+        sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
+        page: number;
+        sortOrder: "asc" | "desc";
+        userId?: number | undefined;
+        successful?: boolean | undefined;
+        search?: string | undefined;
+    }, {
+        limit?: number | undefined;
+        userId?: number | undefined;
+        successful?: string | undefined;
+        sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
+        page?: number | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    query: {
+        limit: number;
+        sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
+        page: number;
+        sortOrder: "asc" | "desc";
+        userId?: number | undefined;
+        successful?: boolean | undefined;
+        search?: string | undefined;
+    };
+}, {
+    query: {
+        limit?: number | undefined;
+        userId?: number | undefined;
+        successful?: string | undefined;
+        sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
+        page?: number | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
+    };
+}>;
+export declare const GetUserLoginHistoryParamsSchema: z.ZodObject<{
+    params: z.ZodObject<{
+        id: z.ZodString;
+    }, "strip", z.ZodTypeAny, {
+        id: string;
+    }, {
+        id: string;
+    }>;
+    query: z.ZodObject<{
+        page: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        limit: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+        search: z.ZodOptional<z.ZodString>;
+        successful: z.ZodEffects<z.ZodOptional<z.ZodString>, boolean | undefined, string | undefined>;
+        sortBy: z.ZodDefault<z.ZodOptional<z.ZodEnum<["id", "createdAt", "ipAddress", "device", "browser", "os"]>>>;
+        sortOrder: z.ZodDefault<z.ZodOptional<z.ZodEnum<["asc", "desc"]>>>;
+    }, "strip", z.ZodTypeAny, {
+        limit: number;
+        sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
+        page: number;
+        sortOrder: "asc" | "desc";
+        successful?: boolean | undefined;
+        search?: string | undefined;
+    }, {
+        limit?: number | undefined;
+        successful?: string | undefined;
+        sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
+        page?: number | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
+    }>;
+}, "strip", z.ZodTypeAny, {
+    params: {
+        id: string;
+    };
+    query: {
+        limit: number;
+        sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
+        page: number;
+        sortOrder: "asc" | "desc";
+        successful?: boolean | undefined;
+        search?: string | undefined;
+    };
+}, {
+    params: {
+        id: string;
+    };
+    query: {
+        limit?: number | undefined;
+        successful?: string | undefined;
+        sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
+        page?: number | undefined;
+        sortOrder?: "asc" | "desc" | undefined;
+        search?: string | undefined;
+    };
+}>;
 export type GetUsersQuery = z.infer<typeof GetUsersQuerySchema>['query'];
 export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>['body'];
+export type GetLoginHistoryQuery = z.infer<typeof GetLoginHistoryQuerySchema>['query'];
 //# sourceMappingURL=validation.d.ts.map

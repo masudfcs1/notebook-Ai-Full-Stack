@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DeleteUserParamsSchema = exports.UpdateUserRoleSchema = exports.UpdateUserStatusSchema = exports.UpdateUserSchema = exports.CreateUserSchema = exports.GetUserParamsSchema = exports.GetUsersQuerySchema = void 0;
+exports.GetUserLoginHistoryParamsSchema = exports.GetLoginHistoryQuerySchema = exports.DeleteUserParamsSchema = exports.UpdateUserRoleSchema = exports.UpdateUserStatusSchema = exports.UpdateUserSchema = exports.CreateUserSchema = exports.GetUserParamsSchema = exports.GetUsersQuerySchema = void 0;
 const zod_1 = require("zod");
 exports.GetUsersQuerySchema = zod_1.z.object({
     query: zod_1.z.object({
@@ -66,6 +66,42 @@ exports.UpdateUserRoleSchema = zod_1.z.object({
 exports.DeleteUserParamsSchema = zod_1.z.object({
     params: zod_1.z.object({
         id: zod_1.z.string().min(1, 'ID is required'),
+    }),
+});
+exports.GetLoginHistoryQuerySchema = zod_1.z.object({
+    query: zod_1.z.object({
+        page: zod_1.z.coerce.number().int().positive().optional().default(1),
+        limit: zod_1.z.coerce.number().int().positive().max(100).optional().default(20),
+        search: zod_1.z.string().trim().optional(),
+        userId: zod_1.z.coerce.number().int().positive().optional(),
+        successful: zod_1.z
+            .string()
+            .optional()
+            .transform((val) => (val === 'true' ? true : val === 'false' ? false : undefined)),
+        sortBy: zod_1.z
+            .enum(['id', 'createdAt', 'ipAddress', 'device', 'browser', 'os'])
+            .optional()
+            .default('createdAt'),
+        sortOrder: zod_1.z.enum(['asc', 'desc']).optional().default('desc'),
+    }),
+});
+exports.GetUserLoginHistoryParamsSchema = zod_1.z.object({
+    params: zod_1.z.object({
+        id: zod_1.z.string().min(1, 'ID is required'),
+    }),
+    query: zod_1.z.object({
+        page: zod_1.z.coerce.number().int().positive().optional().default(1),
+        limit: zod_1.z.coerce.number().int().positive().max(100).optional().default(20),
+        search: zod_1.z.string().trim().optional(),
+        successful: zod_1.z
+            .string()
+            .optional()
+            .transform((val) => (val === 'true' ? true : val === 'false' ? false : undefined)),
+        sortBy: zod_1.z
+            .enum(['id', 'createdAt', 'ipAddress', 'device', 'browser', 'os'])
+            .optional()
+            .default('createdAt'),
+        sortOrder: zod_1.z.enum(['asc', 'desc']).optional().default('desc'),
     }),
 });
 //# sourceMappingURL=validation.js.map
