@@ -332,7 +332,7 @@ Tips:
 • Capture decisions as they happen
 • Mark action items with "→" so AI can find them
 • Use timestamps like [10:32] for key moments`}
-            className="min-h-[420] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-muted-foreground/40"
+            className="min-h-[420px] w-full resize-none bg-transparent text-sm leading-relaxed outline-none placeholder:text-muted-foreground/40"
           />
         </Card>
 

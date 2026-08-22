@@ -152,7 +152,7 @@ export function AdminSidebar() {
                   {isActive && (
                     <motion.div
                       layoutId="admin-sidebar-active"
-                      className="absolute left-0 top-1/2 h-5 w-[3] -translate-y-1/2 rounded-r-full bg-linear-to-b from-rose-500 to-amber-500"
+                      className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-gradient-to-b from-rose-500 to-amber-500"
                       transition={{
                         type: "spring",
                         stiffness: 300,

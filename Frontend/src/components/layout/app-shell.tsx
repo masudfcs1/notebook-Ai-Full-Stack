@@ -141,8 +141,8 @@ export function AppShell({
 
   return (
     <div className="app-dashboard-shell relative flex min-h-screen overflow-x-hidden">
-      <div className="dashboard-ambient dashboard-ambient-one pointer-events-none fixed -right-40 top-10 h-[520] w-[520] rounded-full" />
-      <div className="dashboard-ambient dashboard-ambient-two pointer-events-none fixed -bottom-52 left-[20%] h-[560] w-[560] rounded-full" />
+      <div className="dashboard-ambient dashboard-ambient-one pointer-events-none fixed -right-40 top-10 h-[520px] w-[520px] rounded-full" />
+      <div className="dashboard-ambient dashboard-ambient-two pointer-events-none fixed -bottom-52 left-[20%] h-[560px] w-[560px] rounded-full" />
       <Sidebar />
       <MobileSidebar />
 

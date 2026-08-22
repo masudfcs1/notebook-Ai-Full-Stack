@@ -125,7 +125,7 @@ export function DashboardView() {
   const maxWeekly = Math.max(...weekly.map((w) => w.value));
 
   return (
-    <div className="mx-auto max-w-[1320] space-y-6">
+    <div className="mx-auto max-w-[1320px] space-y-6">
       {/* Welcome banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}

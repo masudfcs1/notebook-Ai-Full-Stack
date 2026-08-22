@@ -265,17 +265,17 @@ export function SummaryView() {
                 {note.source}
               </Badge>
             </div>
-            <div className="max-h-[560] overflow-y-auto scrollbar-thin whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
+            <div className="max-h-[560px] overflow-y-auto scrollbar-thin whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">
               {note.content}
             </div>
           </Card>
 
           {/* Right: AI summary */}
-          <Card className="relative flex flex-col overflow-hidden border-indigo-500/20 bg-gradient-lr from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
+          <Card className="relative flex flex-col overflow-hidden border-indigo-500/20 bg-gradient-to-r from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
             <div className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full bg-violet-500/15 blur-3xl" />
             <div className="relative mb-3 flex items-center justify-between border-b border-indigo-500/15 pb-3">
               <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
                   <Sparkles className="h-4 w-4" />
                 </div>
                 <div>
@@ -290,7 +290,7 @@ export function SummaryView() {
               {summary && <SentimentBadge sentiment={summary.sentiment} />}
             </div>
 
-            <div className="relative max-h-[560] space-y-4 overflow-y-auto scrollbar-thin">
+            <div className="relative max-h-[560px] space-y-4 overflow-y-auto scrollbar-thin">
               <AnimatePresence mode="wait">
                 {generating ? (
                   <motion.div
