@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.workspaceService = exports.WorkspaceService = void 0;
 const repository_1 = require("./repository");
+const service_1 = require("../notification/service");
+const client_1 = require("@prisma/client");
 const error_helper_1 = require("../../helpers/error.helper");
 const dto_1 = require("./dto");
 const logger_1 = require("../../logger");
@@ -25,6 +27,22 @@ class WorkspaceService {
             slug,
         });
         logger_1.logger.info(`Workspace created: ${workspace.name} (${workspace.id}) by user ${data.userId}`);
+        try {
+            await service_1.notificationService.create({
+                type: client_1.NotificationType.WORKSPACE_CREATED,
+                title: 'New Workspace Created',
+                message: `Workspace "${workspace.name}" was created.`,
+                data: {
+                    workspaceId: workspace.id,
+                    name: workspace.name,
+                    slug: workspace.slug,
+                    userId: data.userId,
+                },
+            });
+        }
+        catch (notifErr) {
+            logger_1.logger.error({ notifErr }, 'Failed to emit WORKSPACE_CREATED notification');
+        }
         return (0, dto_1.toWorkspaceResponse)(workspace);
     }
     async findAll(options) {

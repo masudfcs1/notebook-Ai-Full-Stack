@@ -92,7 +92,6 @@ export class AuthService {
       user: toUserResponse(user),
       message: MESSAGES.REGISTER_SUCCESS,
     };
-
   }
 
   async login(

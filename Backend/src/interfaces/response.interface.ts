@@ -17,7 +17,6 @@ export interface IMeta {
   hasMore?: boolean;
 }
 
-
 export interface IPaginatedResult<T> {
   data: T[];
   meta: IMeta;

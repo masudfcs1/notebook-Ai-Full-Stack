@@ -50,7 +50,6 @@ export class WorkspaceService {
     return toWorkspaceResponse(workspace);
   }
 
-
   async findAll(options: FindWorkspacesOptions) {
     const result = await workspaceRepository.findAll(options);
 

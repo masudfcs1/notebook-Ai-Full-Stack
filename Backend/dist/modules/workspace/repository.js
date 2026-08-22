@@ -8,7 +8,11 @@ class WorkspaceRepository {
         return database_1.prisma.workspace.create({
             data: {
                 name: data.name,
-                slug: data.slug || data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
+                slug: data.slug ||
+                    data.name
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/^-|-$/g, ''),
                 icon: data.icon || '⚡',
                 description: data.description,
                 userId: data.userId,
@@ -76,7 +80,9 @@ class WorkspaceRepository {
     async findAll(options) {
         const { page, limit, skip } = (0, pagination_1.calculatePagination)(options);
         const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, isAdmin } = options;
-        const searchQuery = search ? (0, pagination_1.buildSearchQuery)(search, ['name', 'slug', 'description']) : undefined;
+        const searchQuery = search
+            ? (0, pagination_1.buildSearchQuery)(search, ['name', 'slug', 'description'])
+            : undefined;
         const where = {
             ...(!isAdmin && userId ? { userId } : {}),
             ...(searchQuery ? { OR: searchQuery.OR } : {}),

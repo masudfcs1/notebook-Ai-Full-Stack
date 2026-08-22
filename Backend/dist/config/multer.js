@@ -17,7 +17,12 @@ exports.multerConfig = {
     },
     allowedMimeTypes: {
         images: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
-        documents: ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain'],
+        documents: [
+            'application/pdf',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'text/plain',
+        ],
         videos: ['video/mp4', 'video/mpeg', 'video/quicktime', 'video/webm'],
         audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm'],
     },

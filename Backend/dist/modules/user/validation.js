@@ -33,7 +33,10 @@ exports.CreateUserSchema = zod_1.z.object({
             .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
             .regex(/[0-9]/, 'Password must contain at least one number'),
         phone: zod_1.z.string().optional(),
-        role: zod_1.z.enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'USER']).optional().default('USER'),
+        role: zod_1.z
+            .enum(['SUPER_ADMIN', 'ADMIN', 'MANAGER', 'EMPLOYEE', 'USER'])
+            .optional()
+            .default('USER'),
         status: zod_1.z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING']).optional().default('PENDING'),
     }),
 });

@@ -32,7 +32,6 @@ const startServer = async (): Promise<void> => {
       logger.info(`API Base URL: http://localhost:${env.PORT}/api/v1`);
     });
 
-
     // Graceful shutdown
     const shutdown = async (signal: string): Promise<void> => {
       logger.info(`\n${signal} received. Shutting down gracefully...`);

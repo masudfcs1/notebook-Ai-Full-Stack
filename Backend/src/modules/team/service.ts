@@ -43,7 +43,6 @@ export class TeamService {
     return toTeamResponse(team);
   }
 
-
   async findByWorkspaceId(workspaceId: string) {
     const teams = await teamRepository.findByWorkspaceId(workspaceId);
     return toTeamListResponse(teams);

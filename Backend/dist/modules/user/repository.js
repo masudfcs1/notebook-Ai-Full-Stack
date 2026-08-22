@@ -7,19 +7,9 @@ class UserRepository {
         const { page, limit, search, role, status, sortBy, sortOrder } = options;
         const safePage = Math.max(1, page);
         const safeLimit = Math.min(Math.max(1, limit), 100);
-        const allowedSortFields = [
-            'id',
-            'createdAt',
-            'name',
-            'email',
-            'role',
-            'status',
-            'lastLogin',
-        ];
+        const allowedSortFields = ['id', 'createdAt', 'name', 'email', 'role', 'status', 'lastLogin'];
         const safeSortBy = allowedSortFields.includes(sortBy) ? sortBy : 'createdAt';
-        const orderBy = safeSortBy === 'id'
-            ? { id: sortOrder }
-            : [{ [safeSortBy]: sortOrder }, { id: sortOrder }];
+        const orderBy = safeSortBy === 'id' ? { id: sortOrder } : [{ [safeSortBy]: sortOrder }, { id: sortOrder }];
         const where = {
             deletedAt: null,
             ...(search && {

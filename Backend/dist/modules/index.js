@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.workspaceRepository = exports.workspaceService = exports.workspaceRoutes = exports.roleService = exports.roleRoutes = exports.userRepository = exports.userService = exports.userRoutes = exports.authRepository = exports.authService = exports.authRoutes = void 0;
+exports.notificationRepository = exports.notificationService = exports.notificationRoutes = exports.teamRepository = exports.teamService = exports.teamRoutes = exports.workspaceRepository = exports.workspaceService = exports.workspaceRoutes = exports.roleService = exports.roleRoutes = exports.userRepository = exports.userService = exports.userRoutes = exports.authRepository = exports.authService = exports.authRoutes = void 0;
 var auth_1 = require("./auth");
 Object.defineProperty(exports, "authRoutes", { enumerable: true, get: function () { return auth_1.authRoutes; } });
 Object.defineProperty(exports, "authService", { enumerable: true, get: function () { return auth_1.authService; } });
@@ -16,4 +16,12 @@ var workspace_1 = require("./workspace");
 Object.defineProperty(exports, "workspaceRoutes", { enumerable: true, get: function () { return workspace_1.workspaceRoutes; } });
 Object.defineProperty(exports, "workspaceService", { enumerable: true, get: function () { return workspace_1.workspaceService; } });
 Object.defineProperty(exports, "workspaceRepository", { enumerable: true, get: function () { return workspace_1.workspaceRepository; } });
+var team_1 = require("./team");
+Object.defineProperty(exports, "teamRoutes", { enumerable: true, get: function () { return team_1.teamRoutes; } });
+Object.defineProperty(exports, "teamService", { enumerable: true, get: function () { return team_1.teamService; } });
+Object.defineProperty(exports, "teamRepository", { enumerable: true, get: function () { return team_1.teamRepository; } });
+var notification_1 = require("./notification");
+Object.defineProperty(exports, "notificationRoutes", { enumerable: true, get: function () { return notification_1.notificationRoutes; } });
+Object.defineProperty(exports, "notificationService", { enumerable: true, get: function () { return notification_1.notificationService; } });
+Object.defineProperty(exports, "notificationRepository", { enumerable: true, get: function () { return notification_1.notificationRepository; } });
 //# sourceMappingURL=index.js.map

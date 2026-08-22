@@ -46,5 +46,32 @@ export declare const createPaginationParams: (options?: IPaginationOptions & ISo
         [x: string]: "asc" | "desc";
     } | undefined;
 };
+export interface ICursorPaginationOptions {
+    limit?: number;
+    cursor?: string;
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+}
+/**
+ * Encode cursor string to base64 token
+ */
+export declare const encodeCursor: (cursorValue: string | number | Date) => string;
+/**
+ * Decode base64 cursor token to string
+ */
+export declare const decodeCursor: (cursorToken?: string) => string | undefined;
+/**
+ * Reusable cursor/token pagination processor for Prisma models
+ */
+export declare const paginateWithCursor: <T extends Record<string, any>>(model: PrismaModel, options: {
+    cursor?: string;
+    limit?: number;
+    where?: Record<string, any>;
+    cursorField?: string;
+    sortBy?: string;
+    sortOrder?: "asc" | "desc";
+    include?: any;
+    select?: any;
+}) => Promise<IPaginatedResult<T>>;
 export {};
 //# sourceMappingURL=pagination.d.ts.map

@@ -27,7 +27,6 @@ export class NotificationController {
       });
 
       sendSuccess(res, 'Notifications retrieved successfully', result.data, result.meta);
-
     } catch (error) {
       next(error);
     }
@@ -45,7 +44,8 @@ export class NotificationController {
 
   async markAllAsRead(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN' ? null : req.user?.id;
+      const userId =
+        req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN' ? null : req.user?.id;
       const result = await notificationService.markAllAsRead(userId);
       sendSuccess(res, 'All notifications marked as read', result);
     } catch (error) {
@@ -55,7 +55,8 @@ export class NotificationController {
 
   async getUnreadCount(req: Request, res: Response, next: NextFunction) {
     try {
-      const userId = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN' ? null : req.user?.id;
+      const userId =
+        req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN' ? null : req.user?.id;
       const result = await notificationService.getUnreadCount(userId);
       sendSuccess(res, 'Unread count retrieved successfully', result);
     } catch (error) {

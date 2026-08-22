@@ -16,4 +16,3 @@ router.use('/teams', teamRoutes);
 router.use('/notifications', notificationRoutes);
 
 export default router;
-

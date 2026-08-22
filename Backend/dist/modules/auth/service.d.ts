@@ -26,7 +26,7 @@ export declare class AuthService {
     }>;
     logout(userId: number, token?: string): Promise<void>;
     changePassword(userId: number, data: {
-        currentPassword: string;
+        currentPassword?: string;
         newPassword: string;
     }): Promise<void>;
     forgotPassword(email: string): Promise<{

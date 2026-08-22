@@ -17,11 +17,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.teamRoutes = void 0;
 const route_1 = __importDefault(require("./route"));
 __exportStar(require("./controller"), exports);
 __exportStar(require("./service"), exports);
 __exportStar(require("./repository"), exports);
 __exportStar(require("./dto"), exports);
 __exportStar(require("./types"), exports);
+var route_2 = require("./route");
+Object.defineProperty(exports, "teamRoutes", { enumerable: true, get: function () { return __importDefault(route_2).default; } });
 exports.default = route_1.default;
 //# sourceMappingURL=index.js.map

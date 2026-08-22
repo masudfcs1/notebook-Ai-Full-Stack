@@ -6,11 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config({ path: path_1.default.resolve(process.cwd(), '.env'), override: true });
+const http_1 = __importDefault(require("http"));
 const app_1 = __importDefault(require("./app"));
 const config_1 = require("./config");
 const database_1 = require("./database");
 const seed_1 = require("./database/seed");
 const logger_1 = require("./logger");
+const socket_1 = require("./socket");
 const startServer = async () => {
     try {
         // Test database connection
@@ -18,8 +20,12 @@ const startServer = async () => {
         logger_1.logger.info('Database connected successfully');
         // Seed super admin
         await (0, seed_1.seedSuperAdmin)();
+        // Create HTTP server
+        const httpServer = http_1.default.createServer(app_1.default);
+        // Initialize Socket.io
+        (0, socket_1.initSocket)(httpServer);
         // Start server
-        const server = app_1.default.listen(config_1.env.PORT, () => {
+        const server = httpServer.listen(config_1.env.PORT, () => {
             logger_1.logger.info(`Server is running on http://localhost:${config_1.env.PORT} in ${config_1.env.NODE_ENV} mode`);
             logger_1.logger.info(`Health check: http://localhost:${config_1.env.PORT}/health`);
             logger_1.logger.info(`API Base URL: http://localhost:${config_1.env.PORT}/api/v1`);

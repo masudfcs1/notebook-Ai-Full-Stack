@@ -101,37 +101,37 @@ export declare const RefreshTokenSchema: z.ZodObject<{
 }>;
 export declare const ChangePasswordSchema: z.ZodObject<{
     body: z.ZodEffects<z.ZodObject<{
-        currentPassword: z.ZodString;
+        currentPassword: z.ZodOptional<z.ZodString>;
         newPassword: z.ZodString;
         confirmPassword: z.ZodString;
     }, "strip", z.ZodTypeAny, {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     }, {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     }>, {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     }, {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     body: {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     };
 }, {
     body: {
         confirmPassword: string;
-        currentPassword: string;
         newPassword: string;
+        currentPassword?: string | undefined;
     };
 }>;
 export declare const ForgotPasswordSchema: z.ZodObject<{

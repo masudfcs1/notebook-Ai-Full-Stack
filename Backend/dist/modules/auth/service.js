@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.authService = exports.AuthService = void 0;
 const repository_1 = require("./repository");
 const repository_2 = require("../workspace/repository");
+const service_1 = require("../notification/service");
+const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
 const jwt_1 = require("../../utils/jwt");
 const generators_1 = require("../../utils/generators");
@@ -55,6 +57,23 @@ class AuthService {
             logger_1.logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
         }
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User registered');
+        // Notify admins about new user registration
+        try {
+            await service_1.notificationService.create({
+                type: client_1.NotificationType.USER_CREATED,
+                title: 'New User Registered',
+                message: `${user.name || user.username || user.email} just registered an account.`,
+                data: {
+                    userId: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
+        }
+        catch (notifErr) {
+            logger_1.logger.error({ notifErr }, 'Failed to emit USER_CREATED notification on register');
+        }
         return {
             user: (0, dto_1.toUserResponse)(user),
             message: constants_1.MESSAGES.REGISTER_SUCCESS,
@@ -96,9 +115,7 @@ class AuthService {
         };
         const accessToken = (0, jwt_1.generateAccessToken)(payload);
         const refreshToken = (0, jwt_1.generateRefreshToken)(payload);
-        const refreshTokenExpiry = data.rememberMe
-            ? (0, date_1.addDays)(new Date(), 30)
-            : (0, date_1.addDays)(new Date(), 7);
+        const refreshTokenExpiry = data.rememberMe ? (0, date_1.addDays)(new Date(), 30) : (0, date_1.addDays)(new Date(), 7);
         await repository_1.authRepository.createRefreshToken({
             token: refreshToken,
             userId: user.id,
@@ -168,12 +185,14 @@ class AuthService {
     }
     async changePassword(userId, data) {
         const user = await repository_1.authRepository.findById(userId);
-        if (!user || !user.password) {
+        if (!user) {
             throw error_helper_1.AppError.notFound(constants_1.MESSAGES.USER_NOT_FOUND);
         }
-        const isPasswordValid = await (0, password_1.comparePassword)(data.currentPassword, user.password);
-        if (!isPasswordValid) {
-            throw error_helper_1.AppError.badRequest('Current password is incorrect');
+        if (data.currentPassword && user.password) {
+            const isPasswordValid = await (0, password_1.comparePassword)(data.currentPassword, user.password);
+            if (!isPasswordValid) {
+                throw error_helper_1.AppError.badRequest('Current password is incorrect');
+            }
         }
         const hashedPassword = await (0, password_1.hashPassword)(data.newPassword);
         await repository_1.authRepository.updatePassword(userId, hashedPassword);

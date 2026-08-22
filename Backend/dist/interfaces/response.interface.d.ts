@@ -11,6 +11,9 @@ export interface IMeta {
     totalPages?: number;
     hasNext?: boolean;
     hasPrev?: boolean;
+    nextCursor?: string | null;
+    prevCursor?: string | null;
+    hasMore?: boolean;
 }
 export interface IPaginatedResult<T> {
     data: T[];

@@ -208,9 +208,7 @@ export const paginateWithCursor = async <T extends Record<string, any>>(
 
   const lastItem = data[data.length - 1];
   const nextCursor =
-    hasMore && lastItem
-      ? encodeCursor(lastItem[sortBy] ?? lastItem[cursorField])
-      : null;
+    hasMore && lastItem ? encodeCursor(lastItem[sortBy] ?? lastItem[cursorField]) : null;
 
   return {
     data,
@@ -223,4 +221,3 @@ export const paginateWithCursor = async <T extends Record<string, any>>(
     },
   };
 };
-

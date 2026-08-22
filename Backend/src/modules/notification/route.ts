@@ -24,4 +24,3 @@ router.patch('/:id/read', notificationController.markAsRead);
 router.delete('/:id', authorize(Role.SUPER_ADMIN, Role.ADMIN), notificationController.delete);
 
 export default router;
-

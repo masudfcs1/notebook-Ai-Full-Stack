@@ -3,14 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeleteAccountSchema = exports.UpdateProfileSchema = exports.VerifyOTPSchema = exports.SendOTPSchema = exports.ResendVerificationSchema = exports.VerifyEmailSchema = exports.ResetPasswordSchema = exports.ForgotPasswordSchema = exports.ChangePasswordSchema = exports.RefreshTokenSchema = exports.LoginSchema = exports.RegisterSchema = void 0;
 const zod_1 = require("zod");
 exports.RegisterSchema = zod_1.z.object({
-    body: zod_1.z.object({
+    body: zod_1.z
+        .object({
         name: zod_1.z.string().max(100).optional().or(zod_1.z.literal('')),
         username: zod_1.z.string().max(50).optional().or(zod_1.z.literal('')),
         email: zod_1.z.string().email('Invalid email address').min(1, 'Email is required'),
         password: zod_1.z.string().min(6, 'Password must be at least 6 characters'),
         confirmPassword: zod_1.z.string(),
         phone: zod_1.z.string().optional().or(zod_1.z.literal('')),
-    }).refine((data) => data.password === data.confirmPassword, {
+    })
+        .refine((data) => data.password === data.confirmPassword, {
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     }),
@@ -28,8 +30,9 @@ exports.RefreshTokenSchema = zod_1.z.object({
     }),
 });
 exports.ChangePasswordSchema = zod_1.z.object({
-    body: zod_1.z.object({
-        currentPassword: zod_1.z.string().min(1, 'Current password is required'),
+    body: zod_1.z
+        .object({
+        currentPassword: zod_1.z.string().optional(),
         newPassword: zod_1.z
             .string()
             .min(8, 'Password must be at least 8 characters')
@@ -37,7 +40,8 @@ exports.ChangePasswordSchema = zod_1.z.object({
             .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
             .regex(/[0-9]/, 'Password must contain at least one number'),
         confirmPassword: zod_1.z.string(),
-    }).refine((data) => data.newPassword === data.confirmPassword, {
+    })
+        .refine((data) => data.newPassword === data.confirmPassword, {
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     }),
@@ -48,7 +52,8 @@ exports.ForgotPasswordSchema = zod_1.z.object({
     }),
 });
 exports.ResetPasswordSchema = zod_1.z.object({
-    body: zod_1.z.object({
+    body: zod_1.z
+        .object({
         token: zod_1.z.string().min(1, 'Token is required'),
         password: zod_1.z
             .string()
@@ -57,7 +62,8 @@ exports.ResetPasswordSchema = zod_1.z.object({
             .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
             .regex(/[0-9]/, 'Password must contain at least one number'),
         confirmPassword: zod_1.z.string(),
-    }).refine((data) => data.password === data.confirmPassword, {
+    })
+        .refine((data) => data.password === data.confirmPassword, {
         message: 'Passwords do not match',
         path: ['confirmPassword'],
     }),

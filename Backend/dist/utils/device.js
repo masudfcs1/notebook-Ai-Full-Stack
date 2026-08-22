@@ -4,7 +4,9 @@ exports.getDeviceInfo = exports.parseUserAgent = exports.getUserAgent = exports.
 const getClientIp = (req) => {
     const forwarded = req.headers['x-forwarded-for'];
     const ip = forwarded
-        ? (Array.isArray(forwarded) ? forwarded[0] : forwarded.split(',')[0])
+        ? Array.isArray(forwarded)
+            ? forwarded[0]
+            : forwarded.split(',')[0]
         : req.socket?.remoteAddress || 'unknown';
     return ip.trim();
 };

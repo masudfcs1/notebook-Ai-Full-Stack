@@ -8,4 +8,3 @@ export * from './types';
 
 export { default as teamRoutes } from './route';
 export default teamRoutes;
-

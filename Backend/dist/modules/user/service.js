@@ -2,6 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.userService = exports.UserService = void 0;
 const repository_1 = require("./repository");
+const service_1 = require("../notification/service");
+const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
 const generators_1 = require("../../utils/generators");
 const constants_1 = require("../../constants");
@@ -52,6 +54,22 @@ class UserService {
             status: data.status,
         });
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User created by admin');
+        try {
+            await service_1.notificationService.create({
+                type: client_1.NotificationType.USER_CREATED,
+                title: 'User Created',
+                message: `User ${user.name || user.username || user.email} was created with role ${user.role}.`,
+                data: {
+                    userId: user.id,
+                    name: user.name,
+                    email: user.email,
+                    role: user.role,
+                },
+            });
+        }
+        catch (notifErr) {
+            logger_1.logger.error({ notifErr }, 'Failed to emit USER_CREATED notification in userService.create');
+        }
         return (0, dto_1.toUserResponse)(user);
     }
     async update(id, data) {
@@ -98,8 +116,27 @@ class UserService {
         if (!user) {
             throw error_helper_1.AppError.notFound(constants_1.MESSAGES.USER_NOT_FOUND);
         }
+        const previousRole = user.role;
         const updatedUser = await repository_1.userRepository.updateRole(userId, role);
-        logger_1.logger.info({ userId, role }, 'User role updated');
+        logger_1.logger.info({ userId, role, previousRole }, 'User role updated');
+        try {
+            await service_1.notificationService.create({
+                type: client_1.NotificationType.ROLE_UPDATED,
+                title: 'User Role Updated',
+                message: `Role for ${updatedUser.name || updatedUser.username || updatedUser.email} was changed from ${previousRole} to ${role}.`,
+                userId: updatedUser.id,
+                data: {
+                    userId: updatedUser.id,
+                    name: updatedUser.name,
+                    email: updatedUser.email,
+                    previousRole,
+                    newRole: role,
+                },
+            });
+        }
+        catch (notifErr) {
+            logger_1.logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification');
+        }
         return (0, dto_1.toUserResponse)(updatedUser);
     }
     async getStats() {

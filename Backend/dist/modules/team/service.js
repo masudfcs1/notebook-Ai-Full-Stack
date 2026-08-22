@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.teamService = exports.TeamService = void 0;
 const repository_1 = require("./repository");
 const repository_2 = require("../workspace/repository");
+const service_1 = require("../notification/service");
+const client_1 = require("@prisma/client");
 const error_helper_1 = require("../../helpers/error.helper");
 const dto_1 = require("./dto");
 const logger_1 = require("../../logger");
@@ -18,6 +20,23 @@ class TeamService {
             key,
         });
         logger_1.logger.info(`Team created: ${team.name} (${team.id}) in workspace ${data.workspaceId}`);
+        try {
+            await service_1.notificationService.create({
+                type: client_1.NotificationType.TEAM_CREATED,
+                title: 'New Team Created',
+                message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
+                data: {
+                    teamId: team.id,
+                    name: team.name,
+                    key: team.key,
+                    workspaceId: workspace.id,
+                    workspaceName: workspace.name,
+                },
+            });
+        }
+        catch (notifErr) {
+            logger_1.logger.error({ notifErr }, 'Failed to emit TEAM_CREATED notification');
+        }
         return (0, dto_1.toTeamResponse)(team);
     }
     async findByWorkspaceId(workspaceId) {

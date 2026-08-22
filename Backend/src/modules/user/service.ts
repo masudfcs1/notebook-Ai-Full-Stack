@@ -101,7 +101,6 @@ export class UserService {
     }
 
     return toUserResponse(user);
-
   }
 
   async update(
@@ -195,7 +194,6 @@ export class UserService {
 
     return toUserResponse(updatedUser);
   }
-
 
   async getStats() {
     const stats = await userRepository.getStats();

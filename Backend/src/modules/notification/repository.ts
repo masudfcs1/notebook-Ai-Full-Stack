@@ -9,7 +9,6 @@ import {
   encodeCursor,
 } from '@/utils/pagination';
 
-
 export class NotificationRepository {
   async create(data: CreateNotificationData) {
     return prisma.notification.create({
@@ -30,7 +29,17 @@ export class NotificationRepository {
   }
 
   async findAll(options: NotificationListQuery): Promise<IPaginatedResult<any>> {
-    const { page, limit = 20, cursor, search, type, read, userId, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+    const {
+      page,
+      limit = 20,
+      cursor,
+      search,
+      type,
+      read,
+      userId,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = options;
 
     const where: any = {};
     if (type) where.type = type;
@@ -80,7 +89,6 @@ export class NotificationRepository {
       },
     };
   }
-
 
   async markAsRead(id: string) {
     return prisma.notification.update({

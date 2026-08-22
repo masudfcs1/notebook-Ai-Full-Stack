@@ -19,4 +19,3 @@ export interface NotificationListQuery {
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
 }
-
