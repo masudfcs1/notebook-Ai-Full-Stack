@@ -2,10 +2,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/router";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 
-import {
-  setView,
-  toggleSidebar,
-} from "@/lib/redux/appSlice";
+import { setView, toggleSidebar } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
@@ -46,9 +43,11 @@ export function AdminTopbar() {
   const view = useAppSelector((s) => s.app.view);
   const workspaces = useAppSelector((s) => s.data.workspaces);
   const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
-  const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  const activeWorkspace =
+    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
-  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, markAsRead } =
+    useNotifications();
 
   const handleGoToUserDashboard = () => {
     dispatch(setView("dashboard"));
@@ -59,8 +58,6 @@ export function AdminTopbar() {
     }
   };
 
-
-
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
   const displayEmail = user?.email || "";
@@ -70,7 +67,7 @@ export function AdminTopbar() {
     VIEW_METADATA[view as ViewKey] || VIEW_METADATA["admin-dashboard"];
 
   return (
-    <header className="dashboard-topbar admin-dashboard-topbar sticky top-0 z-20 flex h-[72px] items-center gap-4 border-b px-4 md:px-7">
+    <header className="dashboard-topbar admin-dashboard-topbar sticky top-0 z-20 flex h-18 items-center gap-4 border-b px-4 md:px-7">
       {/* Mobile menu button */}
       <Button
         variant="ghost"
@@ -156,8 +153,12 @@ export function AdminTopbar() {
                     )}
                   >
                     <div className="flex w-full items-center justify-between gap-2">
-                      <span className="font-semibold text-foreground">{n.title}</span>
-                      <span className="text-[9px] text-muted-foreground">{n.time}</span>
+                      <span className="font-semibold text-foreground">
+                        {n.title}
+                      </span>
+                      <span className="text-[9px] text-muted-foreground">
+                        {n.time}
+                      </span>
                     </div>
                     <span className="text-[11px] text-muted-foreground leading-relaxed">
                       {n.description}
@@ -176,8 +177,6 @@ export function AdminTopbar() {
           </DropdownMenuContent>
         </DropdownMenu>
 
-
-
         {/* Theme */}
         <ThemeToggle />
 
@@ -187,7 +186,7 @@ export function AdminTopbar() {
         {/* Profile */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-rose-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/[0.06] cursor-pointer">
+            <button className="flex h-10 items-center gap-2 rounded-xl border border-border/60 bg-white/45 p-1.5 pr-2.5 shadow-sm transition-all hover:border-rose-500/25 hover:bg-white/70 dark:bg-white/[0.035] dark:hover:bg-white/6 cursor-pointer">
               <Avatar className="h-7 w-7 border border-rose-500/20">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
                 <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-[10px] font-bold text-white">
