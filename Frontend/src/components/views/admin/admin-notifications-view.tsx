@@ -112,7 +112,7 @@ export function AdminNotificationsView() {
         setLoadingMore(false);
       }
     },
-    [searchQuery, selectedType, selectedStatus]
+    [searchQuery, selectedType, selectedStatus],
   );
 
   // Trigger fetch on filter change
@@ -150,7 +150,7 @@ export function AdminNotificationsView() {
     try {
       await apiService.markNotificationRead(id);
       setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+        prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
       );
       toast.success("Marked as read");
     } catch {
@@ -183,11 +183,11 @@ export function AdminNotificationsView() {
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.read).length,
-    [notifications]
+    [notifications],
   );
 
   return (
-    <div className="mx-auto max-w-[1320px] space-y-6">
+    <div className="mx-auto max-w-330 space-y-6">
       {/* Header Banner */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -212,7 +212,8 @@ export function AdminNotificationsView() {
             Notification Manager
           </h1>
           <p className="mt-2 text-sm text-rose-100/80">
-            Real-time feed of user registrations, role updates, workspace & team events.
+            Real-time feed of user registrations, role updates, workspace & team
+            events.
           </p>
         </div>
 
@@ -247,7 +248,7 @@ export function AdminNotificationsView() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notifications by title or description..."
-              className="h-10 pl-9 rounded-xl border-border bg-white/40 dark:bg-white/[0.02]"
+              className="h-10 pl-9 rounded-xl border-border bg-white/40 dark:bg-white/2"
             />
           </div>
 
@@ -258,7 +259,7 @@ export function AdminNotificationsView() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 gap-2 rounded-xl border-border bg-white/40 dark:bg-white/[0.02] text-xs font-medium cursor-pointer"
+                  className="h-10 gap-2 rounded-xl border-border bg-white/40 dark:bg-white/2 text-xs font-medium cursor-pointer"
                 >
                   <Filter className="h-3.5 w-3.5 text-muted-foreground" />
                   Type: {selectedType === "ALL" ? "All Events" : selectedType}
@@ -268,16 +269,24 @@ export function AdminNotificationsView() {
                 <DropdownMenuItem onClick={() => setSelectedType("ALL")}>
                   All Events
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedType("USER_CREATED")}>
+                <DropdownMenuItem
+                  onClick={() => setSelectedType("USER_CREATED")}
+                >
                   User Created
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedType("WORKSPACE_CREATED")}>
+                <DropdownMenuItem
+                  onClick={() => setSelectedType("WORKSPACE_CREATED")}
+                >
                   Workspace Created
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedType("TEAM_CREATED")}>
+                <DropdownMenuItem
+                  onClick={() => setSelectedType("TEAM_CREATED")}
+                >
                   Team Created
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setSelectedType("ROLE_UPDATED")}>
+                <DropdownMenuItem
+                  onClick={() => setSelectedType("ROLE_UPDATED")}
+                >
                   Role Updated
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => setSelectedType("SYSTEM")}>
@@ -292,7 +301,7 @@ export function AdminNotificationsView() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="h-10 gap-2 rounded-xl border-border bg-white/40 dark:bg-white/[0.02] text-xs font-medium cursor-pointer"
+                  className="h-10 gap-2 rounded-xl border-border bg-white/40 dark:bg-white/2 text-xs font-medium cursor-pointer"
                 >
                   Status: {selectedStatus}
                 </Button>
@@ -314,13 +323,11 @@ export function AdminNotificationsView() {
       </Card>
 
       {/* Notifications Table / List */}
-      <Card className="dashboard-glass-card rounded-[1.5rem] p-6">
+      <Card className="dashboard-glass-card rounded-3xl p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Bell className="h-4 w-4 text-rose-500" />
-            <h2 className="text-sm font-bold text-foreground">
-              Event Stream
-            </h2>
+            <h2 className="text-sm font-bold text-foreground">Event Stream</h2>
             <Badge variant="secondary" className="text-[10px] font-bold">
               {totalCount} Total
             </Badge>
@@ -342,9 +349,12 @@ export function AdminNotificationsView() {
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500 mb-3">
               <Bell className="h-7 w-7" />
             </div>
-            <p className="text-sm font-semibold text-foreground">No notifications found</p>
+            <p className="text-sm font-semibold text-foreground">
+              No notifications found
+            </p>
             <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-              Events like user registrations, workspace provisioning, and role updates will appear here live.
+              Events like user registrations, workspace provisioning, and role
+              updates will appear here live.
             </p>
           </div>
         ) : (
@@ -363,8 +373,8 @@ export function AdminNotificationsView() {
                     className={cn(
                       "group relative flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 rounded-2xl border p-4 transition-all duration-200",
                       n.read
-                        ? "border-border/60 bg-white/30 dark:bg-white/[0.015] hover:border-border hover:bg-white/50 dark:hover:bg-white/[0.03]"
-                        : "border-rose-500/30 bg-rose-500/5 shadow-sm shadow-rose-500/5 hover:border-rose-500/40"
+                        ? "border-border/60 bg-white/30 dark:bg-white/1.5 hover:border-border hover:bg-white/50 dark:hover:bg-white/3"
+                        : "border-rose-500/30 bg-rose-500/5 shadow-sm shadow-rose-500/5 hover:border-rose-500/40",
                     )}
                   >
                     <div className="flex items-start gap-3.5 min-w-0 flex-1">
@@ -372,7 +382,7 @@ export function AdminNotificationsView() {
                       <div
                         className={cn(
                           "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-white shadow-md",
-                          config.gradient
+                          config.gradient,
                         )}
                       >
                         <IconComponent className="h-4 w-4" />
@@ -387,7 +397,7 @@ export function AdminNotificationsView() {
                           <Badge
                             className={cn(
                               "h-4.5 rounded-md px-1.5 text-[9px] font-bold uppercase",
-                              config.badge
+                              config.badge,
                             )}
                           >
                             {config.label}
@@ -399,7 +409,7 @@ export function AdminNotificationsView() {
                           )}
                         </div>
 
-                        <p className="text-xs text-muted-foreground leading-relaxed break-words">
+                        <p className="text-xs text-muted-foreground leading-relaxed break-word">
                           {n.message}
                         </p>
 
@@ -452,7 +462,9 @@ export function AdminNotificationsView() {
               <div className="pt-4 text-center">
                 <Button
                   variant="outline"
-                  onClick={() => void fetchNotifications(nextCursor || undefined, true)}
+                  onClick={() =>
+                    void fetchNotifications(nextCursor || undefined, true)
+                  }
                   disabled={loadingMore}
                   className="h-10 gap-2 rounded-xl border-rose-500/20 px-6 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 cursor-pointer"
                 >
