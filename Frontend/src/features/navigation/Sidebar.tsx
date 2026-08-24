@@ -20,10 +20,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import {
-  setView,
-  toggleSidebar,
-} from "@/lib/redux/appSlice";
+import { setView, toggleSidebar } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
@@ -68,8 +65,8 @@ export function Sidebar() {
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
-  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
-
+  const { notifications, unreadCount, markAllAsRead, markAsRead } =
+    useNotifications();
 
   // Sync user workspaces from API
   const { data: wsRes } = useGetAllWorkspacesQuery(undefined, {
@@ -104,7 +101,9 @@ export function Sidebar() {
   const [wsToDelete, setWsToDelete] = useState<any>(null);
 
   const [teamModalOpen, setTeamModalOpen] = useState(false);
-  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">("create");
+  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">(
+    "create",
+  );
   const [teamToEdit, setTeamToEdit] = useState<any>(null);
 
   const [deleteTeamModalOpen, setDeleteTeamModalOpen] = useState(false);
@@ -503,7 +502,6 @@ export function Sidebar() {
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-
 
             <button
               onClick={() => dispatch(setView("settings"))}

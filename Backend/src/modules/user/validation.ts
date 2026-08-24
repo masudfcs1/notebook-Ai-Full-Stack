@@ -115,4 +115,3 @@ export type GetUsersQuery = z.infer<typeof GetUsersQuerySchema>['query'];
 export type CreateUserInput = z.infer<typeof CreateUserSchema>['body'];
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>['body'];
 export type GetLoginHistoryQuery = z.infer<typeof GetLoginHistoryQuerySchema>['query'];
-

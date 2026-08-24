@@ -402,7 +402,15 @@ export class UserRepository {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
   }) {
-    const { page, limit, search, userId, successful, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+    const {
+      page,
+      limit,
+      search,
+      userId,
+      successful,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = options;
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
 
@@ -524,4 +532,3 @@ export class UserRepository {
 }
 
 export const userRepository = new UserRepository();
-

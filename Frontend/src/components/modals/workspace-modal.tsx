@@ -77,7 +77,7 @@ export function WorkspaceModal({
   const isLoading = isCreating || isUpdating;
 
   // Normalized slug check
-  const normalizedSlug = slug
+  const effectiveSlug = (slug || name)
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -85,10 +85,10 @@ export function WorkspaceModal({
 
   // Check if slug exists in workspaces
   const isSlugTaken = Boolean(
-    normalizedSlug &&
+    effectiveSlug &&
     workspaces.some(
       (w) =>
-        w.slug.toLowerCase() === normalizedSlug &&
+        (w.slug || "").toLowerCase() === effectiveSlug &&
         (!isEdit || w.id !== workspaceToEdit?.id),
     ),
   );
@@ -330,7 +330,7 @@ export function WorkspaceModal({
               <Button
                 type="submit"
                 disabled={isLoading || isSlugTaken || !name.trim()}
-                className="gap-2 rounded-xl bg-gradient-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg cursor-pointer hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
                   <>

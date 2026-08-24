@@ -109,8 +109,7 @@ export class UserController {
       sortOrder?: 'asc' | 'desc';
     };
 
-    const isSuccessful =
-      successful === 'true' ? true : successful === 'false' ? false : undefined;
+    const isSuccessful = successful === 'true' ? true : successful === 'false' ? false : undefined;
 
     const result = await userService.getLoginHistory({
       page: parseInt(page || '1', 10),
@@ -142,8 +141,7 @@ export class UserController {
       sortOrder?: 'asc' | 'desc';
     };
 
-    const isSuccessful =
-      successful === 'true' ? true : successful === 'false' ? false : undefined;
+    const isSuccessful = successful === 'true' ? true : successful === 'false' ? false : undefined;
 
     const result = await userService.getUserLoginHistory(parseInt(id, 10), {
       page: parseInt(page || '1', 10),
@@ -165,4 +163,3 @@ export class UserController {
 }
 
 export const userController = new UserController();
-
