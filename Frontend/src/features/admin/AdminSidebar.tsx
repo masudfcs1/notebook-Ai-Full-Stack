@@ -76,10 +76,10 @@ export function AdminSidebar() {
           {!collapsed && (
             <div className="min-w-0 flex-1 flex items-center gap-2">
               <Wordmark className="text-base text-foreground" />
-              <Badge className="h-5 rounded-md border border-rose-500/30 bg-rose-500/15 px-1.5 text-[9px] font-bold text-rose-400 shrink-0">
+              {/* <Badge className="h-5 rounded-md border border-rose-500/30 bg-rose-500/15 px-1.5 text-[9px] font-bold text-rose-400 shrink-0">
                 <Shield className="mr-0.5 h-2.5 w-2.5" />
                 ADMIN
-              </Badge>
+              </Badge> */}
             </div>
           )}
         </button>
