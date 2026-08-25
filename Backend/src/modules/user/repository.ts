@@ -101,7 +101,9 @@ export class UserRepository {
         0
       );
 
-      const { workspaces, memberships, ...userWithoutRelations } = user;
+      const userWithoutRelations = { ...user };
+      delete (userWithoutRelations as any).workspaces;
+      delete (userWithoutRelations as any).memberships;
 
       return {
         ...userWithoutRelations,
