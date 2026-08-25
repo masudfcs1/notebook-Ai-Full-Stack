@@ -15,6 +15,7 @@ export const VIEW_PATHS: Partial<Record<ViewKey, string>> = {
   'admin-users': '/admin/users',
   'admin-roles': '/admin/roles',
   'admin-activity': '/admin/activity',
+  'admin-notifications': '/admin/notifications',
   'admin-settings': '/admin/settings',
 }
 

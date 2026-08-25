@@ -199,7 +199,7 @@ export function AdminNotificationsView() {
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <span className="flex h-6 items-center gap-1.5 rounded-full bg-white/10 px-2.5 text-[10px] font-bold uppercase tracking-wider text-rose-200">
-              <Sparkles className="h-3 w-3 text-amber-300" />
+              <Sparkles className="h-3 w-3 text-white" />
               Live Telemetry
             </span>
             {unreadCount > 0 && (
@@ -224,7 +224,9 @@ export function AdminNotificationsView() {
             disabled={loading}
             className="h-10 gap-2 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white cursor-pointer"
           >
-            <RefreshCw className={cn("h-4 w-4", loading && "animate-spin")} />
+            <RefreshCw
+              className={cn("h-4 w-4 text-white", loading && "animate-spin")}
+            />
             Refresh
           </Button>
           {unreadCount > 0 && (
@@ -326,7 +328,9 @@ export function AdminNotificationsView() {
       <Card className="dashboard-glass-card rounded-3xl p-6">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Bell className="h-4 w-4 text-rose-500" />
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-rose-500 text-white shadow-xs">
+              <Bell className="h-3.5 w-3.5 text-white" />
+            </div>
             <h2 className="text-sm font-bold text-foreground">Event Stream</h2>
             <Badge variant="secondary" className="text-[10px] font-bold">
               {totalCount} Total
@@ -346,8 +350,8 @@ export function AdminNotificationsView() {
           </div>
         ) : notifications.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500/10 text-rose-500 mb-3">
-              <Bell className="h-7 w-7" />
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-500 text-white shadow-lg shadow-rose-500/25 mb-3">
+              <Bell className="h-7 w-7 text-white" />
             </div>
             <p className="text-sm font-semibold text-foreground">
               No notifications found
@@ -385,7 +389,7 @@ export function AdminNotificationsView() {
                           config.gradient,
                         )}
                       >
-                        <IconComponent className="h-4 w-4" />
+                        <IconComponent className="h-4 w-4 text-white" />
                       </div>
 
                       {/* Content */}
@@ -396,7 +400,7 @@ export function AdminNotificationsView() {
                           </span>
                           <Badge
                             className={cn(
-                              "h-4.5 rounded-md px-1.5 text-[9px] font-bold uppercase",
+                              "h-4.5 rounded-md px-1.5 text-[9px] font-bold uppercase text-white",
                               config.badge,
                             )}
                           >
@@ -470,7 +474,7 @@ export function AdminNotificationsView() {
                 >
                   {loadingMore ? (
                     <>
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-white" />
                       Loading Next Page...
                     </>
                   ) : (
@@ -495,36 +499,36 @@ function getTypeConfig(type: string) {
       return {
         label: "User Created",
         icon: Users,
-        gradient: "bg-linear-to-br from-violet-500 to-indigo-600",
-        badge: "bg-violet-500/15 text-violet-500 border-violet-500/30",
+        gradient: "bg-linear-to-br from-violet-500 to-indigo-600 text-white",
+        badge: "bg-violet-600/85 text-white border-violet-400/30",
       };
     case "WORKSPACE_CREATED":
       return {
         label: "Workspace Created",
         icon: Building2,
-        gradient: "bg-linear-to-br from-sky-500 to-blue-600",
-        badge: "bg-sky-500/15 text-sky-500 border-sky-500/30",
+        gradient: "bg-linear-to-br from-sky-500 to-blue-600 text-white",
+        badge: "bg-sky-600/85 text-white border-sky-400/30",
       };
     case "TEAM_CREATED":
       return {
         label: "Team Created",
         icon: Users,
-        gradient: "bg-linear-to-br from-emerald-500 to-teal-600",
-        badge: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30",
+        gradient: "bg-linear-to-br from-emerald-500 to-teal-600 text-white",
+        badge: "bg-emerald-600/85 text-white border-emerald-400/30",
       };
     case "ROLE_UPDATED":
       return {
         label: "Role Updated",
         icon: Shield,
-        gradient: "bg-linear-to-br from-amber-500 to-orange-600",
-        badge: "bg-amber-500/15 text-amber-500 border-amber-500/30",
+        gradient: "bg-linear-to-br from-amber-500 to-orange-600 text-white",
+        badge: "bg-amber-600/85 text-white border-amber-400/30",
       };
     default:
       return {
         label: "System",
         icon: Info,
-        gradient: "bg-linear-to-br from-rose-500 to-pink-600",
-        badge: "bg-rose-500/15 text-rose-500 border-rose-500/30",
+        gradient: "bg-linear-to-br from-rose-500 to-pink-600 text-white",
+        badge: "bg-rose-600/85 text-white border-rose-400/30",
       };
   }
 }
