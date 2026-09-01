@@ -38,7 +38,7 @@ A high-performance, enterprise-grade meeting intelligence and note-taking platfo
 
 ---
 
-## 💻 Tech Stack Overview
+## 💻 Tech Stack Overviews
 
 ### Frontend Architecture
 | Layer | Technologies |
