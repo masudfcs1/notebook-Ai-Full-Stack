@@ -43,7 +43,11 @@ import {
   type LoginHistoryItem,
 } from "@/lib/redux/api/adminApiSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { setView, setSelectedAdminUserId, setAdminUserDetailTab } from "@/lib/redux/appSlice";
+import {
+  setView,
+  setSelectedAdminUserId,
+  setAdminUserDetailTab,
+} from "@/lib/redux/appSlice";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -80,10 +84,13 @@ export function AdminUserDetailView({
 }: AdminUserDetailViewProps) {
   const dispatch = useAppDispatch();
   const stateUserId = useAppSelector((s) => s.app.selectedAdminUserId);
-  const reduxTab = useAppSelector((s) => s.app.adminUserDetailTab) || "hierarchy";
+  const reduxTab =
+    useAppSelector((s) => s.app.adminUserDetailTab) || "hierarchy";
   const targetUserId = propUserId || stateUserId;
 
-  const [activeTab, setActiveTab] = useState<"hierarchy" | "login-history">(reduxTab);
+  const [activeTab, setActiveTab] = useState<"hierarchy" | "login-history">(
+    reduxTab,
+  );
   const [searchFilter, setSearchFilter] = useState("");
   const [expandedWorkspaces, setExpandedWorkspaces] = useState<
     Record<string, boolean>
@@ -92,7 +99,9 @@ export function AdminUserDetailView({
   // Login history state
   const [loginPage, setLoginPage] = useState(1);
   const [loginSearch, setLoginSearch] = useState("");
-  const [loginFilterStatus, setLoginFilterStatus] = useState<"all" | "success" | "failed">("all");
+  const [loginFilterStatus, setLoginFilterStatus] = useState<
+    "all" | "success" | "failed"
+  >("all");
   const [loginSortOrder, setLoginSortOrder] = useState<"desc" | "asc">("desc");
   const [inspectItem, setInspectItem] = useState<LoginHistoryItem | null>(null);
   const [copiedIp, setCopiedIp] = useState<string | null>(null);
@@ -130,7 +139,7 @@ export function AdminUserDetailView({
             : false,
       sortOrder: loginSortOrder,
     },
-    { skip: !targetUserId || activeTab !== "login-history" }
+    { skip: !targetUserId || activeTab !== "login-history" },
   );
 
   const [updateRole] = useUpdateUserRoleMutation();
@@ -270,7 +279,6 @@ export function AdminUserDetailView({
     return matchesWs || matchesTeams;
   });
 
-  // Helper for Device Icon
   const getDeviceIcon = (device?: string | null) => {
     switch (device?.toLowerCase()) {
       case "mobile":
@@ -283,7 +291,6 @@ export function AdminUserDetailView({
     }
   };
 
-  // Helper for Browser styling
   const getBrowserBadgeClass = (browser?: string | null) => {
     switch (browser?.toLowerCase()) {
       case "chrome":
@@ -583,7 +590,9 @@ export function AdminUserDetailView({
                 <p className="text-xs font-medium text-muted-foreground">
                   Teams Joined
                 </p>
-                <p className="text-2xl font-bold text-foreground">{totalTeams}</p>
+                <p className="text-2xl font-bold text-foreground">
+                  {totalTeams}
+                </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-500">
                 <Users className="h-6 w-6" />
@@ -610,8 +619,8 @@ export function AdminUserDetailView({
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-                  <Layers className="h-5 w-5 text-rose-500" /> Workspaces & Teams
-                  Hierarchy
+                  <Layers className="h-5 w-5 text-rose-500" /> Workspaces &
+                  Teams Hierarchy
                 </h2>
                 <p className="text-xs text-muted-foreground">
                   Workspaces owned or joined by this user, including nested team
@@ -740,8 +749,8 @@ export function AdminUserDetailView({
                                   (m) => m.userId === user.id,
                                 );
                                 const currentUserRoleInTeam =
-                                  members.find((m) => m.userId === user.id)?.role ||
-                                  "MEMBER";
+                                  members.find((m) => m.userId === user.id)
+                                    ?.role || "MEMBER";
 
                                 return (
                                   <div
@@ -892,7 +901,8 @@ export function AdminUserDetailView({
                     {loginStats?.successRate ?? 100}%
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {loginStats?.successfulLogins ?? 0} successful / {loginStats?.totalLogins ?? 0} total
+                    {loginStats?.successfulLogins ?? 0} successful /{" "}
+                    {loginStats?.totalLogins ?? 0} total
                   </p>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -907,13 +917,19 @@ export function AdminUserDetailView({
                   <p className="text-xs font-semibold text-muted-foreground">
                     Failed Attempts
                   </p>
-                  <p className={`text-2xl font-bold ${
-                    (loginStats?.failedLogins ?? 0) > 0 ? "text-rose-400" : "text-foreground"
-                  }`}>
+                  <p
+                    className={`text-2xl font-bold ${
+                      (loginStats?.failedLogins ?? 0) > 0
+                        ? "text-rose-400"
+                        : "text-foreground"
+                    }`}
+                  >
                     {loginStats?.failedLogins ?? 0}
                   </p>
                   <p className="text-[10px] text-muted-foreground">
-                    {(loginStats?.failedLogins ?? 0) > 0 ? "Potential unauthorized attempts" : "No security flags"}
+                    {(loginStats?.failedLogins ?? 0) > 0
+                      ? "Potential unauthorized attempts"
+                      : "No security flags"}
                   </p>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
@@ -929,7 +945,8 @@ export function AdminUserDetailView({
                     Unique Devices & IPs
                   </p>
                   <p className="text-2xl font-bold text-foreground">
-                    {loginStats?.uniqueDevices ?? 0} Dev / {loginStats?.uniqueIps ?? 0} IPs
+                    {loginStats?.uniqueDevices ?? 0} Dev /{" "}
+                    {loginStats?.uniqueIps ?? 0} IPs
                   </p>
                   <p className="text-[10px] text-muted-foreground">
                     Known footprint across logins
@@ -1048,7 +1065,9 @@ export function AdminUserDetailView({
                   className="h-8 w-8 rounded-lg border-border text-muted-foreground hover:text-foreground cursor-pointer"
                   title="Refresh Login History"
                 >
-                  <RotateCcw className={`h-3.5 w-3.5 ${isLoginHistoryFetching ? "animate-spin" : ""}`} />
+                  <RotateCcw
+                    className={`h-3.5 w-3.5 ${isLoginHistoryFetching ? "animate-spin" : ""}`}
+                  />
                 </Button>
               </div>
             </div>
@@ -1058,7 +1077,10 @@ export function AdminUserDetailView({
           {isLoginHistoryLoading ? (
             <Card className="p-6 border-border/60 bg-card/70 space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16 w-full bg-muted/60 rounded-xl" />
+                <Skeleton
+                  key={i}
+                  className="h-16 w-full bg-muted/60 rounded-xl"
+                />
               ))}
             </Card>
           ) : loginItems.length === 0 ? (
@@ -1079,7 +1101,8 @@ export function AdminUserDetailView({
             <div className="space-y-3">
               {loginItems.map((item) => {
                 const dateObj = new Date(item.createdAt);
-                const isRecent = Date.now() - dateObj.getTime() < 1000 * 60 * 60 * 24;
+                const isRecent =
+                  Date.now() - dateObj.getTime() < 1000 * 60 * 60 * 24;
 
                 return (
                   <Card
@@ -1093,11 +1116,13 @@ export function AdminUserDetailView({
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                       {/* Left: Status & Primary Info */}
                       <div className="flex items-start sm:items-center gap-3.5">
-                        <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
-                          item.successful
-                            ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                            : "bg-rose-500/10 text-rose-400 border-rose-500/20"
-                        }`}>
+                        <div
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border ${
+                            item.successful
+                              ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                          }`}
+                        >
                           {item.successful ? (
                             <CheckCircle2 className="h-5 w-5" />
                           ) : (
@@ -1108,7 +1133,9 @@ export function AdminUserDetailView({
                         <div className="space-y-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs font-bold text-foreground">
-                              {item.successful ? "Successful Login" : "Failed Login Attempt"}
+                              {item.successful
+                                ? "Successful Login"
+                                : "Failed Login Attempt"}
                             </span>
                             <Badge
                               variant="outline"
@@ -1118,11 +1145,16 @@ export function AdminUserDetailView({
                                   : "bg-rose-500/10 text-rose-400 border-rose-500/30"
                               }`}
                             >
-                              {item.successful ? "Authorized" : item.message || "Failed"}
+                              {item.successful
+                                ? "Authorized"
+                                : item.message || "Failed"}
                             </Badge>
 
                             {isRecent && (
-                              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" title="Recent activity within 24h" />
+                              <span
+                                className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"
+                                title="Recent activity within 24h"
+                              />
                             )}
                           </div>
 
@@ -1130,7 +1162,9 @@ export function AdminUserDetailView({
                             {/* Device Type */}
                             <span className="flex items-center gap-1">
                               {getDeviceIcon(item.device)}
-                              <span className="capitalize font-medium">{item.device || "Desktop"}</span>
+                              <span className="capitalize font-medium">
+                                {item.device || "Desktop"}
+                              </span>
                             </span>
 
                             {/* Browser */}
@@ -1177,7 +1211,8 @@ export function AdminUserDetailView({
                           </div>
                           <p className="text-[10px] text-muted-foreground flex items-center md:justify-end gap-1">
                             <Globe className="h-2.5 w-2.5" />
-                            {item.ipAddress === "::1" || item.ipAddress?.includes("127.0.0.1")
+                            {item.ipAddress === "::1" ||
+                            item.ipAddress?.includes("127.0.0.1")
                               ? "Localhost / Internal"
                               : "IPv4 / Public Network"}
                           </p>
@@ -1187,7 +1222,11 @@ export function AdminUserDetailView({
                         <div className="text-left md:text-right">
                           <p className="text-xs font-semibold text-foreground flex items-center md:justify-end gap-1">
                             <Clock className="h-3 w-3 text-muted-foreground" />
-                            {dateObj.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {dateObj.toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              second: "2-digit",
+                            })}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
                             {dateObj.toLocaleDateString()}
@@ -1214,8 +1253,15 @@ export function AdminUserDetailView({
               {loginMeta && loginMeta.totalPages > 1 && (
                 <div className="flex items-center justify-between pt-4 border-t border-border/50">
                   <p className="text-xs text-muted-foreground">
-                    Showing <span className="font-semibold text-foreground">{loginItems.length}</span> of{" "}
-                    <span className="font-semibold text-foreground">{loginMeta.total}</span> login events
+                    Showing{" "}
+                    <span className="font-semibold text-foreground">
+                      {loginItems.length}
+                    </span>{" "}
+                    of{" "}
+                    <span className="font-semibold text-foreground">
+                      {loginMeta.total}
+                    </span>{" "}
+                    login events
                   </p>
 
                   <div className="flex items-center gap-2">
@@ -1249,7 +1295,10 @@ export function AdminUserDetailView({
       )}
 
       {/* Raw Inspect Dialog Modal */}
-      <Dialog open={!!inspectItem} onOpenChange={(open) => !open && setInspectItem(null)}>
+      <Dialog
+        open={!!inspectItem}
+        onOpenChange={(open) => !open && setInspectItem(null)}
+      >
         <DialogContent className="sm:max-w-xl bg-card border-border">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-foreground">
@@ -1257,7 +1306,8 @@ export function AdminUserDetailView({
               Security Audit Event Details
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Detailed technical diagnostic data for login event #{inspectItem?.id}
+              Detailed technical diagnostic data for login event #
+              {inspectItem?.id}
             </DialogDescription>
           </DialogHeader>
 
@@ -1265,27 +1315,40 @@ export function AdminUserDetailView({
             <div className="space-y-4 pt-2 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Status</p>
-                  <p className={`font-semibold ${inspectItem.successful ? "text-emerald-400" : "text-rose-400"}`}>
-                    {inspectItem.successful ? "Success (Authorized)" : `Failed: ${inspectItem.message || "Unknown error"}`}
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                    Status
+                  </p>
+                  <p
+                    className={`font-semibold ${inspectItem.successful ? "text-emerald-400" : "text-rose-400"}`}
+                  >
+                    {inspectItem.successful
+                      ? "Success (Authorized)"
+                      : `Failed: ${inspectItem.message || "Unknown error"}`}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Timestamp</p>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                    Timestamp
+                  </p>
                   <p className="font-semibold text-foreground">
                     {new Date(inspectItem.createdAt).toISOString()}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">IP Address</p>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                    IP Address
+                  </p>
                   <p className="font-mono font-semibold text-foreground">
                     {inspectItem.ipAddress || "N/A"}
                   </p>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-muted/30 p-3 space-y-1">
-                  <p className="text-[10px] uppercase font-bold text-muted-foreground">Device / OS</p>
+                  <p className="text-[10px] uppercase font-bold text-muted-foreground">
+                    Device / OS
+                  </p>
                   <p className="font-semibold text-foreground">
-                    {inspectItem.device || "Desktop"} • {inspectItem.os || "Unknown"}
+                    {inspectItem.device || "Desktop"} •{" "}
+                    {inspectItem.os || "Unknown"}
                   </p>
                 </div>
               </div>
@@ -1294,7 +1357,10 @@ export function AdminUserDetailView({
                 <p className="text-[10px] uppercase font-bold text-muted-foreground flex items-center justify-between">
                   <span>Raw User-Agent String</span>
                   <button
-                    onClick={() => inspectItem.userAgent && handleCopyIp(inspectItem.userAgent)}
+                    onClick={() =>
+                      inspectItem.userAgent &&
+                      handleCopyIp(inspectItem.userAgent)
+                    }
                     className="text-[10px] text-rose-400 hover:underline cursor-pointer"
                   >
                     Copy User-Agent
@@ -1311,4 +1377,3 @@ export function AdminUserDetailView({
     </div>
   );
 }
-
