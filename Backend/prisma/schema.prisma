@@ -149,6 +149,9 @@ model TeamMember {
   createdAt DateTime @default(now())
 
   @@index([teamId])
+  @@index([userId])
+  @@index([email])
+  @@index([teamId, userId])
   @@map("team_members")
 }
 
@@ -175,6 +178,7 @@ model MeetingNote {
   @@index([userId])
   @@index([workspaceId])
   @@index([teamId])
+  @@index([workspaceId, teamId])
   @@map("meeting_notes")
 }
 
@@ -210,6 +214,10 @@ model ActionItem {
   updatedAt   DateTime     @updatedAt
 
   @@index([teamId])
+  @@index([status])
+  @@index([priority])
+  @@index([noteId])
+  @@index([teamId, status])
   @@map("action_items")
 }
 

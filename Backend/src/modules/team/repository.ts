@@ -1,6 +1,25 @@
 import { prisma } from '@/database';
 import { CreateTeamData, UpdateTeamData, AddTeamMemberData, UpdateTeamMemberData } from './types';
 
+// ─── Reusable Select/Include Fragments ───────────────────────────────────
+// Single source of truth for user fields returned in team queries.
+const USER_SELECT = {
+  id: true,
+  uuid: true,
+  name: true,
+  username: true,
+  email: true,
+  avatar: true,
+  role: true,
+  status: true,
+} as const;
+
+export const TEAM_MEMBER_INCLUDE = {
+  include: {
+    user: { select: USER_SELECT },
+  },
+} as const;
+
 export class TeamRepository {
   async create(data: CreateTeamData) {
     let ownerName = 'Team Owner';

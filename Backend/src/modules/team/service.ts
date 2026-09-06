@@ -29,22 +29,19 @@ export class TeamService {
 
     logger.info(`Team created: ${team.name} (${team.id}) in workspace ${data.workspaceId}`);
 
-    try {
-      await notificationService.create({
-        type: NotificationType.TEAM_CREATED,
-        title: 'New Team Created',
-        message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
-        data: {
-          teamId: team.id,
-          name: team.name,
-          key: team.key,
-          workspaceId: workspace.id,
-          workspaceName: workspace.name,
-        },
-      });
-    } catch (notifErr) {
-      logger.error({ notifErr }, 'Failed to emit TEAM_CREATED notification');
-    }
+    // Fire-and-forget: don't block response
+    notificationService.create({
+      type: NotificationType.TEAM_CREATED,
+      title: 'New Team Created',
+      message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
+      data: {
+        teamId: team.id,
+        name: team.name,
+        key: team.key,
+        workspaceId: workspace.id,
+        workspaceName: workspace.name,
+      },
+    }).catch((err) => logger.error({ err }, 'Failed to emit TEAM_CREATED notification'));
 
     return toTeamResponse(team);
   }
@@ -186,18 +183,15 @@ export class TeamService {
 
     logger.info(`Member ${member.name} (${member.email}) added to team ${team.name} (${teamId})`);
 
-    try {
-      if (resolvedUserId && resolvedUserId !== requestedByUserId) {
-        await notificationService.create({
-          userId: resolvedUserId,
-          type: NotificationType.SYSTEM,
-          title: 'Added to Team',
-          message: `You were added to team "${team.name}" as ${member.role}.`,
-          data: { teamId: team.id, role: member.role },
-        });
-      }
-    } catch (err) {
-      logger.error({ err }, 'Failed to create add member notification');
+    // Fire-and-forget notification
+    if (resolvedUserId && resolvedUserId !== requestedByUserId) {
+      notificationService.create({
+        userId: resolvedUserId,
+        type: NotificationType.SYSTEM,
+        title: 'Added to Team',
+        message: `You were added to team "${team.name}" as ${member.role}.`,
+        data: { teamId: team.id, role: member.role },
+      }).catch((err) => logger.error({ err }, 'Failed to create add member notification'));
     }
 
     return toTeamMemberResponse(member);
@@ -219,6 +213,35 @@ export class TeamService {
       existingMembers.map((m) => m.userId).filter((id): id is number => typeof id === 'number')
     );
 
+    // ─── Batch user lookups instead of sequential queries ───
+    const userIdsToLookup = membersData
+      .filter((m) => m.userId)
+      .map((m) => m.userId as number);
+    const emailsToLookup = membersData
+      .filter((m) => !m.userId && m.email)
+      .map((m) => m.email.trim().toLowerCase());
+
+    const usersByIdMap = new Map<number, any>();
+    const usersByEmailMap = new Map<string, any>();
+
+    // Single batch query for userId lookups
+    if (userIdsToLookup.length > 0) {
+      const usersById = await prisma.user.findMany({
+        where: { id: { in: userIdsToLookup } },
+        select: { id: true, name: true, email: true, avatar: true },
+      });
+      usersById.forEach((u) => usersByIdMap.set(u.id, u));
+    }
+
+    // Single batch query for email lookups
+    if (emailsToLookup.length > 0) {
+      const usersByEmail = await prisma.user.findMany({
+        where: { email: { in: emailsToLookup } },
+        select: { id: true, name: true, email: true, avatar: true },
+      });
+      usersByEmail.forEach((u) => usersByEmailMap.set(u.email.toLowerCase(), u));
+    }
+
     const resolvedList: AddTeamMemberData[] = [];
     const seenBatchEmails = new Set<string>();
 
@@ -229,14 +252,14 @@ export class TeamService {
       let resolvedAvatar = mem.avatar;
 
       if (resolvedUserId) {
-        const user = await prisma.user.findUnique({ where: { id: resolvedUserId } });
+        const user = usersByIdMap.get(resolvedUserId);
         if (user) {
           resolvedName = user.name || resolvedName;
           resolvedEmail = user.email.toLowerCase();
           resolvedAvatar = user.avatar || resolvedAvatar;
         }
       } else {
-        const user = await prisma.user.findUnique({ where: { email: resolvedEmail } });
+        const user = usersByEmailMap.get(resolvedEmail);
         if (user) {
           resolvedUserId = user.id;
           resolvedName = user.name || resolvedName;
@@ -271,20 +294,16 @@ export class TeamService {
 
     logger.info(`Added ${created.length} members in bulk to team ${team.name} (${teamId})`);
 
-    // Emit notification to newly added platform users
+    // Fire-and-forget: batch notifications
     for (const mem of created) {
       if (mem.userId && mem.userId !== requestedByUserId) {
-        try {
-          await notificationService.create({
-            userId: mem.userId,
-            type: NotificationType.SYSTEM,
-            title: 'Added to Team',
-            message: `You were added to team "${team.name}" as ${mem.role}.`,
-            data: { teamId: team.id, role: mem.role },
-          });
-        } catch (notifErr) {
-          logger.error({ notifErr }, 'Failed to emit notification for bulk add member');
-        }
+        notificationService.create({
+          userId: mem.userId,
+          type: NotificationType.SYSTEM,
+          title: 'Added to Team',
+          message: `You were added to team "${team.name}" as ${mem.role}.`,
+          data: { teamId: team.id, role: mem.role },
+        }).catch((err) => logger.error({ err }, 'Failed to emit notification for bulk add member'));
       }
     }
 
