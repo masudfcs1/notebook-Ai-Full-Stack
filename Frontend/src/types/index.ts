@@ -82,6 +82,7 @@ export interface ActionItem {
   workspaceId?: string;
   teamId?: string;
   teamName?: string;
+  teamKey?: string;
   title: string;
   description?: string;
   assignee?: string;

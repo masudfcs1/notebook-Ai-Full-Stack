@@ -5,6 +5,7 @@ import authReducer, { logout } from "./authSlice";
 import { authApi } from "./api/authApiSlice";
 import { adminApi } from "./api/adminApiSlice";
 import { workspaceApi } from "./api/workspaceApiSlice";
+import { taskApi } from "./api/taskApiSlice";
 
 const combinedReducer = combineReducers({
   app: appReducer,
@@ -13,6 +14,7 @@ const combinedReducer = combineReducers({
   [authApi.reducerPath]: authApi.reducer,
   [adminApi.reducerPath]: adminApi.reducer,
   [workspaceApi.reducerPath]: workspaceApi.reducer,
+  [taskApi.reducerPath]: taskApi.reducer,
 });
 
 const rootReducer = (
@@ -33,7 +35,8 @@ export function makeStore() {
       getDefaultMiddleware()
         .concat(authApi.middleware)
         .concat(adminApi.middleware)
-        .concat(workspaceApi.middleware),
+        .concat(workspaceApi.middleware)
+        .concat(taskApi.middleware),
   });
 }
 

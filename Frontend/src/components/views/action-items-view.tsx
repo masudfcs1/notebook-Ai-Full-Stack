@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -34,236 +34,566 @@ import {
   CheckCircle2,
   ChevronRight,
   X,
+  AlertTriangle,
+  TrendingUp,
+  Edit3,
+  Trash2,
+  Sparkles,
+  Layers,
+  Check,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import {
+  useGetTasksByWorkspaceQuery,
+  useGetTaskStatsQuery,
+  useUpdateTaskStatusMutation,
+  useDeleteTaskMutation,
+  type TaskItem,
+} from "@/lib/redux/api/taskApiSlice";
 import {
   addTask,
   updateTaskStatus,
   deleteTask,
   updateTask,
 } from "@/lib/redux/dataSlice";
-import { setView, pushNotification } from "@/lib/redux/appSlice";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/app/empty-state";
+import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
+import { getTeamTheme } from "@/lib/team-theme";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ActionItemContextMenu } from "@/components/shared/action-context-menu";
+import { TaskModal } from "@/components/modals/task-modal";
+import { DeleteTaskModal } from "@/components/modals/delete-task-modal";
+import { TaskDetailModal } from "@/components/modals/task-detail-modal";
 import type { ActionItem, PriorityLevel, TaskStatus } from "@/types";
 
-// Linear-style Columns
-const LINEAR_COLUMNS: {
+// Kanban Columns Definition
+const KANBAN_COLUMNS: {
   id: TaskStatus;
   label: string;
-  color: string;
+  dotColor: string;
   border: string;
   bg: string;
+  badge: string;
 }[] = [
   {
     id: "backlog",
     label: "Backlog",
-    color: "text-slate-400",
+    dotColor: "bg-slate-400",
     border: "border-slate-500/30",
-    bg: "bg-slate-500/10",
+    bg: "bg-slate-500/5",
+    badge: "bg-slate-500/15 text-slate-300 border-slate-500/30",
   },
   {
     id: "todo",
     label: "To Do",
-    color: "text-sky-400",
+    dotColor: "bg-sky-400",
     border: "border-sky-500/30",
-    bg: "bg-sky-500/10",
+    bg: "bg-sky-500/5",
+    badge: "bg-sky-500/15 text-sky-300 border-sky-500/30",
   },
   {
     id: "in_progress",
     label: "In Progress",
-    color: "text-amber-400",
+    dotColor: "bg-amber-400",
     border: "border-amber-500/30",
-    bg: "bg-amber-500/10",
+    bg: "bg-amber-500/5",
+    badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
   },
   {
     id: "done",
     label: "Done",
-    color: "text-emerald-400",
+    dotColor: "bg-emerald-400",
     border: "border-emerald-500/30",
-    bg: "bg-emerald-500/10",
+    bg: "bg-emerald-500/5",
+    badge: "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
   },
 ];
 
 const PRIORITY_META: Record<
   PriorityLevel,
-  { label: string; icon: typeof Flame; style: string }
+  { label: string; icon: typeof Flame; color: string; badge: string }
 > = {
   urgent: {
     label: "Urgent",
     icon: Flame,
-    style: "bg-rose-500/20 text-rose-400 border-rose-500/40",
+    color: "text-rose-400",
+    badge: "bg-rose-500/15 text-rose-300 border-rose-500/30",
   },
   high: {
     label: "High",
     icon: ArrowUp,
-    style: "bg-amber-500/20 text-amber-400 border-amber-500/40",
+    color: "text-amber-400",
+    badge: "bg-amber-500/15 text-amber-300 border-amber-500/30",
   },
   medium: {
     label: "Medium",
     icon: Minus,
-    style: "bg-indigo-500/20 text-indigo-400 border-indigo-500/40",
+    color: "text-indigo-400",
+    badge: "bg-indigo-500/15 text-indigo-300 border-indigo-500/30",
   },
   low: {
     label: "Low",
     icon: Circle,
-    style: "bg-slate-500/20 text-slate-400 border-slate-500/40",
+    color: "text-slate-400",
+    badge: "bg-slate-500/15 text-slate-300 border-slate-500/30",
   },
 };
 
 export function ActionItemsView() {
   const dispatch = useAppDispatch();
-  const tasks = useAppSelector((s) => s.data.tasks);
+  const user = useAppSelector((s) => s.auth.user);
   const workspaces = useAppSelector((s) => s.data.workspaces);
   const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
   const activeTeamId = useAppSelector((s) => s.data.activeTeamId);
+  const reduxTasks = useAppSelector((s) => s.data.tasks);
 
   const activeWorkspace =
     workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
   const teams = activeWorkspace?.teams || [];
 
-  // UI state
+  // Team Selection Filter State
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(activeTeamId);
+
+  useEffect(() => {
+    if (activeTeamId) {
+      setSelectedTeamId(activeTeamId);
+    }
+  }, [activeTeamId]);
+
+  // Selected team object
+  const currentTeam = useMemo(() => {
+    if (!selectedTeamId) return null;
+    return teams.find((t) => t.id === selectedTeamId) || null;
+  }, [teams, selectedTeamId]);
+
+  const teamTheme = useMemo(
+    () => getTeamTheme(currentTeam?.key || currentTeam?.id || "TASKS"),
+    [currentTeam]
+  );
+
+  // Queries
+  const { data: tasksRes, isLoading: isLoadingTasks } = useGetTasksByWorkspaceQuery(
+    {
+      workspaceId: activeWorkspace?.id || "",
+      params: { teamId: selectedTeamId || undefined },
+    },
+    { skip: !activeWorkspace?.id }
+  );
+
+  const { data: statsRes } = useGetTaskStatsQuery(
+    {
+      teamId: selectedTeamId || undefined,
+      workspaceId: !selectedTeamId ? activeWorkspace?.id : undefined,
+    },
+    { skip: !activeWorkspace?.id }
+  );
+
+  // Combine tasks from API with local fallback
+  const tasks: (TaskItem | ActionItem)[] = useMemo(() => {
+    if (tasksRes?.success && tasksRes.data) {
+      return tasksRes.data;
+    }
+    return reduxTasks.filter((t) => {
+      const matchWs = !t.workspaceId || t.workspaceId === activeWorkspace?.id;
+      const matchTeam = !selectedTeamId || t.teamId === selectedTeamId;
+      return matchWs && matchTeam;
+    });
+  }, [tasksRes, reduxTasks, activeWorkspace?.id, selectedTeamId]);
+
+  // Mutations
+  const [updateStatusMutation] = useUpdateTaskStatusMutation();
+
+  // View & Filter State
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
-    activeTeamId,
-  );
   const [search, setSearch] = useState("");
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<
+    "all" | "my_tasks" | "urgent_high" | "overdue" | "done"
+  >("all");
 
+  // Drag & Drop State
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
 
-  // Filter tasks by active workspace and team
+  // Modals State
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [taskModalMode, setTaskModalMode] = useState<"create" | "edit">("create");
+  const [taskToEdit, setTaskToEdit] = useState<TaskItem | ActionItem | null>(null);
+  const [defaultModalStatus, setDefaultModalStatus] = useState<TaskStatus>("todo");
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<TaskItem | ActionItem | null>(null);
+
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [taskToView, setTaskToView] = useState<TaskItem | ActionItem | null>(null);
+
+  // Today string for overdue checking
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+
+  // Filtered Tasks
   const filteredTasks = useMemo(() => {
     return tasks.filter((t) => {
-      const matchWs = !t.workspaceId || t.workspaceId === activeWorkspaceId;
-      const matchTeam = !selectedTeamId || t.teamId === selectedTeamId;
+      // Search
+      const s = search.toLowerCase().trim();
       const matchSearch =
-        !search.trim() ||
-        t.title.toLowerCase().includes(search.toLowerCase()) ||
-        t.identifier?.toLowerCase().includes(search.toLowerCase()) ||
-        t.assignee?.toLowerCase().includes(search.toLowerCase());
-      return matchWs && matchTeam && matchSearch;
+        !s ||
+        t.title.toLowerCase().includes(s) ||
+        (t.identifier && t.identifier.toLowerCase().includes(s)) ||
+        (t.assignee && t.assignee.toLowerCase().includes(s)) ||
+        (t.description && t.description.toLowerCase().includes(s));
+
+      if (!matchSearch) return false;
+
+      // Quick Filter
+      if (quickFilter === "my_tasks") {
+        const userName = user?.name?.toLowerCase() || "";
+        const userEmail = user?.email?.toLowerCase() || "";
+        const assignee = (t.assignee || "").toLowerCase();
+        return assignee && (assignee.includes(userName) || assignee.includes(userEmail));
+      }
+      if (quickFilter === "urgent_high") {
+        return t.priority === "urgent" || t.priority === "high";
+      }
+      if (quickFilter === "overdue") {
+        return (
+          t.dueDate &&
+          t.dueDate < todayStr &&
+          t.status !== "done" &&
+          t.status !== "completed"
+        );
+      }
+      if (quickFilter === "done") {
+        return t.status === "done" || t.status === "completed";
+      }
+
+      return true;
     });
-  }, [tasks, activeWorkspaceId, selectedTeamId, search]);
+  }, [tasks, search, quickFilter, user, todayStr]);
 
-  const activeTask = tasks.find((t) => t.id === activeId) ?? null;
+  // Statistics
+  const stats = useMemo(() => {
+    if (statsRes?.success && statsRes.data) {
+      return statsRes.data;
+    }
+    let total = tasks.length;
+    let backlog = 0;
+    let todo = 0;
+    let inProgress = 0;
+    let done = 0;
+    let overdue = 0;
 
+    for (const t of tasks) {
+      const s = t.status || "todo";
+      if (s === "backlog") backlog++;
+      else if (s === "todo") todo++;
+      else if (s === "in_progress") inProgress++;
+      else if (s === "done" || s === "completed") done++;
+
+      if (t.dueDate && t.dueDate < todayStr && s !== "done" && s !== "completed") {
+        overdue++;
+      }
+    }
+
+    const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
+    return {
+      total,
+      backlog,
+      todo,
+      inProgress,
+      done,
+      overdue,
+      completionRate,
+      byPriority: { urgent: 0, high: 0, medium: 0, low: 0 },
+    };
+  }, [statsRes, tasks, todayStr]);
+
+  // Handlers
+  function handleOpenCreate(columnStatus: TaskStatus = "todo") {
+    setDefaultModalStatus(columnStatus);
+    setTaskModalMode("create");
+    setTaskToEdit(null);
+    setTaskModalOpen(true);
+  }
+
+  function handleOpenEdit(task: TaskItem | ActionItem) {
+    setTaskToEdit(task);
+    setTaskModalMode("edit");
+    setTaskModalOpen(true);
+  }
+
+  function handleOpenDelete(task: TaskItem | ActionItem) {
+    setTaskToDelete(task);
+    setDeleteModalOpen(true);
+  }
+
+  function handleOpenDetail(task: TaskItem | ActionItem) {
+    setTaskToView(task);
+    setDetailModalOpen(true);
+  }
+
+  async function handleQuickStatusChange(id: string, targetStatus: TaskStatus) {
+    try {
+      const task = tasks.find((t) => t.id === id);
+      await updateStatusMutation({
+        id,
+        status: targetStatus,
+        teamId: task?.teamId || undefined,
+      }).unwrap();
+
+      toast.success(
+        `Moved to ${targetStatus.replace("_", " ").toUpperCase()}`
+      );
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to update status");
+    }
+  }
+
+  // Advance Status (e.g. todo -> in_progress -> done)
+  function handleAdvanceStatus(task: TaskItem | ActionItem) {
+    const current = task.status || "todo";
+    let next: TaskStatus = "todo";
+    if (current === "backlog") next = "todo";
+    else if (current === "todo") next = "in_progress";
+    else if (current === "in_progress") next = "done";
+    else if (current === "done" || current === "completed") next = "todo";
+
+    void handleQuickStatusChange(task.id, next);
+  }
+
+  // Drag & Drop Handlers
   function handleDragStart(e: DragStartEvent) {
-    setActiveId(String(e.active.id));
+    setActiveDragId(String(e.active.id));
   }
 
   function handleDragEnd(e: DragEndEvent) {
-    setActiveId(null);
+    setActiveDragId(null);
     const over = e.over;
     if (!over) return;
     const targetStatus = over.id as TaskStatus;
     const task = tasks.find((t) => t.id === e.active.id);
     if (task && task.status !== targetStatus) {
-      dispatch(updateTaskStatus({ id: task.id, status: targetStatus }));
-      toast.success(
-        `Task status updated to ${targetStatus.replace("_", " ").toUpperCase()}`,
-      );
+      void handleQuickStatusChange(task.id, targetStatus);
     }
   }
 
+  const activeDragTask = tasks.find((t) => t.id === activeDragId) || null;
+
   return (
-    <div className="space-y-5">
-      {/* Top Header Controls (Linear Style) */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-background/60 p-4 backdrop-blur-xl md:flex-row md:items-center md:justify-between">
-        {/* Left: Title & Team Filter Pills */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-500/20 text-indigo-400">
-              <CheckSquare className="h-4 w-4" />
+    <div className="space-y-4">
+      {/* Dynamic Team Header & Health Metric Cards */}
+      <Card className="relative overflow-hidden border-white/10 bg-gradient-to-r from-card/95 via-card/75 to-background/60 p-5 backdrop-blur-xl shadow-lg">
+        {/* Dynamic ambient glow matching team theme */}
+        <div
+          className={cn(
+            "pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-3xl opacity-35",
+            teamTheme.glow
+          )}
+        />
+
+        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          {/* Left Title & Team Switcher */}
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div
+              className={cn(
+                "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl shadow-inner ring-1 ring-white/10",
+                teamTheme.subtleBg,
+                teamTheme.badgeBorder,
+                teamTheme.badgeText
+              )}
+            >
+              {currentTeam?.icon || "⚡"}
             </div>
-            <div>
-              <h2 className="text-base font-bold tracking-tight">
-                Team Action Items
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                Workspace:{" "}
-                <span className="font-semibold text-foreground">
-                  {activeWorkspace?.name}
-                </span>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-bold tracking-tight text-foreground">
+                  {currentTeam ? currentTeam.name : "Workspace Action Items"}
+                </h1>
+                {currentTeam ? (
+                  <Badge
+                    variant="outline"
+                    className={cn("font-mono text-xs font-semibold uppercase tracking-wider", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}
+                  >
+                    {currentTeam.key}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-400 border-indigo-500/30">
+                    All Workspace Teams
+                  </Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5 truncate">
+                {activeWorkspace?.name} · Enterprise Linear-Style Issue & Action Item Tracking
               </p>
             </div>
           </div>
 
-          {/* Team Filter Pills */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          {/* Right Metrics Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
+            {/* Total */}
+            <div className="rounded-xl border border-white/10 bg-card/60 px-3 py-2 text-left">
+              <span className="text-[10px] text-muted-foreground block font-medium">Total Tasks</span>
+              <span className="text-base font-bold text-foreground">{stats.total}</span>
+            </div>
+
+            {/* In Progress */}
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-left">
+              <span className="text-[10px] text-amber-300 block font-medium">In Progress</span>
+              <span className="text-base font-bold text-amber-400">{stats.inProgress}</span>
+            </div>
+
+            {/* Done Rate */}
+            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-emerald-300 block font-medium">Done</span>
+                <span className="text-[10px] text-emerald-400 font-bold">{stats.completionRate}%</span>
+              </div>
+              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-emerald-950/40">
+                <div
+                  className="h-full bg-emerald-400 transition-all duration-500 rounded-full"
+                  style={{ width: `${stats.completionRate}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Overdue */}
+            <div
+              className={cn(
+                "rounded-xl border px-3 py-2 text-left transition-colors",
+                stats.overdue > 0
+                  ? "border-rose-500/30 bg-rose-500/15"
+                  : "border-white/10 bg-card/60"
+              )}
+            >
+              <span className="text-[10px] text-rose-300 block font-medium flex items-center gap-1">
+                {stats.overdue > 0 && <AlertTriangle className="h-3 w-3 text-rose-400 animate-pulse" />}
+                Overdue
+              </span>
+              <span className={cn("text-base font-bold", stats.overdue > 0 ? "text-rose-400" : "text-muted-foreground")}>
+                {stats.overdue}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Team Filter Pills (Linear Style) */}
+        {teams.length > 0 && (
+          <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-3">
+            <span className="text-xs text-muted-foreground font-semibold mr-1 flex items-center gap-1">
+              <Layers className="h-3.5 w-3.5" /> Scope:
+            </span>
             <button
               onClick={() => setSelectedTeamId(null)}
               className={cn(
-                "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
+                "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
                 selectedTeamId === null
-                  ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
-                  : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "border-indigo-500/50 bg-indigo-500 text-white shadow-sm font-bold"
+                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
-              <span>🌐</span> All Teams ({tasks.length})
+              <span>🌐</span>
+              <span>All Teams</span>
+              <span className="text-[10px] opacity-80">({reduxTasks.length})</span>
             </button>
+
             {teams.map((t) => {
-              const teamCount = tasks.filter((x) => x.teamId === t.id).length;
+              const isSelected = selectedTeamId === t.id;
+              const count = tasks.filter((x) => x.teamId === t.id).length;
+              const theme = getTeamTheme(t.key || t.id || t.name);
+
               return (
                 <button
                   key={t.id}
                   onClick={() => setSelectedTeamId(t.id)}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold transition-all",
-                    selectedTeamId === t.id
-                      ? "bg-indigo-500 text-white shadow-md shadow-indigo-500/30"
-                      : "bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                    "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
+                    isSelected
+                      ? cn("border-transparent font-bold text-white shadow-sm bg-gradient-to-r", theme.gradient)
+                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground"
                   )}
                 >
-                  <span>{t.icon || "💻"}</span>
+                  <span>{t.icon || "👥"}</span>
                   <span>{t.name}</span>
-                  <span className="font-mono text-[10px] opacity-70">
-                    ({teamCount})
-                  </span>
+                  <span className="text-[10px] font-mono opacity-80">({t.key})</span>
                 </button>
               );
             })}
           </div>
-        </div>
+        )}
+      </Card>
 
-        {/* Right Controls: Search, View Switcher & Create Task */}
+      {/* Filter Toolbar & Actions */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {/* Left: Quick Filters & Search */}
         <div className="flex flex-wrap items-center gap-2">
+          {/* Search Input */}
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Filter issue title, assignee..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="h-9 w-44 rounded-xl border border-border/60 bg-background/50 pl-8 pr-3 text-xs outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 md:w-56"
+              placeholder="Search tasks, identifier, assignee..."
+              className="h-9 w-44 sm:w-60 rounded-xl border border-border/60 bg-card/60 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
             />
+            {search && (
+              <button
+                onClick={() => setSearch("")}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            )}
           </div>
 
-          {/* View mode toggle */}
-          <div className="flex items-center rounded-xl border border-border/60 bg-background/40 p-0.5">
+          {/* Quick Filter Pills */}
+          <div className="flex items-center rounded-xl border border-border/60 bg-card/40 p-0.5">
+            {[
+              { id: "all", label: "All" },
+              { id: "my_tasks", label: "My Tasks" },
+              { id: "urgent_high", label: "High Priority" },
+              { id: "overdue", label: "Overdue" },
+              { id: "done", label: "Done" },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setQuickFilter(f.id as any)}
+                className={cn(
+                  "rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
+                  quickFilter === f.id
+                    ? "bg-indigo-600 text-white font-semibold shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Right: View Toggle & Create Action Item */}
+        <div className="flex items-center gap-2">
+          {/* View Toggle */}
+          <div className="flex items-center rounded-xl border border-border/60 bg-card/40 p-0.5">
             <button
               onClick={() => setViewMode("board")}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all",
+                "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                 viewMode === "board"
-                  ? "bg-muted text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-indigo-600 text-white font-semibold shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Board
@@ -271,154 +601,233 @@ export function ActionItemsView() {
             <button
               onClick={() => setViewMode("list")}
               className={cn(
-                "flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition-all",
+                "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                 viewMode === "list"
-                  ? "bg-muted text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground",
+                  ? "bg-indigo-600 text-white font-semibold shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               <List className="h-3.5 w-3.5" /> List
             </button>
           </div>
 
+          {/* Create CTA */}
           <Button
-            onClick={() => setCreateModalOpen(true)}
-            className="h-9 gap-1.5 rounded-xl  from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-lg shadow-indigo-500/20"
+            onClick={() => handleOpenCreate("todo")}
+            className="h-9 gap-1.5 rounded-xl bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-xs font-semibold text-white shadow-lg shadow-indigo-500/25 hover:opacity-95 cursor-pointer"
           >
             <Plus className="h-4 w-4" /> New Action Item
           </Button>
         </div>
       </div>
 
-      {/* Board vs List View */}
+      {/* Main Kanban Board View or List View */}
       {viewMode === "board" ? (
         <DndContext
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid gap-4 md:grid-cols-4">
-            {LINEAR_COLUMNS.map((col) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+            {KANBAN_COLUMNS.map((col) => {
               const colTasks = filteredTasks.filter(
-                (t) =>
-                  t.status === col.id ||
-                  (col.id === "todo" && t.status === "pending") ||
-                  (col.id === "done" && t.status === "completed"),
+                (t) => (t.status || "todo") === col.id
               );
+
               return (
-                <LinearColumn
+                <KanbanColumn
                   key={col.id}
-                  col={col}
+                  column={col}
                   tasks={colTasks}
-                  onDelete={(id) => {
-                    dispatch(deleteTask(id));
-                    toast.success("Action item deleted");
-                  }}
-                  onStatusChange={(id, status) => {
-                    dispatch(updateTaskStatus({ id, status }));
-                  }}
+                  onAdd={() => handleOpenCreate(col.id)}
+                  onEdit={handleOpenEdit}
+                  onDelete={handleOpenDelete}
+                  onView={handleOpenDetail}
+                  onAdvance={handleAdvanceStatus}
+                  todayStr={todayStr}
                 />
               );
             })}
           </div>
 
+          {/* Drag Overlay Preview */}
           <DragOverlay>
-            {activeTask ? (
-              <div className="rotate-2 opacity-90">
-                <LinearTaskCard task={activeTask} />
+            {activeDragTask && (
+              <div className="rotate-2 scale-105 opacity-90 shadow-2xl">
+                <TaskCardItem
+                  task={activeDragTask}
+                  onEdit={() => {}}
+                  onDelete={() => {}}
+                  onView={() => {}}
+                  onAdvance={() => {}}
+                  todayStr={todayStr}
+                />
               </div>
-            ) : null}
+            )}
           </DragOverlay>
         </DndContext>
       ) : (
-        <LinearListView
+        <ListView
           tasks={filteredTasks}
-          onDelete={(id) => dispatch(deleteTask(id))}
-          onStatusChange={(id, status) =>
-            dispatch(updateTaskStatus({ id, status }))
-          }
+          onAdd={() => handleOpenCreate("todo")}
+          onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
+          onView={handleOpenDetail}
+          onStatusChange={handleQuickStatusChange}
+          todayStr={todayStr}
         />
       )}
 
-      {/* Create Action Item Modal */}
-      <CreateTaskModal
-        open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
-        teams={teams}
-        activeWorkspaceId={activeWorkspaceId}
+      {/* Modals */}
+      <TaskModal
+        open={taskModalOpen}
+        onClose={() => setTaskModalOpen(false)}
+        mode={taskModalMode}
+        taskToEdit={taskToEdit}
+        defaultTeamId={selectedTeamId || undefined}
+        defaultStatus={defaultModalStatus}
+      />
+
+      <DeleteTaskModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setTaskToDelete(null);
+        }}
+        task={taskToDelete}
+      />
+
+      <TaskDetailModal
+        open={detailModalOpen}
+        onClose={() => {
+          setDetailModalOpen(false);
+          setTaskToView(null);
+        }}
+        task={taskToView}
+        onEdit={handleOpenEdit}
+        onDelete={handleOpenDelete}
+        onStatusChange={handleQuickStatusChange}
       />
     </div>
   );
 }
 
-function LinearColumn({
-  col,
+/* ========================================================================= */
+/* KANBAN COLUMN COMPONENT                                                    */
+/* ========================================================================= */
+
+interface KanbanColumnProps {
+  column: {
+    id: TaskStatus;
+    label: string;
+    dotColor: string;
+    border: string;
+    bg: string;
+    badge: string;
+  };
+  tasks: (TaskItem | ActionItem)[];
+  onAdd: () => void;
+  onEdit: (task: TaskItem | ActionItem) => void;
+  onDelete: (task: TaskItem | ActionItem) => void;
+  onView: (task: TaskItem | ActionItem) => void;
+  onAdvance: (task: TaskItem | ActionItem) => void;
+  todayStr: string;
+}
+
+function KanbanColumn({
+  column,
   tasks,
+  onAdd,
+  onEdit,
   onDelete,
-  onStatusChange,
-}: {
-  col: (typeof LINEAR_COLUMNS)[number];
-  tasks: ActionItem[];
-  onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: TaskStatus) => void;
-}) {
-  const { setNodeRef, isOver } = useDroppable({ id: col.id });
+  onView,
+  onAdvance,
+  todayStr,
+}: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+  });
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between px-1">
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "flex flex-col rounded-2xl border bg-card/40 p-3.5 backdrop-blur-md transition-colors min-h-[480px]",
+        column.border,
+        isOver && "ring-2 ring-indigo-500/40 bg-indigo-500/5"
+      )}
+    >
+      {/* Column Header */}
+      <div className="flex items-center justify-between pb-3 border-b border-white/5">
         <div className="flex items-center gap-2">
-          <span
-            className={cn("h-2.5 w-2.5 rounded-full", col.bg, col.border)}
-          />
-          <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-            {col.label}
+          <span className={cn("h-2.5 w-2.5 rounded-full", column.dotColor)} />
+          <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+            {column.label}
           </h3>
-          <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
+          <Badge
+            variant="outline"
+            className={cn("px-1.5 py-0 text-[10px] font-mono", column.badge)}
+          >
             {tasks.length}
-          </span>
+          </Badge>
         </div>
+
+        <button
+          onClick={onAdd}
+          className="rounded-lg p-1 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer transition-colors"
+          title={`Add task to ${column.label}`}
+        >
+          <Plus className="h-4 w-4" />
+        </button>
       </div>
 
-      <div
-        ref={setNodeRef}
-        className={cn(
-          "min-h-[460px] space-y-2.5 rounded-2xl border p-2.5 transition-colors",
-          isOver
-            ? "border-indigo-500 bg-indigo-500/5"
-            : "border-white/5 bg-background/30 backdrop-blur-md",
-        )}
-      >
-        {tasks.length === 0 ? (
-          <div className="flex h-36 flex-col items-center justify-center text-center text-xs text-muted-foreground/50 border border-dashed border-white/10 rounded-xl">
-            No items in {col.label}
+      {/* Tasks List */}
+      <div className="flex-1 space-y-2.5 pt-3 overflow-y-auto max-h-[calc(100vh-320px)] pr-0.5">
+        {tasks.map((task) => (
+          <DraggableTaskCard
+            key={task.id}
+            task={task}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onView={onView}
+            onAdvance={onAdvance}
+            todayStr={todayStr}
+          />
+        ))}
+
+        {tasks.length === 0 && (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-white/10 py-10 text-center text-xs text-muted-foreground/60">
+            <span className="text-xl opacity-40">📭</span>
+            <p className="mt-1 text-[11px]">No tasks in {column.label}</p>
+            <button
+              onClick={onAdd}
+              className="mt-2 text-[11px] font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+            >
+              + Add Item
+            </button>
           </div>
-        ) : (
-          tasks.map((task) => (
-            <DraggableLinearTaskCard
-              key={task.id}
-              task={task}
-              onDelete={onDelete}
-              onStatusChange={onStatusChange}
-            />
-          ))
         )}
       </div>
     </div>
   );
 }
 
-function DraggableLinearTaskCard({
-  task,
-  onDelete,
-  onStatusChange,
-}: {
-  task: ActionItem;
-  onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: TaskStatus) => void;
-}) {
+/* ========================================================================= */
+/* DRAGGABLE TASK CARD                                                       */
+/* ========================================================================= */
+
+interface DraggableCardProps {
+  task: TaskItem | ActionItem;
+  onEdit: (task: TaskItem | ActionItem) => void;
+  onDelete: (task: TaskItem | ActionItem) => void;
+  onView: (task: TaskItem | ActionItem) => void;
+  onAdvance: (task: TaskItem | ActionItem) => void;
+  todayStr: string;
+}
+
+function DraggableTaskCard(props: DraggableCardProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: task.id,
+    id: props.task.id,
   });
 
   return (
@@ -426,431 +835,409 @@ function DraggableLinearTaskCard({
       ref={setNodeRef}
       {...attributes}
       {...listeners}
-      className={cn(
-        "cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-30",
-      )}
+      className={cn("touch-none", isDragging && "opacity-40")}
     >
-      <LinearTaskCard
-        task={task}
-        onDelete={onDelete}
-        onStatusChange={onStatusChange}
-      />
+      <TaskCardItem {...props} />
     </div>
   );
 }
 
-function LinearTaskCard({
+function TaskCardItem({
   task,
+  onEdit,
   onDelete,
-  onStatusChange,
-}: {
-  task: ActionItem;
-  onDelete?: (id: string) => void;
-  onStatusChange?: (id: string, status: TaskStatus) => void;
-}) {
-  const PriorityMeta = PRIORITY_META[task.priority] || PRIORITY_META.medium;
-  const PriorityIcon = PriorityMeta.icon;
-  const iconColor =
-    PriorityMeta.style.match(/text-\w+-\d+/)?.[0] || "text-foreground";
+  onView,
+  onAdvance,
+  todayStr,
+}: DraggableCardProps) {
+  const teamTheme = getTeamTheme(task.teamKey || task.teamId || "TASK");
+  const pMeta = PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
+  const PriorityIcon = pMeta.icon;
+
+  const isDone = task.status === "done" || task.status === "completed";
+  const isOverdue =
+    task.dueDate && task.dueDate < todayStr && !isDone;
+  const isDueToday = task.dueDate === todayStr && !isDone;
 
   return (
-    <ActionItemContextMenu>
-      <Card className="group relative flex flex-col gap-3 rounded-[14px] border bg-[#eeeefa] p-4 shadow-sm backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-white/15 hover:bg-[#e8e8ef] hover:shadow-md hover:shadow-black/20">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <PriorityIcon className={cn("h-4 w-4", iconColor)} />
-            <span className="font-mono text-[11px] font-medium tracking-wide text-muted-foreground/60 transition-colors group-hover:text-muted-foreground/90">
-              {task.identifier || "ACT-100"}
-            </span>
-          </div>
+    <div
+      onClick={() => onView(task)}
+      className={cn(
+        "group relative rounded-xl border bg-card/85 p-3.5 shadow-sm transition-all hover:border-indigo-500/40 hover:shadow-md cursor-pointer border-white/10",
+        isDone && "opacity-75 bg-card/40"
+      )}
+    >
+      {/* Top Meta Line: Identifier + Priority + Menu */}
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="font-mono text-[11px] font-bold text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded border border-border/40 shrink-0">
+            {task.identifier || `TASK-${task.id.slice(-4).toUpperCase()}`}
+          </span>
 
-          {onDelete && (
+          {task.teamName && (
+            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded border truncate max-w-[110px]", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}>
+              {task.teamName}
+            </span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Priority Pill */}
+          <span
+            className={cn(
+              "flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold",
+              pMeta.badge
+            )}
+          >
+            <PriorityIcon className={cn("h-3 w-3", pMeta.color, task.priority === "urgent" && "animate-pulse")} />
+            {pMeta.label}
+          </span>
+
+          {/* Quick Actions Dropdown */}
+          <div onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="rounded-md p-1.5 text-muted-foreground/40 opacity-0 transition-all hover:bg-white/10 hover:text-foreground group-hover:opacity-100">
-                  <MoreHorizontal className="h-4 w-4" />
+                <button className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer opacity-60 group-hover:opacity-100">
+                  <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent
-                align="end"
-                className="w-44 border-white/10 bg-[#1C1C1E]/95 backdrop-blur-xl"
-              >
-                <DropdownMenuItem
-                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                  onClick={() => onStatusChange?.(task.id, "todo")}
-                >
-                  Mark To Do
+              <DropdownMenuContent align="end" className="w-36 bg-popover/95 border-border">
+                <DropdownMenuItem onClick={() => onView(task)} className="gap-2 text-xs cursor-pointer">
+                  <Sparkles className="h-3.5 w-3.5" /> View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                  onClick={() => onStatusChange?.(task.id, "in_progress")}
-                >
-                  Mark In Progress
+                <DropdownMenuItem onClick={() => onEdit(task)} className="gap-2 text-xs cursor-pointer">
+                  <Edit3 className="h-3.5 w-3.5" /> Edit Task
                 </DropdownMenuItem>
-                <DropdownMenuItem
-                  className="cursor-pointer py-2 text-[13px] font-medium focus:bg-indigo-500/20 focus:text-indigo-400"
-                  onClick={() => onStatusChange?.(task.id, "done")}
-                >
-                  Mark Done
+                <DropdownMenuItem onClick={() => onAdvance(task)} className="gap-2 text-xs cursor-pointer">
+                  <ChevronRight className="h-3.5 w-3.5" /> Advance Stage
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  className="cursor-pointer py-2 text-[13px] font-medium text-rose-400 focus:bg-rose-500/20 focus:text-rose-400"
-                  onClick={() => onDelete(task.id)}
+                  onClick={() => onDelete(task)}
+                  className="gap-2 text-xs text-rose-500 hover:text-rose-600 cursor-pointer"
                 >
-                  Delete Issue
+                  <Trash2 className="h-3.5 w-3.5" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          )}
-        </div>
-
-        <div className="flex-1 space-y-1.5">
-          <p className="text-[14px] font-medium leading-snug text-slate-200">
-            {task.title}
-          </p>
-          {task.description && (
-            <p className="line-clamp-2 text-[12px] leading-relaxed text-muted-foreground/70">
-              {task.description}
-            </p>
-          )}
-        </div>
-
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge
-              variant="outline"
-              className={cn(
-                "px-2 py-0.5 text-[10.5px] font-medium tracking-wide transition-colors border-white/5 bg-white/[0.02]",
-                PriorityMeta.style,
-              )}
-            >
-              {PriorityMeta.label}
-            </Badge>
-            {task.teamName && (
-              <Badge
-                variant="outline"
-                className="px-2 py-0.5 text-[10.5px] font-medium tracking-wide text-muted-foreground transition-colors border-white/5 bg-white/[0.02]"
-              >
-                {task.teamName}
-              </Badge>
-            )}
           </div>
+        </div>
+      </div>
 
-          {task.assignee && (
-            <div
-              className="flex shrink-0 items-center transition-transform hover:scale-105"
-              title={`Assigned to ${task.assignee}`}
-            >
-              <Avatar className="h-6 w-6 border border-white/10 ring-2 ring-transparent transition-all hover:ring-white/20">
-                <AvatarImage src={task.assigneeAvatar} />
-                <AvatarFallback className="bg-gradient-lr from-indigo-500/20 to-purple-500/20 text-[10px] font-medium text-indigo-300">
-                  {task.assignee.slice(0, 2).toUpperCase()}
+      {/* Task Title */}
+      <h4
+        className={cn(
+          "text-xs font-semibold leading-snug text-foreground line-clamp-2",
+          isDone && "line-through text-muted-foreground"
+        )}
+      >
+        {task.title}
+      </h4>
+
+      {/* Description Snippet */}
+      {task.description && (
+        <p className="mt-1 text-[11px] text-muted-foreground line-clamp-2 leading-relaxed">
+          {task.description}
+        </p>
+      )}
+
+      {/* Bottom Row: Assignee + Due Date + 1-Click Advance Button */}
+      <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-[11px]">
+        {/* Assignee */}
+        <div className="flex items-center gap-1.5 min-w-0">
+          {task.assignee ? (
+            <>
+              <Avatar className="h-4 w-4 shrink-0">
+                <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
+                <AvatarFallback className="text-[8px]">
+                  {getUserInitials(task.assignee)}
                 </AvatarFallback>
               </Avatar>
-            </div>
+              <span className="truncate text-muted-foreground max-w-[90px]">
+                {task.assignee}
+              </span>
+            </>
+          ) : (
+            <span className="text-muted-foreground/60 italic text-[10px]">
+              Unassigned
+            </span>
           )}
         </div>
-      </Card>
-    </ActionItemContextMenu>
-  );
-}
 
-function LinearListView({
-  tasks,
-  onDelete,
-  onStatusChange,
-}: {
-  tasks: ActionItem[];
-  onDelete: (id: string) => void;
-  onStatusChange: (id: string, status: TaskStatus) => void;
-}) {
-  if (tasks.length === 0) {
-    return (
-      <div className="rounded-2xl border border-white/10 p-8 text-center text-xs text-muted-foreground">
-        No action items match the active team filter.
-      </div>
-    );
-  }
-
-  return (
-    <div className="overflow-hidden rounded-2xl border border-white/10 bg-background/40 backdrop-blur-xl">
-      <div className="grid grid-cols-12 items-center border-b border-white/10 px-4 py-2.5 font-mono text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-        <div className="col-span-2">Identifier</div>
-        <div className="col-span-5">Title</div>
-        <div className="col-span-2">Priority</div>
-        <div className="col-span-2">Assignee</div>
-        <div className="col-span-1 text-right">Status</div>
-      </div>
-
-      <div className="divide-y divide-white/5">
-        {tasks.map((task) => {
-          const PriorityMeta =
-            PRIORITY_META[task.priority] || PRIORITY_META.medium;
-          const PriorityIcon = PriorityMeta.icon;
-
-          return (
-            <div
-              key={task.id}
-              className="grid grid-cols-12 items-center px-4 py-3 text-xs hover:bg-white/5"
+        {/* Due Date & Quick Advance */}
+        <div className="flex items-center gap-1.5 shrink-0">
+          {task.dueDate && (
+            <span
+              className={cn(
+                "flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-mono",
+                isOverdue
+                  ? "bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40"
+                  : isDueToday
+                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40"
+                  : "bg-muted/40 text-muted-foreground"
+              )}
             >
-              <div className="col-span-2 font-mono font-bold text-indigo-400">
-                {task.identifier || "ENG-100"}
-              </div>
-              <div className="col-span-5 truncate font-medium text-foreground">
-                {task.title}
-              </div>
-              <div className="col-span-2">
-                <Badge
-                  variant="outline"
-                  className={cn("gap-1 text-[9px]", PriorityMeta.style)}
-                >
-                  <PriorityIcon className="h-2.5 w-2.5" /> {PriorityMeta.label}
-                </Badge>
-              </div>
-              <div className="col-span-2 flex items-center gap-2">
-                {task.assignee ? (
-                  <>
-                    <Avatar className="h-5 w-5 border border-white/20">
-                      <AvatarImage src={task.assigneeAvatar} />
-                      <AvatarFallback className="bg-indigo-500/20 text-[9px] font-bold text-indigo-300">
-                        {task.assignee.slice(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="truncate text-muted-foreground">
-                      {task.assignee}
-                    </span>
-                  </>
-                ) : (
-                  <span className="text-muted-foreground/50">Unassigned</span>
-                )}
-              </div>
-              <div className="col-span-1 text-right">
-                <Badge variant="secondary" className="capitalize text-[10px]">
-                  {task.status.replace("_", " ")}
-                </Badge>
-              </div>
-            </div>
-          );
-        })}
+              <Calendar className="h-2.5 w-2.5" />
+              {task.dueDate}
+            </span>
+          )}
+
+          {/* Advance status 1-click button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdvance(task);
+            }}
+            title={isDone ? "Reopen task" : "Advance to next stage"}
+            className={cn(
+              "rounded-md p-1 transition-colors cursor-pointer",
+              isDone
+                ? "text-emerald-400 hover:bg-emerald-500/20"
+                : "text-muted-foreground hover:bg-indigo-500/20 hover:text-indigo-300"
+            )}
+          >
+            {isDone ? <Check className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
 
-function CreateTaskModal({
-  open,
-  onClose,
-  teams,
-  activeWorkspaceId,
-}: {
-  open: boolean;
-  onClose: () => void;
-  teams: any[];
-  activeWorkspaceId: string;
-}) {
-  const dispatch = useAppDispatch();
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [teamId, setTeamId] = useState(teams[0]?.id || "");
-  const [priority, setPriority] = useState<PriorityLevel>("high");
-  const [status, setStatus] = useState<TaskStatus>("todo");
-  const [assignee, setAssignee] = useState("");
+/* ========================================================================= */
+/* LIST / DATA TABLE VIEW                                                    */
+/* ========================================================================= */
 
-  if (!open) return null;
+interface ListViewProps {
+  tasks: (TaskItem | ActionItem)[];
+  onAdd: () => void;
+  onEdit: (task: TaskItem | ActionItem) => void;
+  onDelete: (task: TaskItem | ActionItem) => void;
+  onView: (task: TaskItem | ActionItem) => void;
+  onStatusChange: (id: string, status: TaskStatus) => void;
+  todayStr: string;
+}
 
-  const activeTeam = teams.find((t) => t.id === teamId) || teams[0];
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!title.trim()) {
-      toast.error("Task title is required");
-      return;
-    }
-
-    const key = activeTeam?.key || "ACT";
-    const randomNum = Math.floor(100 + Math.random() * 900);
-    const identifier = `${key}-${randomNum}`;
-
-    dispatch(
-      addTask({
-        id: `task-${Date.now()}`,
-        identifier,
-        workspaceId: activeWorkspaceId,
-        teamId: activeTeam?.id,
-        teamName: activeTeam?.name,
-        title: title.trim(),
-        description: description.trim() || undefined,
-        assignee: assignee.trim() || undefined,
-        priority,
-        status,
-        createdAt: new Date().toISOString(),
-      }),
-    );
-
-    dispatch(
-      pushNotification({
-        title: "Action Item Created",
-        description: `Created issue ${identifier} "${title.trim()}".`,
-        type: "success",
-      }),
-    );
-
-    toast.success(`Issue ${identifier} created!`);
-    setTitle("");
-    setDescription("");
-    onClose();
-  }
-
+function ListView({
+  tasks,
+  onAdd,
+  onEdit,
+  onDelete,
+  onView,
+  onStatusChange,
+  todayStr,
+}: ListViewProps) {
   return (
-    <AnimatePresence>
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-black/60 backdrop-blur-md"
-          onClick={onClose}
-        />
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-white/10 bg-background/95 p-6 shadow-2xl backdrop-blur-2xl"
-        >
-          <div className="flex items-center justify-between border-b border-border/40 pb-4">
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-500/15 text-indigo-400">
-                <CheckSquare className="h-5 w-5" />
-              </div>
-              <div>
-                <h2 className="text-base font-bold">New Linear Action Item</h2>
-                <p className="text-xs text-muted-foreground">
-                  Assign to team & priority level
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={onClose}
-              className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
+    <Card className="overflow-hidden border-white/10 bg-card/50 backdrop-blur-xl shadow-lg">
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs">
+          <thead className="border-b border-white/10 bg-muted/40 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+            <tr>
+              <th className="py-3 pl-4 pr-2 w-10">Done</th>
+              <th className="py-3 px-3 w-28">Identifier</th>
+              <th className="py-3 px-3 min-w-[220px]">Task Title</th>
+              <th className="py-3 px-3 w-28">Team</th>
+              <th className="py-3 px-3 w-32">Priority</th>
+              <th className="py-3 px-3 w-36">Status</th>
+              <th className="py-3 px-3 w-36">Assignee</th>
+              <th className="py-3 px-3 w-32">Due Date</th>
+              <th className="py-3 pl-3 pr-4 text-right w-24">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {tasks.map((task) => {
+              const isDone = task.status === "done" || task.status === "completed";
+              const isOverdue =
+                task.dueDate && task.dueDate < todayStr && !isDone;
+              const teamTheme = getTeamTheme(task.teamKey || task.teamId || "TASK");
+              const pMeta =
+                PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
+              const PriorityIcon = pMeta.icon;
 
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Issue Title *
-              </label>
-              <input
-                type="text"
-                placeholder="What needs to be done?"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-sm outline-none focus:border-indigo-500"
-                autoFocus
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Description
-              </label>
-              <textarea
-                placeholder="Add context or acceptance criteria..."
-                rows={2}
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="w-full resize-none rounded-xl border border-border/60 bg-muted/30 px-3.5 py-2 text-sm outline-none focus:border-indigo-500"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Team Assignment
-                </label>
-                <select
-                  value={teamId}
-                  onChange={(e) => setTeamId(e.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
+              return (
+                <tr
+                  key={task.id}
+                  onClick={() => onView(task)}
+                  className={cn(
+                    "group transition-colors hover:bg-muted/30 cursor-pointer",
+                    isDone && "opacity-60 bg-muted/10"
+                  )}
                 >
-                  {teams.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.icon || "💻"} {t.name} ({t.key})
-                    </option>
-                  ))}
-                </select>
-              </div>
+                  {/* Done Checkbox */}
+                  <td className="py-3 pl-4 pr-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => onStatusChange(task.id, isDone ? "todo" : "done")}
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded border transition-colors cursor-pointer",
+                        isDone
+                          ? "border-emerald-500 bg-emerald-500 text-white"
+                          : "border-border hover:border-indigo-500"
+                      )}
+                    >
+                      {isDone && <Check className="h-3 w-3 stroke-[3]" />}
+                    </button>
+                  </td>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Assignee
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. David Chen"
-                  value={assignee}
-                  onChange={(e) => setAssignee(e.target.value)}
-                  className="w-full rounded-xl border border-border/60 bg-muted/30 px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                />
-              </div>
-            </div>
+                  {/* Identifier */}
+                  <td className="py-3 px-3 font-mono font-bold text-muted-foreground">
+                    {task.identifier || `TASK-${task.id.slice(-4).toUpperCase()}`}
+                  </td>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Priority
-                </label>
-                <select
-                  value={priority}
-                  onChange={(e) => setPriority(e.target.value as PriorityLevel)}
-                  className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                >
-                  <option value="urgent">🔥 Urgent</option>
-                  <option value="high">⬆️ High</option>
-                  <option value="medium">➖ Medium</option>
-                  <option value="low">🔵 Low</option>
-                </select>
-              </div>
+                  {/* Title & Description */}
+                  <td className="py-3 px-3">
+                    <div className="font-semibold text-foreground truncate max-w-md">
+                      <span className={cn(isDone && "line-through text-muted-foreground")}>
+                        {task.title}
+                      </span>
+                    </div>
+                    {task.description && (
+                      <p className="text-[11px] text-muted-foreground truncate max-w-md mt-0.5">
+                        {task.description}
+                      </p>
+                    )}
+                  </td>
 
-              <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Status Column
-                </label>
-                <select
-                  value={status}
-                  onChange={(e) => setStatus(e.target.value as TaskStatus)}
-                  className="w-full rounded-xl border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                >
-                  <option value="backlog">Backlog</option>
-                  <option value="todo">To Do</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="done">Done</option>
-                </select>
-              </div>
-            </div>
+                  {/* Team */}
+                  <td className="py-3 px-3">
+                    {task.teamName ? (
+                      <Badge
+                        variant="outline"
+                        className={cn("text-[10px] truncate max-w-[100px]", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}
+                      >
+                        {task.teamName}
+                      </Badge>
+                    ) : (
+                      <span className="text-muted-foreground/60">—</span>
+                    )}
+                  </td>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                className="rounded-xl"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                className="gap-2 rounded-xl  from-indigo-500 to-violet-600 text-white shadow-lg"
-              >
-                <Plus className="h-4 w-4" /> Create Issue
-              </Button>
-            </div>
-          </form>
-        </motion.div>
+                  {/* Priority */}
+                  <td className="py-3 px-3">
+                    <span
+                      className={cn(
+                        "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
+                        pMeta.badge
+                      )}
+                    >
+                      <PriorityIcon className={cn("h-3 w-3", pMeta.color)} />
+                      {pMeta.label}
+                    </span>
+                  </td>
+
+                  {/* Status Dropdown */}
+                  <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card/60 px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted cursor-pointer capitalize">
+                          <span
+                            className={cn(
+                              "h-2 w-2 rounded-full",
+                              task.status === "backlog"
+                                ? "bg-slate-400"
+                                : task.status === "todo"
+                                ? "bg-sky-400"
+                                : task.status === "in_progress"
+                                ? "bg-amber-400"
+                                : "bg-emerald-400"
+                            )}
+                          />
+                          {task.status?.replace("_", " ")}
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-popover border-border">
+                        {KANBAN_COLUMNS.map((col) => (
+                          <DropdownMenuItem
+                            key={col.id}
+                            onClick={() => onStatusChange(task.id, col.id)}
+                            className="gap-2 text-xs cursor-pointer capitalize"
+                          >
+                            <span className={cn("h-2 w-2 rounded-full", col.dotColor)} />
+                            {col.label}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
+
+                  {/* Assignee */}
+                  <td className="py-3 px-3">
+                    {task.assignee ? (
+                      <div className="flex items-center gap-1.5">
+                        <Avatar className="h-4 w-4">
+                          <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
+                          <AvatarFallback className="text-[8px]">
+                            {getUserInitials(task.assignee)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="truncate max-w-[100px] text-foreground font-medium">
+                          {task.assignee}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground/60 italic text-[11px]">Unassigned</span>
+                    )}
+                  </td>
+
+                  {/* Due Date */}
+                  <td className="py-3 px-3">
+                    {task.dueDate ? (
+                      <span
+                        className={cn(
+                          "font-mono text-[11px]",
+                          isOverdue ? "text-rose-400 font-bold" : "text-muted-foreground"
+                        )}
+                      >
+                        {task.dueDate}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60">—</span>
+                    )}
+                  </td>
+
+                  {/* Actions */}
+                  <td className="py-3 pl-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => onEdit(task)}
+                        className="rounded p-1 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                        title="Edit"
+                      >
+                        <Edit3 className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => onDelete(task)}
+                        className="rounded p-1 text-muted-foreground hover:bg-rose-500/20 hover:text-rose-400 cursor-pointer"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+
+            {tasks.length === 0 && (
+              <tr>
+                <td colSpan={9} className="py-12 text-center text-xs text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <CheckSquare className="h-8 w-8 text-muted-foreground/40" />
+                    <p className="font-semibold text-foreground">No tasks found</p>
+                    <p className="text-[11px]">Create your first team action item to get started</p>
+                    <Button
+                      onClick={onAdd}
+                      size="sm"
+                      className="mt-2 gap-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer"
+                    >
+                      <Plus className="h-3.5 w-3.5" /> Add Action Item
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
-    </AnimatePresence>
+    </Card>
   );
 }

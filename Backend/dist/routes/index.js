@@ -10,6 +10,7 @@ const route_3 = __importDefault(require("../modules/role/route"));
 const route_4 = __importDefault(require("../modules/workspace/route"));
 const route_5 = __importDefault(require("../modules/team/route"));
 const route_6 = __importDefault(require("../modules/notification/route"));
+const route_7 = __importDefault(require("../modules/task/route"));
 const router = (0, express_1.Router)();
 router.use('/auth', route_1.default);
 router.use('/users', route_2.default);
@@ -17,5 +18,6 @@ router.use('/roles', route_3.default);
 router.use('/workspaces', route_4.default);
 router.use('/teams', route_5.default);
 router.use('/notifications', route_6.default);
+router.use('/tasks', route_7.default);
 exports.default = router;
 //# sourceMappingURL=index.js.map

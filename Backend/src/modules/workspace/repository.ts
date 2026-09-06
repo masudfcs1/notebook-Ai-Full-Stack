@@ -16,6 +16,24 @@ export interface FindWorkspacesOptions extends WorkspaceListQuery {
 
 export class WorkspaceRepository {
   async create(data: CreateWorkspaceData) {
+    let ownerName = 'Workspace Owner';
+    let ownerEmail = '';
+    let ownerAvatar: string | null = null;
+
+    if (data.userId) {
+      try {
+        const user = await prisma.user.findUnique({
+          where: { id: data.userId },
+          select: { name: true, email: true, avatar: true },
+        });
+        if (user) {
+          ownerName = user.name || user.email.split('@')[0] || 'Workspace Owner';
+          ownerEmail = user.email;
+          ownerAvatar = user.avatar;
+        }
+      } catch {}
+    }
+
     return prisma.workspace.create({
       data: {
         name: data.name,
@@ -38,8 +56,9 @@ export class WorkspaceRepository {
                 create: [
                   {
                     userId: data.userId,
-                    name: 'Workspace Owner',
-                    email: '',
+                    name: ownerName,
+                    email: ownerEmail,
+                    avatar: ownerAvatar,
                     role: 'OWNER',
                   },
                 ],
@@ -147,7 +166,14 @@ export class WorkspaceRepository {
 
   async findAll(options: FindWorkspacesOptions): Promise<IPaginatedResult<any>> {
     const { page, limit, skip } = calculatePagination(options);
-    const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, userEmail, isAdmin } = options;
+    const {
+      search,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+      userId,
+      userEmail,
+      isAdmin,
+    } = options;
 
     const searchQuery = search
       ? buildSearchQuery(search, ['name', 'slug', 'description'])

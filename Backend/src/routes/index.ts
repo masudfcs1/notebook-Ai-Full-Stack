@@ -5,6 +5,7 @@ import roleRoutes from '@/modules/role/route';
 import workspaceRoutes from '@/modules/workspace/route';
 import teamRoutes from '@/modules/team/route';
 import notificationRoutes from '@/modules/notification/route';
+import taskRoutes from '@/modules/task/route';
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use('/roles', roleRoutes);
 router.use('/workspaces', workspaceRoutes);
 router.use('/teams', teamRoutes);
 router.use('/notifications', notificationRoutes);
+router.use('/tasks', taskRoutes);
 
 export default router;

@@ -277,6 +277,24 @@ export const adminApi = createApi({
         body: data,
       }),
       invalidatesTags: ["AdminUsers"],
+      async onQueryStarted(
+        { id, data: patchData },
+        { dispatch, queryFulfilled },
+      ) {
+        try {
+          const { data } = await queryFulfilled;
+          const updated = data?.data;
+          if (updated) {
+            dispatch(
+              adminApi.util.updateQueryData("getUserById", id, (draft) => {
+                if (draft?.data) {
+                  draft.data = { ...draft.data, ...updated };
+                }
+              }),
+            );
+          }
+        } catch {}
+      },
     }),
     deleteUser: builder.mutation<{ success: boolean; message: string }, number>(
       {
@@ -297,6 +315,18 @@ export const adminApi = createApi({
         body,
       }),
       invalidatesTags: ["AdminUsers", "AdminStats"],
+      async onQueryStarted({ userId, status }, { dispatch, queryFulfilled }) {
+        try {
+          await queryFulfilled;
+          dispatch(
+            adminApi.util.updateQueryData("getUserById", userId, (draft) => {
+              if (draft?.data) {
+                draft.data.status = status;
+              }
+            }),
+          );
+        } catch {}
+      },
     }),
     updateUserRole: builder.mutation<SingleUserResponse, UpdateUserRoleRequest>(
       {
@@ -306,6 +336,18 @@ export const adminApi = createApi({
           body,
         }),
         invalidatesTags: ["AdminUsers", "AdminStats"],
+        async onQueryStarted({ userId, role }, { dispatch, queryFulfilled }) {
+          try {
+            await queryFulfilled;
+            dispatch(
+              adminApi.util.updateQueryData("getUserById", userId, (draft) => {
+                if (draft?.data) {
+                  draft.data.role = role;
+                }
+              }),
+            );
+          } catch {}
+        },
       },
     ),
     getRoles: builder.query<RolesResponse, void>({

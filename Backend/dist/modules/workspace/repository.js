@@ -5,6 +5,23 @@ const database_1 = require("../../database");
 const pagination_1 = require("../../utils/pagination");
 class WorkspaceRepository {
     async create(data) {
+        let ownerName = 'Workspace Owner';
+        let ownerEmail = '';
+        let ownerAvatar = null;
+        if (data.userId) {
+            try {
+                const user = await database_1.prisma.user.findUnique({
+                    where: { id: data.userId },
+                    select: { name: true, email: true, avatar: true },
+                });
+                if (user) {
+                    ownerName = user.name || user.email.split('@')[0] || 'Workspace Owner';
+                    ownerEmail = user.email;
+                    ownerAvatar = user.avatar;
+                }
+            }
+            catch { }
+        }
         return database_1.prisma.workspace.create({
             data: {
                 name: data.name,
@@ -26,8 +43,9 @@ class WorkspaceRepository {
                                 create: [
                                     {
                                         userId: data.userId,
-                                        name: 'Workspace Owner',
-                                        email: '',
+                                        name: ownerName,
+                                        email: ownerEmail,
+                                        avatar: ownerAvatar,
                                         role: 'OWNER',
                                     },
                                 ],
@@ -129,7 +147,7 @@ class WorkspaceRepository {
     }
     async findAll(options) {
         const { page, limit, skip } = (0, pagination_1.calculatePagination)(options);
-        const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, userEmail, isAdmin } = options;
+        const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, userEmail, isAdmin, } = options;
         const searchQuery = search
             ? (0, pagination_1.buildSearchQuery)(search, ['name', 'slug', 'description'])
             : undefined;
