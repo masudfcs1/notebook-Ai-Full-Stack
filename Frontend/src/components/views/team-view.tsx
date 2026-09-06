@@ -1,5 +1,3 @@
-"use client";
-
 import { AddMemberModal } from "@/components/modals/add-member-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -21,13 +19,14 @@ import {
   type TeamMember,
 } from "@/lib/redux/api/workspaceApiSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
-import { updateTeam } from "@/lib/redux/dataSlice";
+import { updateTeam, setActiveTeam } from "@/lib/redux/dataSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { getTeamTheme, ROLE_CONFIG } from "@/lib/team-theme";
 import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Check,
+  ChevronDown,
   Crown,
   Edit3,
   LayoutGrid,
@@ -41,20 +40,30 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function TeamView() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
   const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
   const activeTeamId = useAppSelector((s) => s.data.activeTeamId);
   const workspaces = useAppSelector((s) => s.data.workspaces);
 
-  const activeWs =
-    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
-  const currentTeam =
-    activeWs?.teams.find((t) => t.id === activeTeamId) || activeWs?.teams[0];
+  const activeWs = useMemo(() => {
+    return workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
+  }, [workspaces, activeWorkspaceId]);
+
+  const currentTeam = useMemo(() => {
+    if (!activeWs?.teams || activeWs.teams.length === 0) return null;
+    if (activeTeamId) {
+      const found = activeWs.teams.find((t) => t.id === activeTeamId);
+      if (found) return found;
+    }
+    return activeWs.teams[0] || null;
+  }, [activeWs, activeTeamId]);
 
   const theme = useMemo(
     () =>
@@ -210,6 +219,7 @@ export function TeamView() {
 
   async function handleSaveMemberEdit(e: React.FormEvent) {
     e.preventDefault();
+    if (!currentTeam) return;
     if (!editingMember || !editMemName.trim() || !editMemEmail.trim()) {
       toast.error("Name and email are required");
       return;
@@ -248,7 +258,7 @@ export function TeamView() {
     member: TeamMember,
     newRole: "OWNER" | "LEAD" | "MEMBER",
   ) {
-    if (member.role === newRole) return;
+    if (!currentTeam || member.role === newRole) return;
     try {
       const res = await updateMemberMutation({
         teamId: currentTeam.id,
@@ -275,7 +285,7 @@ export function TeamView() {
   }
 
   async function handleConfirmRemoveMember() {
-    if (!memberToDelete) return;
+    if (!currentTeam || !memberToDelete) return;
     setIsDeletingMember(true);
     const memName = memberToDelete.user?.name || memberToDelete.name;
 
@@ -387,6 +397,63 @@ export function TeamView() {
                   >
                     {currentTeam.key}
                   </span>
+
+                  {activeWs?.teams && activeWs.teams.length > 1 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors cursor-pointer text-xs"
+                          title="Switch Team"
+                        >
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-56">
+                        <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Workspace Teams ({activeWs.teams.length})
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {activeWs.teams.map((t) => {
+                          const isSelected = t.id === currentTeam.id;
+                          const tTheme = getTeamTheme(t.key || t.id || t.name);
+                          return (
+                            <DropdownMenuItem
+                              key={t.id}
+                              onClick={() => {
+                                dispatch(setActiveTeam(t.id));
+                                if (activeWs) {
+                                  void router.push(
+                                    `/${activeWs.slug}/${t.slug || t.key.toLowerCase()}`,
+                                  );
+                                }
+                              }}
+                              className={cn(
+                                "flex items-center justify-between py-2 text-xs font-medium cursor-pointer",
+                                isSelected && "bg-muted font-bold",
+                              )}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span
+                                  className={cn(
+                                    "flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-xs",
+                                    tTheme.subtleBg,
+                                    tTheme.badgeText,
+                                  )}
+                                >
+                                  {t.icon || "👥"}
+                                </span>
+                                <span className="truncate">{t.name}</span>
+                              </div>
+                              <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.2 text-muted-foreground">
+                                {t.key}
+                              </span>
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
                   {isTeamOwnerOrLead && (
                     <button
                       onClick={() => {

@@ -67,8 +67,10 @@ const dataSlice = createSlice({
       state.activeTeamId = null;
     },
     setActiveWorkspaceBySlug(state, action: PayloadAction<string>) {
-      const ws = state.workspaces.find((w) => w.slug === action.payload);
-      if (ws) {
+      const ws = state.workspaces.find(
+        (w) => w.slug === action.payload || w.id === action.payload,
+      );
+      if (ws && state.activeWorkspaceId !== ws.id) {
         state.activeWorkspaceId = ws.id;
         state.activeTeamId = null;
       }
@@ -76,12 +78,19 @@ const dataSlice = createSlice({
     setWorkspaces(state, action: PayloadAction<Workspace[]>) {
       state.workspaces = action.payload;
       if (action.payload.length > 0) {
-        const exists = action.payload.some(
+        const activeWs = action.payload.find(
           (w) => w.id === state.activeWorkspaceId,
         );
-        if (!exists) {
+        if (!activeWs) {
           state.activeWorkspaceId = action.payload[0].id;
           state.activeTeamId = null;
+        } else if (state.activeTeamId) {
+          const teamExists = activeWs.teams?.some(
+            (t) => t.id === state.activeTeamId,
+          );
+          if (!teamExists) {
+            state.activeTeamId = activeWs.teams?.[0]?.id || null;
+          }
         }
       }
     },
@@ -133,7 +142,14 @@ const dataSlice = createSlice({
       const activeWs = state.workspaces.find(
         (w) => w.id === state.activeWorkspaceId,
       );
-      const team = activeWs?.teams.find((t) => t.slug === action.payload);
+      const searchSlug = action.payload.toLowerCase();
+      const team = activeWs?.teams?.find(
+        (t) =>
+          (t.slug && t.slug.toLowerCase() === searchSlug) ||
+          (t.key && t.key.toLowerCase() === searchSlug) ||
+          (t.name && t.name.toLowerCase() === searchSlug) ||
+          t.id === action.payload,
+      );
       if (team) {
         state.activeTeamId = team.id;
       }
