@@ -20,7 +20,11 @@ export class WorkspaceRepository {
     let ownerEmail = '';
     let ownerAvatar: string | null = null;
 
-    if (data.userId) {
+    if (data.ownerEmail) {
+      ownerName = data.ownerName || data.ownerEmail.split('@')[0] || ownerName;
+      ownerEmail = data.ownerEmail;
+      ownerAvatar = data.ownerAvatar || null;
+    } else if (data.userId) {
       try {
         const user = await prisma.user.findUnique({
           where: { id: data.userId },
@@ -31,7 +35,9 @@ export class WorkspaceRepository {
           ownerEmail = user.email;
           ownerAvatar = user.avatar;
         }
-      } catch {}
+      } catch {
+        // Keep the fallback owner details; workspace creation can still proceed.
+      }
     }
 
     return prisma.workspace.create({
@@ -160,6 +166,67 @@ export class WorkspaceRepository {
           take: 10,
           orderBy: { createdAt: 'desc' },
         },
+      },
+    });
+  }
+
+  async findByIdOrSlug(
+    idOrSlug: string,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
+    return (prisma.workspace as any).findFirst({
+      where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+      include: {
+        teams: this.getTeamsInclude(userId, isAdmin, userEmail),
+        notes: {
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+  }
+
+  async findSlugOwner(slug: string) {
+    return prisma.workspace.findUnique({
+      where: { slug },
+      select: { id: true },
+    });
+  }
+
+  async findSummaryById(id: string) {
+    return prisma.workspace.findUnique({
+      where: { id },
+      select: { id: true, name: true, userId: true },
+    });
+  }
+
+  async findWriteAccess(id: string, userId?: number, userEmail?: string) {
+    return prisma.workspace.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        userId: true,
+        teams: userId
+          ? {
+              where: {
+                members: {
+                  some: {
+                    role: { in: ['OWNER', 'LEAD'] },
+                    OR: [
+                      { userId },
+                      ...(userEmail
+                        ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                        : []),
+                    ],
+                  },
+                },
+              },
+              select: { id: true },
+              take: 1,
+            }
+          : false,
       },
     });
   }

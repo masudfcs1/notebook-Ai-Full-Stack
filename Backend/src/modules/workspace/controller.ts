@@ -15,6 +15,9 @@ export class WorkspaceController {
       icon,
       description,
       userId,
+      ownerName: req.user?.name,
+      ownerEmail: req.user?.email,
+      ownerAvatar: req.user?.avatar,
     });
 
     return sendSuccess(

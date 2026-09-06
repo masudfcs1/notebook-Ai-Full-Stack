@@ -51,6 +51,28 @@ export declare class WorkspaceRepository {
     private getTeamsInclude;
     findById(id: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
     findBySlug(slug: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
+    findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
+    findSlugOwner(slug: string): Promise<{
+        id: string;
+    } | null>;
+    findSummaryById(id: string): Promise<{
+        id: string;
+        name: string;
+        userId: number | null;
+    } | null>;
+    findWriteAccess(id: string, userId?: number, userEmail?: string): Promise<{
+        id: string;
+        userId: number | null;
+        teams: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            key: string;
+            icon: string | null;
+            workspaceId: string;
+        }[];
+    } | null>;
     findAll(options: FindWorkspacesOptions): Promise<IPaginatedResult<any>>;
     findAllUserWorkspaces(userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
     update(id: string, data: UpdateWorkspaceData): Promise<any>;

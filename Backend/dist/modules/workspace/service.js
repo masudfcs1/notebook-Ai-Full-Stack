@@ -18,7 +18,7 @@ class WorkspaceService {
     async create(data) {
         let slug = data.slug ? this.generateSlug(data.slug) : this.generateSlug(data.name);
         // Check if slug exists
-        const existing = await repository_1.workspaceRepository.findBySlug(slug);
+        const existing = await repository_1.workspaceRepository.findSlugOwner(slug);
         if (existing) {
             slug = `${slug}-${Date.now().toString().slice(-4)}`;
         }
@@ -27,22 +27,18 @@ class WorkspaceService {
             slug,
         });
         logger_1.logger.info(`Workspace created: ${workspace.name} (${workspace.id}) by user ${data.userId}`);
-        try {
-            await service_1.notificationService.create({
-                type: client_1.NotificationType.WORKSPACE_CREATED,
-                title: 'New Workspace Created',
-                message: `Workspace "${workspace.name}" was created.`,
-                data: {
-                    workspaceId: workspace.id,
-                    name: workspace.name,
-                    slug: workspace.slug,
-                    userId: data.userId,
-                },
-            });
-        }
-        catch (notifErr) {
-            logger_1.logger.error({ notifErr }, 'Failed to emit WORKSPACE_CREATED notification');
-        }
+        service_1.notificationService.create({
+            type: client_1.NotificationType.WORKSPACE_CREATED,
+            title: 'New Workspace Created',
+            message: `Workspace "${workspace.name}" was created.`,
+            data: {
+                workspaceId: workspace.id,
+                name: workspace.name,
+                slug: workspace.slug,
+                userId: data.userId,
+            },
+        })
+            .catch((notifErr) => logger_1.logger.error({ notifErr }, 'Failed to emit WORKSPACE_CREATED notification'));
         return (0, dto_1.toWorkspaceResponse)(workspace);
     }
     async findAll(options) {
@@ -73,10 +69,7 @@ class WorkspaceService {
         return (0, dto_1.toWorkspaceListResponse)(workspaces);
     }
     async findByIdOrSlug(idOrSlug, userId, isAdmin, userEmail) {
-        let workspace = await repository_1.workspaceRepository.findById(idOrSlug, userId, isAdmin, userEmail);
-        if (!workspace) {
-            workspace = await repository_1.workspaceRepository.findBySlug(idOrSlug, userId, isAdmin, userEmail);
-        }
+        const workspace = await repository_1.workspaceRepository.findByIdOrSlug(idOrSlug, userId, isAdmin, userEmail);
         if (!workspace) {
             throw error_helper_1.AppError.notFound('Workspace not found');
         }
@@ -94,15 +87,13 @@ class WorkspaceService {
         return (0, dto_1.toWorkspaceResponse)(workspace);
     }
     async update(id, data, userId, isAdmin, userEmail) {
-        const existing = await repository_1.workspaceRepository.findById(id);
+        const existing = await repository_1.workspaceRepository.findWriteAccess(id, userId, userEmail);
         if (!existing) {
             throw error_helper_1.AppError.notFound('Workspace not found');
         }
         if (!isAdmin && userId) {
             const isOwner = existing.userId === userId;
-            const isLeadOrOwnerMember = existing.teams?.some((t) => t.members?.some((m) => ((m.userId && m.userId === userId) ||
-                (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase())) &&
-                (m.role === 'OWNER' || m.role === 'LEAD')));
+            const isLeadOrOwnerMember = existing.teams.length > 0;
             if (!isOwner && !isLeadOrOwnerMember) {
                 throw error_helper_1.AppError.forbidden('You do not have permission to update this workspace');
             }
@@ -110,7 +101,7 @@ class WorkspaceService {
         let slug = data.slug;
         if (slug) {
             slug = this.generateSlug(slug);
-            const slugWorkspace = await repository_1.workspaceRepository.findBySlug(slug);
+            const slugWorkspace = await repository_1.workspaceRepository.findSlugOwner(slug);
             if (slugWorkspace && slugWorkspace.id !== id) {
                 throw error_helper_1.AppError.conflict('Workspace slug already in use');
             }
@@ -123,7 +114,7 @@ class WorkspaceService {
         return (0, dto_1.toWorkspaceResponse)(updated);
     }
     async delete(id, userId, isAdmin) {
-        const existing = await repository_1.workspaceRepository.findById(id);
+        const existing = await repository_1.workspaceRepository.findWriteAccess(id);
         if (!existing) {
             throw error_helper_1.AppError.notFound('Workspace not found');
         }

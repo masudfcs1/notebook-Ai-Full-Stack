@@ -9,6 +9,7 @@ import { AppError } from '@/helpers/error.helper';
 import { Role, UserStatus } from '@prisma/client';
 import { toUserResponse, toUserListResponse } from './dto';
 import { logger } from '@/logger';
+import { invalidateUserCache } from '@/middlewares/auth.middleware';
 
 export class UserService {
   async findAll(options: {
@@ -57,20 +58,19 @@ export class UserService {
     role?: Role;
     status?: UserStatus;
   }) {
-    const existingUser = await userRepository.findByEmail(data.email);
+    const [existingUser, existingUsername, hashedPassword] = await Promise.all([
+      userRepository.findByEmail(data.email),
+      data.username ? userRepository.findByUsername(data.username) : Promise.resolve(null),
+      hashPassword(data.password),
+    ]);
 
     if (existingUser) {
       throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
-    if (data.username) {
-      const existingUsername = await userRepository.findByUsername(data.username);
-      if (existingUsername) {
-        throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
-      }
+    if (existingUsername) {
+      throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
     }
-
-    const hashedPassword = await hashPassword(data.password);
 
     const user = await userRepository.create({
       name: data.name,
@@ -84,8 +84,7 @@ export class UserService {
 
     logger.info({ userId: user.id, email: user.email }, 'User created by admin');
 
-    try {
-      await notificationService.create({
+    notificationService.create({
         type: NotificationType.USER_CREATED,
         title: 'User Created',
         message: `User ${user.name || user.username || user.email} was created with role ${user.role}.`,
@@ -95,10 +94,10 @@ export class UserService {
           email: user.email,
           role: user.role,
         },
-      });
-    } catch (notifErr) {
-      logger.error({ notifErr }, 'Failed to emit USER_CREATED notification in userService.create');
-    }
+      })
+      .catch((notifErr) =>
+        logger.error({ notifErr }, 'Failed to emit USER_CREATED notification in userService.create')
+      );
 
     return toUserResponse(user);
   }
@@ -107,27 +106,26 @@ export class UserService {
     id: number,
     data: { name?: string; username?: string; email?: string; phone?: string }
   ) {
-    const user = await userRepository.findById(id);
+    const user = await userRepository.findBasicById(id);
 
     if (!user) {
       throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
     }
 
-    if (data.username && data.username !== user.username) {
-      const existingUsername = await userRepository.findByUsername(data.username);
-      if (existingUsername) {
-        throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
-      }
-    }
+    const [existingUsername, existingEmail] = await Promise.all([
+      data.username && data.username !== user.username
+        ? userRepository.findByUsername(data.username)
+        : Promise.resolve(null),
+      data.email && data.email !== user.email
+        ? userRepository.findByEmail(data.email)
+        : Promise.resolve(null),
+    ]);
 
-    if (data.email && data.email !== user.email) {
-      const existingEmail = await userRepository.findByEmail(data.email);
-      if (existingEmail) {
-        throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
-      }
-    }
+    if (existingUsername) throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
+    if (existingEmail) throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
 
     const updatedUser = await userRepository.update(id, data);
+    invalidateUserCache(id);
 
     logger.info({ userId: id }, 'User updated by admin');
 
@@ -135,13 +133,8 @@ export class UserService {
   }
 
   async delete(id: number) {
-    const user = await userRepository.findById(id);
-
-    if (!user) {
-      throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
-    }
-
     await userRepository.softDelete(id);
+    invalidateUserCache(id);
 
     logger.info({ userId: id }, 'User deleted by admin');
 
@@ -149,13 +142,8 @@ export class UserService {
   }
 
   async updateStatus(userId: number, status: UserStatus) {
-    const user = await userRepository.findById(userId);
-
-    if (!user) {
-      throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
-    }
-
     const updatedUser = await userRepository.updateStatus(userId, status);
+    invalidateUserCache(userId);
 
     logger.info({ userId, status }, 'User status updated');
 
@@ -163,7 +151,7 @@ export class UserService {
   }
 
   async updateRole(userId: number, role: Role) {
-    const user = await userRepository.findById(userId);
+    const user = await userRepository.findBasicById(userId);
 
     if (!user) {
       throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
@@ -171,11 +159,11 @@ export class UserService {
 
     const previousRole = user.role;
     const updatedUser = await userRepository.updateRole(userId, role);
+    invalidateUserCache(userId);
 
     logger.info({ userId, role, previousRole }, 'User role updated');
 
-    try {
-      await notificationService.create({
+    notificationService.create({
         type: NotificationType.ROLE_UPDATED,
         title: 'User Role Updated',
         message: `Role for ${updatedUser.name || updatedUser.username || updatedUser.email} was changed from ${previousRole} to ${role}.`,
@@ -187,10 +175,10 @@ export class UserService {
           previousRole,
           newRole: role,
         },
-      });
-    } catch (notifErr) {
-      logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification');
-    }
+      })
+      .catch((notifErr) =>
+        logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification')
+      );
 
     return toUserResponse(updatedUser);
   }
@@ -241,7 +229,7 @@ export class UserService {
       sortOrder?: 'asc' | 'desc';
     }
   ) {
-    const user = await userRepository.findById(userId);
+    const user = await userRepository.findBasicById(userId);
     if (!user) {
       throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
     }

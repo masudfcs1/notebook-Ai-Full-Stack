@@ -13,6 +13,12 @@ interface FindAllOptions {
 }
 
 export class UserRepository {
+  async findBasicById(id: number): Promise<User | null> {
+    return prisma.user.findUnique({
+      where: { id, deletedAt: null },
+    });
+  }
+
   async findAll(options: FindAllOptions): Promise<IPaginatedResult<User>> {
     const { page, limit, search, role, status, sortBy, sortOrder } = options;
     const safePage = Math.max(1, page);

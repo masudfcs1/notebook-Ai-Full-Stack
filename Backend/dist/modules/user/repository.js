@@ -3,6 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.userRepository = exports.UserRepository = void 0;
 const database_1 = require("../../database");
 class UserRepository {
+    async findBasicById(id) {
+        return database_1.prisma.user.findUnique({
+            where: { id, deletedAt: null },
+        });
+    }
     async findAll(options) {
         const { page, limit, search, role, status, sortBy, sortOrder } = options;
         const safePage = Math.max(1, page);

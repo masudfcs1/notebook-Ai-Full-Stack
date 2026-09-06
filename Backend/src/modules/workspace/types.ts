@@ -25,6 +25,9 @@ export interface CreateWorkspaceData {
   icon?: string;
   description?: string;
   userId: number;
+  ownerName?: string | null;
+  ownerEmail?: string;
+  ownerAvatar?: string | null;
 }
 
 export interface UpdateWorkspaceData {

@@ -16,17 +16,17 @@ const logger_1 = require("../../logger");
 const dto_1 = require("./dto");
 class AuthService {
     async register(data) {
-        const existingUser = await repository_1.authRepository.findByEmail(data.email);
+        const [existingUser, existingUsername, hashedPassword] = await Promise.all([
+            repository_1.authRepository.findByEmail(data.email),
+            data.username ? repository_1.authRepository.findByUsername(data.username) : Promise.resolve(null),
+            (0, password_1.hashPassword)(data.password),
+        ]);
         if (existingUser) {
             throw error_helper_1.AppError.conflict(constants_1.MESSAGES.EMAIL_ALREADY_EXISTS);
         }
-        if (data.username) {
-            const existingUsername = await repository_1.authRepository.findByUsername(data.username);
-            if (existingUsername) {
-                throw error_helper_1.AppError.conflict(constants_1.MESSAGES.USERNAME_ALREADY_EXISTS);
-            }
+        if (existingUsername) {
+            throw error_helper_1.AppError.conflict(constants_1.MESSAGES.USERNAME_ALREADY_EXISTS);
         }
-        const hashedPassword = await (0, password_1.hashPassword)(data.password);
         const user = await repository_1.authRepository.create({
             name: data.name || undefined,
             username: data.username || (0, generators_1.generateUUID)().split('-')[0],
@@ -36,29 +36,26 @@ class AuthService {
             status: constants_1.USER_STATUS.ACTIVE,
             isVerified: true,
         });
-        // Auto-create initial default workspace and team for the newly registered user
-        try {
-            const displayName = data.name || user.username || 'Personal';
-            const workspaceName = `${displayName}'s Workspace`;
-            const baseSlug = displayName
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, '-')
-                .replace(/^-|-$/g, '') || 'workspace';
-            const uniqueSlug = `${baseSlug}-${user.id}`;
-            await repository_2.workspaceRepository.create({
+        const displayName = data.name || user.username || 'Personal';
+        const workspaceName = `${displayName}'s Workspace`;
+        const baseSlug = displayName
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') || 'workspace';
+        const uniqueSlug = `${baseSlug}-${user.id}`;
+        // Both operations are independent; run them in one network round-trip window.
+        const [workspaceResult, memberLinkResult] = await Promise.allSettled([
+            repository_2.workspaceRepository.create({
                 name: workspaceName,
                 slug: uniqueSlug,
                 icon: '⚡',
                 description: 'Default personal workspace',
                 userId: user.id,
-            });
-        }
-        catch (err) {
-            logger_1.logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
-        }
-        // Auto-link any existing team member assignments for this email
-        try {
-            await database_1.prisma.teamMember.updateMany({
+                ownerName: user.name,
+                ownerEmail: user.email,
+                ownerAvatar: user.avatar,
+            }),
+            database_1.prisma.teamMember.updateMany({
                 where: {
                     email: { equals: user.email, mode: 'insensitive' },
                     userId: null,
@@ -68,29 +65,28 @@ class AuthService {
                     avatar: user.avatar,
                     name: user.name || undefined,
                 },
-            });
+            }),
+        ]);
+        if (workspaceResult.status === 'rejected') {
+            logger_1.logger.error({ userId: user.id, err: workspaceResult.reason }, 'Failed to create default workspace on register');
         }
-        catch (linkErr) {
-            logger_1.logger.error({ userId: user.id, linkErr }, 'Failed to link team members on register');
+        if (memberLinkResult.status === 'rejected') {
+            logger_1.logger.error({ userId: user.id, linkErr: memberLinkResult.reason }, 'Failed to link team members on register');
         }
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User registered');
         // Notify admins about new user registration
-        try {
-            await service_1.notificationService.create({
-                type: client_1.NotificationType.USER_CREATED,
-                title: 'New User Registered',
-                message: `${user.name || user.username || user.email} just registered an account.`,
-                data: {
-                    userId: user.id,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role,
-                },
-            });
-        }
-        catch (notifErr) {
-            logger_1.logger.error({ notifErr }, 'Failed to emit USER_CREATED notification on register');
-        }
+        service_1.notificationService.create({
+            type: client_1.NotificationType.USER_CREATED,
+            title: 'New User Registered',
+            message: `${user.name || user.username || user.email} just registered an account.`,
+            data: {
+                userId: user.id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+            },
+        })
+            .catch((notifErr) => logger_1.logger.error({ notifErr }, 'Failed to emit USER_CREATED notification on register'));
         return {
             user: (0, dto_1.toUserResponse)(user),
             message: constants_1.MESSAGES.REGISTER_SUCCESS,

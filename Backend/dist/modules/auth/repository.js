@@ -59,12 +59,11 @@ class AuthRepository {
         });
     }
     async updateLastLogin(id) {
-        const user = await database_1.prisma.user.findUnique({ where: { id } });
         return database_1.prisma.user.update({
             where: { id },
             data: {
                 lastLogin: new Date(),
-                loginCount: (user?.loginCount || 0) + 1,
+                loginCount: { increment: 1 },
             },
         });
     }

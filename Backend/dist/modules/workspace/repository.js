@@ -8,7 +8,12 @@ class WorkspaceRepository {
         let ownerName = 'Workspace Owner';
         let ownerEmail = '';
         let ownerAvatar = null;
-        if (data.userId) {
+        if (data.ownerEmail) {
+            ownerName = data.ownerName || data.ownerEmail.split('@')[0] || ownerName;
+            ownerEmail = data.ownerEmail;
+            ownerAvatar = data.ownerAvatar || null;
+        }
+        else if (data.userId) {
             try {
                 const user = await database_1.prisma.user.findUnique({
                     where: { id: data.userId },
@@ -20,7 +25,9 @@ class WorkspaceRepository {
                     ownerAvatar = user.avatar;
                 }
             }
-            catch { }
+            catch {
+                // Keep the fallback owner details; workspace creation can still proceed.
+            }
         }
         return database_1.prisma.workspace.create({
             data: {
@@ -142,6 +149,58 @@ class WorkspaceRepository {
                     take: 10,
                     orderBy: { createdAt: 'desc' },
                 },
+            },
+        });
+    }
+    async findByIdOrSlug(idOrSlug, userId, isAdmin, userEmail) {
+        return database_1.prisma.workspace.findFirst({
+            where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
+            include: {
+                teams: this.getTeamsInclude(userId, isAdmin, userEmail),
+                notes: {
+                    take: 10,
+                    orderBy: { createdAt: 'desc' },
+                },
+            },
+        });
+    }
+    async findSlugOwner(slug) {
+        return database_1.prisma.workspace.findUnique({
+            where: { slug },
+            select: { id: true },
+        });
+    }
+    async findSummaryById(id) {
+        return database_1.prisma.workspace.findUnique({
+            where: { id },
+            select: { id: true, name: true, userId: true },
+        });
+    }
+    async findWriteAccess(id, userId, userEmail) {
+        return database_1.prisma.workspace.findUnique({
+            where: { id },
+            select: {
+                id: true,
+                userId: true,
+                teams: userId
+                    ? {
+                        where: {
+                            members: {
+                                some: {
+                                    role: { in: ['OWNER', 'LEAD'] },
+                                    OR: [
+                                        { userId },
+                                        ...(userEmail
+                                            ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                            : []),
+                                    ],
+                                },
+                            },
+                        },
+                        select: { id: true },
+                        take: 1,
+                    }
+                    : false,
             },
         });
     }

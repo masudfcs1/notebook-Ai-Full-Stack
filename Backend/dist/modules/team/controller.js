@@ -15,6 +15,9 @@ class TeamController {
             icon,
             slug,
             userId: req.user?.id,
+            ownerName: req.user?.name,
+            ownerEmail: req.user?.email,
+            ownerAvatar: req.user?.avatar,
         });
         return (0, response_1.sendSuccess)(res, 'Team created successfully', team, undefined, constants_1.HTTP_STATUS.CREATED);
     });

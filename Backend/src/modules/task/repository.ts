@@ -142,7 +142,7 @@ export class TaskRepository {
     const where: any = {
       team: {
         workspaceId,
-        ...(accessibleTeamIds && accessibleTeamIds.length > 0
+        ...(accessibleTeamIds !== undefined
           ? { id: { in: accessibleTeamIds } }
           : {}),
       },
@@ -198,11 +198,11 @@ export class TaskRepository {
     } else if (workspaceId) {
       where.team = {
         workspaceId,
-        ...(accessibleTeamIds && accessibleTeamIds.length > 0
+        ...(accessibleTeamIds !== undefined
           ? { id: { in: accessibleTeamIds } }
           : {}),
       };
-    } else if (accessibleTeamIds && accessibleTeamIds.length > 0) {
+    } else if (accessibleTeamIds !== undefined) {
       where.teamId = { in: accessibleTeamIds };
     }
 

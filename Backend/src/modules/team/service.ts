@@ -15,7 +15,7 @@ import { logger } from '@/logger';
 
 export class TeamService {
   async create(data: CreateTeamData) {
-    const workspace = await workspaceRepository.findById(data.workspaceId);
+    const workspace = await workspaceRepository.findSummaryById(data.workspaceId);
     if (!workspace) {
       throw AppError.notFound('Workspace not found');
     }
@@ -84,11 +84,6 @@ export class TeamService {
   }
 
   async update(id: string, data: UpdateTeamData) {
-    const existing = await teamRepository.findById(id);
-    if (!existing) {
-      throw AppError.notFound('Team not found');
-    }
-
     const updated = await teamRepository.update(id, {
       ...data,
       ...(data.key && { key: data.key.toUpperCase() }),
@@ -99,11 +94,6 @@ export class TeamService {
   }
 
   async delete(id: string) {
-    const existing = await teamRepository.findById(id);
-    if (!existing) {
-      throw AppError.notFound('Team not found');
-    }
-
     await teamRepository.delete(id);
     logger.info(`Team deleted: ${id}`);
 
@@ -131,8 +121,7 @@ export class TeamService {
       }
     }
 
-    const members = await teamRepository.getMembers(teamId);
-    return toTeamMemberListResponse(members);
+    return toTeamMemberListResponse(team.members);
   }
 
   async addMember(teamId: string, data: AddTeamMemberData, requestedByUserId?: number) {

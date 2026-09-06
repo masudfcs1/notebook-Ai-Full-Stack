@@ -15,6 +15,9 @@ class WorkspaceController {
             icon,
             description,
             userId,
+            ownerName: req.user?.name,
+            ownerEmail: req.user?.email,
+            ownerAvatar: req.user?.avatar,
         });
         return (0, response_1.sendSuccess)(res, 'Workspace created successfully', workspace, undefined, constants_1.HTTP_STATUS.CREATED);
     });

@@ -15,6 +15,9 @@ export class TeamController {
       icon,
       slug,
       userId: req.user?.id,
+      ownerName: req.user?.name,
+      ownerEmail: req.user?.email,
+      ownerAvatar: req.user?.avatar,
     });
 
     return sendSuccess(res, 'Team created successfully', team, undefined, HTTP_STATUS.CREATED);

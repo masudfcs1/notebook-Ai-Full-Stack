@@ -19,12 +19,22 @@ export class TaskService {
       throw AppError.unauthorized('Authentication required to access team tasks');
     }
 
-    // Single query: check team exists and get workspace owner
+    const membershipConditions: any[] = [{ userId }];
+    if (userEmail) {
+      membershipConditions.push({ email: { equals: userEmail, mode: 'insensitive' as const } });
+    }
+
+    // One targeted query returns both owner and membership access information.
     const team = await prisma.team.findUnique({
       where: { id: teamId },
       select: {
         id: true,
         workspace: { select: { userId: true } },
+        members: {
+          where: { OR: membershipConditions },
+          select: { id: true },
+          take: 1,
+        },
       },
     });
 
@@ -32,24 +42,7 @@ export class TaskService {
       throw AppError.notFound('Team not found');
     }
 
-    // Fast path: workspace owner has access to all teams
-    if (team.workspace?.userId === userId) return;
-
-    // Check membership with a lightweight existence query
-    const membershipConditions: any[] = [{ userId }];
-    if (userEmail) {
-      membershipConditions.push({ email: { equals: userEmail, mode: 'insensitive' as const } });
-    }
-
-    const isMember = await prisma.teamMember.findFirst({
-      where: {
-        teamId,
-        OR: membershipConditions,
-      },
-      select: { id: true },
-    });
-
-    if (!isMember) {
+    if (team.workspace?.userId !== userId && team.members.length === 0) {
       throw AppError.forbidden('You do not have access to this team');
     }
   }
@@ -169,24 +162,24 @@ export class TaskService {
 
     if (!isAdmin && userId) {
       // Lightweight query: only fetch team IDs, not full team objects
-      const memberTeams = await prisma.teamMember.findMany({
-        where: {
-          team: { workspaceId },
-          OR: [
-            { userId },
-            ...(userEmail
-              ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
-              : []),
-          ],
-        },
-        select: { teamId: true },
-      });
-
-      // Also include teams from owned workspaces
-      const ownedWorkspace = await prisma.workspace.findFirst({
-        where: { id: workspaceId, userId },
-        select: { id: true },
-      });
+      const [memberTeams, ownedWorkspace] = await Promise.all([
+        prisma.teamMember.findMany({
+          where: {
+            team: { workspaceId },
+            OR: [
+              { userId },
+              ...(userEmail
+                ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                : []),
+            ],
+          },
+          select: { teamId: true },
+        }),
+        prisma.workspace.findFirst({
+          where: { id: workspaceId, userId },
+          select: { id: true },
+        }),
+      ]);
 
       if (ownedWorkspace) {
         // Owner sees all tasks — no team filter needed
@@ -209,20 +202,27 @@ export class TaskService {
     if (teamId) {
       await this.checkTeamAccess(teamId, userId, isAdmin, userEmail);
     } else if (workspaceId && !isAdmin && userId) {
-      // Lightweight: fetch only team IDs from memberships
-      const memberTeams = await prisma.teamMember.findMany({
-        where: {
-          team: { workspaceId },
-          OR: [
-            { userId },
-            ...(userEmail
-              ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
-              : []),
-          ],
-        },
-        select: { teamId: true },
-      });
-      accessibleTeamIds = [...new Set(memberTeams.map((m) => m.teamId))];
+      const [memberTeams, ownedWorkspace] = await Promise.all([
+        prisma.teamMember.findMany({
+          where: {
+            team: { workspaceId },
+            OR: [
+              { userId },
+              ...(userEmail
+                ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                : []),
+            ],
+          },
+          select: { teamId: true },
+        }),
+        prisma.workspace.findFirst({
+          where: { id: workspaceId, userId },
+          select: { id: true },
+        }),
+      ]);
+      accessibleTeamIds = ownedWorkspace
+        ? undefined
+        : [...new Set(memberTeams.map((m) => m.teamId))];
     }
 
     return taskRepository.getStats(teamId, workspaceId, accessibleTeamIds);
@@ -230,4 +230,3 @@ export class TaskService {
 }
 
 export const taskService = new TaskService();
-

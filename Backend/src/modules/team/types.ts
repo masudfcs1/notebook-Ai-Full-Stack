@@ -5,6 +5,9 @@ export interface CreateTeamData {
   icon?: string;
   slug?: string;
   userId?: number;
+  ownerName?: string | null;
+  ownerEmail?: string;
+  ownerAvatar?: string | null;
 }
 
 export interface UpdateTeamData {

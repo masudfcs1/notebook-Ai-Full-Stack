@@ -26,7 +26,11 @@ export class TeamRepository {
     let ownerEmail = '';
     let ownerAvatar: string | undefined = undefined;
 
-    if (data.userId) {
+    if (data.ownerEmail) {
+      ownerName = data.ownerName || data.ownerEmail.split('@')[0] || ownerName;
+      ownerEmail = data.ownerEmail;
+      ownerAvatar = data.ownerAvatar || undefined;
+    } else if (data.userId) {
       const user = await prisma.user.findUnique({
         where: { id: data.userId },
         select: { name: true, email: true, avatar: true },

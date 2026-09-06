@@ -10,6 +10,7 @@ interface FindAllOptions {
     sortOrder: 'asc' | 'desc';
 }
 export declare class UserRepository {
+    findBasicById(id: number): Promise<User | null>;
     findAll(options: FindAllOptions): Promise<IPaginatedResult<User>>;
     findById(id: number): Promise<any | null>;
     findByUuid(uuid: string): Promise<User | null>;

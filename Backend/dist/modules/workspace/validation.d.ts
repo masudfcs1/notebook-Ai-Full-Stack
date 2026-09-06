@@ -13,11 +13,11 @@ export declare const GetWorkspacesQuerySchema: z.ZodObject<{
         sortOrder: "asc" | "desc";
         search?: string | undefined;
     }, {
+        search?: string | undefined;
         limit?: number | undefined;
         sortBy?: string | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     query: {
@@ -29,11 +29,11 @@ export declare const GetWorkspacesQuerySchema: z.ZodObject<{
     };
 }, {
     query: {
+        search?: string | undefined;
         limit?: number | undefined;
         sortBy?: string | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     };
 }>;
 export declare const GetWorkspaceParamsSchema: z.ZodObject<{

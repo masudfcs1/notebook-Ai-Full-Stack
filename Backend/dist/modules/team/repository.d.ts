@@ -1,4 +1,20 @@
 import { CreateTeamData, UpdateTeamData, AddTeamMemberData, UpdateTeamMemberData } from './types';
+export declare const TEAM_MEMBER_INCLUDE: {
+    readonly include: {
+        readonly user: {
+            readonly select: {
+                readonly id: true;
+                readonly uuid: true;
+                readonly name: true;
+                readonly username: true;
+                readonly email: true;
+                readonly avatar: true;
+                readonly role: true;
+                readonly status: true;
+            };
+        };
+    };
+};
 export declare class TeamRepository {
     create(data: CreateTeamData): Promise<{
         members: ({
@@ -32,6 +48,16 @@ export declare class TeamRepository {
         workspaceId: string;
     }>;
     findById(id: string): Promise<({
+        workspace: {
+            id: string;
+            name: string;
+            createdAt: Date;
+            updatedAt: Date;
+            userId: number | null;
+            slug: string;
+            icon: string | null;
+            description: string | null;
+        };
         members: ({
             user: {
                 status: import(".prisma/client").$Enums.UserStatus;
@@ -53,16 +79,6 @@ export declare class TeamRepository {
             userId: number | null;
             teamId: string;
         })[];
-        workspace: {
-            id: string;
-            name: string;
-            createdAt: Date;
-            updatedAt: Date;
-            userId: number | null;
-            slug: string;
-            icon: string | null;
-            description: string | null;
-        };
     } & {
         id: string;
         name: string;

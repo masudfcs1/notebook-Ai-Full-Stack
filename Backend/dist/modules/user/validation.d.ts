@@ -19,11 +19,11 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
     }, {
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        search?: string | undefined;
         limit?: number | undefined;
         sortBy?: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     query: {
@@ -39,11 +39,11 @@ export declare const GetUsersQuerySchema: z.ZodObject<{
     query: {
         status?: "ACTIVE" | "INACTIVE" | "SUSPENDED" | "PENDING" | "DELETED" | undefined;
         role?: "SUPER_ADMIN" | "ADMIN" | "MANAGER" | "EMPLOYEE" | "USER" | undefined;
+        search?: string | undefined;
         limit?: number | undefined;
         sortBy?: "status" | "id" | "name" | "email" | "role" | "lastLogin" | "createdAt" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     };
 }>;
 export declare const GetUserParamsSchema: z.ZodObject<{
@@ -230,17 +230,17 @@ export declare const GetLoginHistoryQuerySchema: z.ZodObject<{
         sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
         page: number;
         sortOrder: "asc" | "desc";
+        search?: string | undefined;
         userId?: number | undefined;
         successful?: boolean | undefined;
-        search?: string | undefined;
     }, {
+        search?: string | undefined;
         limit?: number | undefined;
         userId?: number | undefined;
         successful?: string | undefined;
         sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     query: {
@@ -248,19 +248,19 @@ export declare const GetLoginHistoryQuerySchema: z.ZodObject<{
         sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
         page: number;
         sortOrder: "asc" | "desc";
+        search?: string | undefined;
         userId?: number | undefined;
         successful?: boolean | undefined;
-        search?: string | undefined;
     };
 }, {
     query: {
+        search?: string | undefined;
         limit?: number | undefined;
         userId?: number | undefined;
         successful?: string | undefined;
         sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     };
 }>;
 export declare const GetUserLoginHistoryParamsSchema: z.ZodObject<{
@@ -283,15 +283,15 @@ export declare const GetUserLoginHistoryParamsSchema: z.ZodObject<{
         sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
         page: number;
         sortOrder: "asc" | "desc";
-        successful?: boolean | undefined;
         search?: string | undefined;
+        successful?: boolean | undefined;
     }, {
+        search?: string | undefined;
         limit?: number | undefined;
         successful?: string | undefined;
         sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     }>;
 }, "strip", z.ZodTypeAny, {
     params: {
@@ -302,20 +302,20 @@ export declare const GetUserLoginHistoryParamsSchema: z.ZodObject<{
         sortBy: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os";
         page: number;
         sortOrder: "asc" | "desc";
-        successful?: boolean | undefined;
         search?: string | undefined;
+        successful?: boolean | undefined;
     };
 }, {
     params: {
         id: string;
     };
     query: {
+        search?: string | undefined;
         limit?: number | undefined;
         successful?: string | undefined;
         sortBy?: "id" | "createdAt" | "ipAddress" | "device" | "browser" | "os" | undefined;
         page?: number | undefined;
         sortOrder?: "asc" | "desc" | undefined;
-        search?: string | undefined;
     };
 }>;
 export type GetUsersQuery = z.infer<typeof GetUsersQuerySchema>['query'];

@@ -76,12 +76,11 @@ export class AuthRepository {
   }
 
   async updateLastLogin(id: number): Promise<User> {
-    const user = await prisma.user.findUnique({ where: { id } });
     return prisma.user.update({
       where: { id },
       data: {
         lastLogin: new Date(),
-        loginCount: (user?.loginCount || 0) + 1,
+        loginCount: { increment: 1 },
       },
     });
   }

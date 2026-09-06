@@ -1,13 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.teamRepository = exports.TeamRepository = void 0;
+exports.teamRepository = exports.TeamRepository = exports.TEAM_MEMBER_INCLUDE = void 0;
 const database_1 = require("../../database");
+// ─── Reusable Select/Include Fragments ───────────────────────────────────
+// Single source of truth for user fields returned in team queries.
+const USER_SELECT = {
+    id: true,
+    uuid: true,
+    name: true,
+    username: true,
+    email: true,
+    avatar: true,
+    role: true,
+    status: true,
+};
+exports.TEAM_MEMBER_INCLUDE = {
+    include: {
+        user: { select: USER_SELECT },
+    },
+};
 class TeamRepository {
     async create(data) {
         let ownerName = 'Team Owner';
         let ownerEmail = '';
         let ownerAvatar = undefined;
-        if (data.userId) {
+        if (data.ownerEmail) {
+            ownerName = data.ownerName || data.ownerEmail.split('@')[0] || ownerName;
+            ownerEmail = data.ownerEmail;
+            ownerAvatar = data.ownerAvatar || undefined;
+        }
+        else if (data.userId) {
             const user = await database_1.prisma.user.findUnique({
                 where: { id: data.userId },
                 select: { name: true, email: true, avatar: true },
