@@ -72,7 +72,7 @@ export declare class TeamRepository {
         icon: string | null;
         workspaceId: string;
     }) | null>;
-    findByWorkspaceId(workspaceId: string): Promise<({
+    findByWorkspaceId(workspaceId: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<({
         members: ({
             user: {
                 status: import(".prisma/client").$Enums.UserStatus;
@@ -103,7 +103,7 @@ export declare class TeamRepository {
         icon: string | null;
         workspaceId: string;
     })[]>;
-    findAll(userId?: number, isAdmin?: boolean): Promise<({
+    findAll(userId?: number, isAdmin?: boolean, userEmail?: string): Promise<({
         members: ({
             user: {
                 status: import(".prisma/client").$Enums.UserStatus;
@@ -329,14 +329,15 @@ export declare class TeamRepository {
         teamId: string;
     }>;
     searchAvailableUsers(teamId: string, search?: string): Promise<{
-        status: import(".prisma/client").$Enums.UserStatus;
-        id: number;
-        uuid: string;
-        name: string | null;
-        username: string | null;
-        email: string;
-        avatar: string | null;
-        role: import(".prisma/client").$Enums.Role;
+        id: any;
+        uuid: any;
+        name: any;
+        username: any;
+        email: any;
+        avatar: any;
+        role: any;
+        status: any;
+        memberships: any;
     }[]>;
 }
 export declare const teamRepository: TeamRepository;

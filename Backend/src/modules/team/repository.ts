@@ -85,7 +85,12 @@ export class TeamRepository {
     });
   }
 
-  async findByWorkspaceId(workspaceId: string) {
+  async findByWorkspaceId(
+    workspaceId: string,
+    _userId?: number,
+    _isAdmin?: boolean,
+    _userEmail?: string
+  ) {
     return prisma.team.findMany({
       where: { workspaceId },
       orderBy: { createdAt: 'asc' },
@@ -110,10 +115,24 @@ export class TeamRepository {
     });
   }
 
-  async findAll(userId?: number, isAdmin?: boolean) {
+  async findAll(userId?: number, isAdmin?: boolean, userEmail?: string) {
     const where: any = {};
     if (!isAdmin && userId) {
-      where.workspace = { userId };
+      where.OR = [
+        { workspace: { userId } },
+        {
+          members: {
+            some: {
+              OR: [
+                { userId },
+                ...(userEmail
+                  ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                  : []),
+              ],
+            },
+          },
+        },
+      ];
     }
     return prisma.team.findMany({
       where,
@@ -329,6 +348,11 @@ export class TeamRepository {
   }
 
   async searchAvailableUsers(teamId: string, search?: string) {
+    const targetTeam = await prisma.team.findUnique({
+      where: { id: teamId },
+      select: { workspaceId: true },
+    });
+
     const existingMembers = await prisma.teamMember.findMany({
       where: { teamId },
       select: { userId: true, email: true },
@@ -361,9 +385,9 @@ export class TeamRepository {
       ];
     }
 
-    return prisma.user.findMany({
+    const users = await prisma.user.findMany({
       where,
-      take: 20,
+      take: 30,
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
@@ -374,8 +398,45 @@ export class TeamRepository {
         avatar: true,
         role: true,
         status: true,
+        memberships: targetTeam
+          ? {
+              where: {
+                team: {
+                  workspaceId: targetTeam.workspaceId,
+                },
+              },
+              include: {
+                team: {
+                  select: {
+                    id: true,
+                    name: true,
+                    key: true,
+                    icon: true,
+                  },
+                },
+              },
+            }
+          : false,
       },
     });
+
+    return users.map((u: any) => ({
+      id: u.id,
+      uuid: u.uuid,
+      name: u.name,
+      username: u.username,
+      email: u.email,
+      avatar: u.avatar,
+      role: u.role,
+      status: u.status,
+      memberships: (u.memberships || []).map((m: any) => ({
+        teamId: m.team?.id,
+        teamName: m.team?.name,
+        teamKey: m.team?.key,
+        teamIcon: m.team?.icon,
+        role: m.role,
+      })),
+    }));
   }
 }
 

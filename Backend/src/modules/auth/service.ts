@@ -3,6 +3,7 @@ import { workspaceRepository } from '../workspace/repository';
 import { notificationService } from '../notification/service';
 import { NotificationType } from '@prisma/client';
 import { hashPassword, comparePassword } from '@/utils/password';
+import { prisma } from '@/database';
 
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/jwt';
 import { generateOTP, generateUUID, generateVerificationToken } from '@/utils/generators';
@@ -64,9 +65,25 @@ export class AuthService {
         description: 'Default personal workspace',
         userId: user.id,
       });
-      logger.info({ userId: user.id }, 'Default workspace and team auto-created on register');
     } catch (err: any) {
       logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
+    }
+
+    // Auto-link any existing team member assignments for this email
+    try {
+      await prisma.teamMember.updateMany({
+        where: {
+          email: { equals: user.email, mode: 'insensitive' },
+          userId: null,
+        },
+        data: {
+          userId: user.id,
+          avatar: user.avatar,
+          name: user.name || undefined,
+        },
+      });
+    } catch (linkErr) {
+      logger.error({ userId: user.id, linkErr }, 'Failed to link team members on register');
     }
 
     logger.info({ userId: user.id, email: user.email }, 'User registered');
@@ -158,6 +175,23 @@ export class AuthService {
     });
 
     await authRepository.updateLastLogin(user.id);
+
+    // Ensure all team memberships with this email are linked to the user
+    try {
+      await prisma.teamMember.updateMany({
+        where: {
+          email: { equals: user.email, mode: 'insensitive' },
+          userId: null,
+        },
+        data: {
+          userId: user.id,
+          avatar: user.avatar,
+          name: user.name || undefined,
+        },
+      });
+    } catch (linkErr) {
+      logger.error({ userId: user.id, linkErr }, 'Failed to link team members on login');
+    }
 
     await authRepository.createLoginHistory({
       userId: user.id,

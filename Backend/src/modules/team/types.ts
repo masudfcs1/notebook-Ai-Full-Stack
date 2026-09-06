@@ -37,6 +37,14 @@ export interface UpdateTeamMemberData {
   avatar?: string;
 }
 
+export interface UserTeamMembership {
+  teamId: string;
+  teamName: string;
+  teamKey: string;
+  teamIcon?: string | null;
+  role: string;
+}
+
 export interface AvailableUser {
   id: number;
   uuid: string;
@@ -46,4 +54,5 @@ export interface AvailableUser {
   avatar: string | null;
   role: string;
   status: string;
+  memberships?: UserTeamMembership[];
 }

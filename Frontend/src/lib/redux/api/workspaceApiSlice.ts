@@ -3,6 +3,14 @@ import { baseQueryWithAuthHandling } from "./baseQuery";
 
 /* ---------- Types ---------- */
 
+export interface UserTeamMembership {
+  teamId: string;
+  teamName: string;
+  teamKey: string;
+  teamIcon?: string | null;
+  role: string;
+}
+
 export interface TeamMemberUser {
   id: number;
   uuid: string;
@@ -12,6 +20,7 @@ export interface TeamMemberUser {
   avatar: string | null;
   role: string;
   status: string;
+  memberships?: UserTeamMembership[];
 }
 
 export interface TeamMember {

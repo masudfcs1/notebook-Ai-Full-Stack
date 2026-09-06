@@ -25,17 +25,23 @@ export class TeamController {
     const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
     if (workspaceId) {
-      const teams = await teamService.findByWorkspaceId(workspaceId);
+      const teams = await teamService.findByWorkspaceId(
+        workspaceId,
+        req.user?.id,
+        isAdmin,
+        req.user?.email
+      );
       return sendSuccess(res, 'Teams fetched successfully', teams);
     }
 
-    const teams = await teamService.findAll(req.user?.id, isAdmin);
+    const teams = await teamService.findAll(req.user?.id, isAdmin, req.user?.email);
     return sendSuccess(res, 'All teams fetched successfully', teams);
   });
 
   getById = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
     const { id } = req.params;
-    const team = await teamService.findById(id);
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+    const team = await teamService.findById(id, req.user?.id, isAdmin, req.user?.email);
     return sendSuccess(res, 'Team fetched successfully', team);
   });
 
@@ -57,7 +63,8 @@ export class TeamController {
 
   getMembers = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
     const { id } = req.params;
-    const members = await teamService.getMembers(id);
+    const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+    const members = await teamService.getMembers(id, req.user?.id, isAdmin, req.user?.email);
     return sendSuccess(res, 'Team members fetched successfully', members);
   });
 

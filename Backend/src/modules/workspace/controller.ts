@@ -44,6 +44,7 @@ export class WorkspaceController {
       sortBy: sortBy || 'createdAt',
       sortOrder: sortOrder || 'desc',
       userId: req.user?.id,
+      userEmail: req.user?.email,
       isAdmin,
     });
 
@@ -53,7 +54,11 @@ export class WorkspaceController {
   getAllUserWorkspaces = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
     const isAdmin = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN';
 
-    const workspaces = await workspaceService.findAllUserWorkspaces(req.user?.id, isAdmin);
+    const workspaces = await workspaceService.findAllUserWorkspaces(
+      req.user?.id,
+      isAdmin,
+      req.user?.email
+    );
 
     return sendSuccess(res, 'User workspaces fetched successfully', workspaces);
   });
@@ -62,7 +67,12 @@ export class WorkspaceController {
     const { idOrSlug } = req.params;
     const isAdmin = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN';
 
-    const workspace = await workspaceService.findByIdOrSlug(idOrSlug, req.user?.id, isAdmin);
+    const workspace = await workspaceService.findByIdOrSlug(
+      idOrSlug,
+      req.user?.id,
+      isAdmin,
+      req.user?.email
+    );
 
     return sendSuccess(res, 'Workspace fetched successfully', workspace);
   });
@@ -76,7 +86,8 @@ export class WorkspaceController {
       id,
       { name, slug, icon, description },
       req.user?.id,
-      isAdmin
+      isAdmin,
+      req.user?.email
     );
 
     return sendSuccess(res, 'Workspace updated successfully', workspace);

@@ -39,21 +39,55 @@ class WorkspaceRepository {
             include: {
                 teams: {
                     include: {
-                        members: true,
+                        members: {
+                            include: {
+                                user: {
+                                    select: {
+                                        id: true,
+                                        uuid: true,
+                                        name: true,
+                                        username: true,
+                                        email: true,
+                                        avatar: true,
+                                        role: true,
+                                        status: true,
+                                    },
+                                },
+                            },
+                        },
                     },
                 },
             },
         });
     }
-    async findById(id) {
+    getTeamsInclude() {
+        return {
+            orderBy: { createdAt: 'asc' },
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                uuid: true,
+                                name: true,
+                                username: true,
+                                email: true,
+                                avatar: true,
+                                role: true,
+                                status: true,
+                            },
+                        },
+                    },
+                },
+            },
+        };
+    }
+    async findById(id, _userId, _isAdmin, _userEmail) {
         return database_1.prisma.workspace.findUnique({
             where: { id },
             include: {
-                teams: {
-                    include: {
-                        members: true,
-                    },
-                },
+                teams: this.getTeamsInclude(),
                 notes: {
                     take: 10,
                     orderBy: { createdAt: 'desc' },
@@ -61,15 +95,11 @@ class WorkspaceRepository {
             },
         });
     }
-    async findBySlug(slug) {
+    async findBySlug(slug, _userId, _isAdmin, _userEmail) {
         return database_1.prisma.workspace.findUnique({
             where: { slug },
             include: {
-                teams: {
-                    include: {
-                        members: true,
-                    },
-                },
+                teams: this.getTeamsInclude(),
                 notes: {
                     take: 10,
                     orderBy: { createdAt: 'desc' },
@@ -79,13 +109,36 @@ class WorkspaceRepository {
     }
     async findAll(options) {
         const { page, limit, skip } = (0, pagination_1.calculatePagination)(options);
-        const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, isAdmin } = options;
+        const { search, sortBy = 'createdAt', sortOrder = 'desc', userId, userEmail, isAdmin } = options;
         const searchQuery = search
             ? (0, pagination_1.buildSearchQuery)(search, ['name', 'slug', 'description'])
             : undefined;
+        const accessFilter = !isAdmin && userId
+            ? {
+                OR: [
+                    { userId },
+                    {
+                        teams: {
+                            some: {
+                                members: {
+                                    some: {
+                                        OR: [
+                                            { userId },
+                                            ...(userEmail
+                                                ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                                : []),
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            }
+            : {};
         const where = {
-            ...(!isAdmin && userId ? { userId } : {}),
-            ...(searchQuery ? { OR: searchQuery.OR } : {}),
+            ...accessFilter,
+            ...(searchQuery ? { AND: searchQuery } : {}),
         };
         const [data, total] = await Promise.all([
             database_1.prisma.workspace.findMany({
@@ -94,11 +147,7 @@ class WorkspaceRepository {
                 take: limit,
                 orderBy: (0, pagination_1.buildSortQuery)({ sortBy, sortOrder }) || { [sortBy]: sortOrder },
                 include: {
-                    teams: {
-                        include: {
-                            members: true,
-                        },
-                    },
+                    teams: this.getTeamsInclude(),
                 },
             }),
             database_1.prisma.workspace.count({ where }),
@@ -109,19 +158,35 @@ class WorkspaceRepository {
             meta,
         };
     }
-    async findAllUserWorkspaces(userId, isAdmin) {
-        const where = {
-            ...(!isAdmin && userId ? { userId } : {}),
-        };
+    async findAllUserWorkspaces(userId, isAdmin, userEmail) {
+        const where = !isAdmin && userId
+            ? {
+                OR: [
+                    { userId },
+                    {
+                        teams: {
+                            some: {
+                                members: {
+                                    some: {
+                                        OR: [
+                                            { userId },
+                                            ...(userEmail
+                                                ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                                : []),
+                                        ],
+                                    },
+                                },
+                            },
+                        },
+                    },
+                ],
+            }
+            : {};
         return database_1.prisma.workspace.findMany({
             where,
             orderBy: { createdAt: 'desc' },
             include: {
-                teams: {
-                    include: {
-                        members: true,
-                    },
-                },
+                teams: this.getTeamsInclude(),
             },
         });
     }

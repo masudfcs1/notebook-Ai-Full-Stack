@@ -6,6 +6,7 @@ const repository_2 = require("../workspace/repository");
 const service_1 = require("../notification/service");
 const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
+const database_1 = require("../../database");
 const jwt_1 = require("../../utils/jwt");
 const generators_1 = require("../../utils/generators");
 const date_1 = require("../../utils/date");
@@ -51,10 +52,26 @@ class AuthService {
                 description: 'Default personal workspace',
                 userId: user.id,
             });
-            logger_1.logger.info({ userId: user.id }, 'Default workspace and team auto-created on register');
         }
         catch (err) {
             logger_1.logger.error({ userId: user.id, err }, 'Failed to create default workspace on register');
+        }
+        // Auto-link any existing team member assignments for this email
+        try {
+            await database_1.prisma.teamMember.updateMany({
+                where: {
+                    email: { equals: user.email, mode: 'insensitive' },
+                    userId: null,
+                },
+                data: {
+                    userId: user.id,
+                    avatar: user.avatar,
+                    name: user.name || undefined,
+                },
+            });
+        }
+        catch (linkErr) {
+            logger_1.logger.error({ userId: user.id, linkErr }, 'Failed to link team members on register');
         }
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User registered');
         // Notify admins about new user registration
@@ -124,6 +141,23 @@ class AuthService {
             ipAddress: deviceInfo?.ipAddress,
         });
         await repository_1.authRepository.updateLastLogin(user.id);
+        // Ensure all team memberships with this email are linked to the user
+        try {
+            await database_1.prisma.teamMember.updateMany({
+                where: {
+                    email: { equals: user.email, mode: 'insensitive' },
+                    userId: null,
+                },
+                data: {
+                    userId: user.id,
+                    avatar: user.avatar,
+                    name: user.name || undefined,
+                },
+            });
+        }
+        catch (linkErr) {
+            logger_1.logger.error({ userId: user.id, linkErr }, 'Failed to link team members on login');
+        }
         await repository_1.authRepository.createLoginHistory({
             userId: user.id,
             ipAddress: deviceInfo?.ipAddress,

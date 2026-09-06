@@ -7,9 +7,9 @@ export declare class WorkspaceService {
         data: import("./dto").WorkspaceResponseDTO[];
         meta: import("../../interfaces").IMeta;
     }>;
-    findAllUserWorkspaces(userId?: number, isAdmin?: boolean): Promise<import("./dto").WorkspaceResponseDTO[]>;
-    findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean): Promise<import("./dto").WorkspaceResponseDTO>;
-    update(id: string, data: UpdateWorkspaceData, userId?: number, isAdmin?: boolean): Promise<import("./dto").WorkspaceResponseDTO>;
+    findAllUserWorkspaces(userId?: number, isAdmin?: boolean, userEmail?: string): Promise<import("./dto").WorkspaceResponseDTO[]>;
+    findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<import("./dto").WorkspaceResponseDTO>;
+    update(id: string, data: UpdateWorkspaceData, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<import("./dto").WorkspaceResponseDTO>;
     delete(id: string, userId?: number, isAdmin?: boolean): Promise<{
         message: string;
     }>;

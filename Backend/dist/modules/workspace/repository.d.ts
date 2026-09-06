@@ -2,12 +2,24 @@ import { IPaginatedResult } from '../../interfaces';
 import { CreateWorkspaceData, UpdateWorkspaceData, WorkspaceListQuery } from './types';
 export interface FindWorkspacesOptions extends WorkspaceListQuery {
     userId?: number;
+    userEmail?: string;
     isAdmin?: boolean;
 }
 export declare class WorkspaceRepository {
     create(data: CreateWorkspaceData): Promise<{
         teams: ({
-            members: {
+            members: ({
+                user: {
+                    status: import(".prisma/client").$Enums.UserStatus;
+                    id: number;
+                    uuid: string;
+                    name: string | null;
+                    username: string | null;
+                    email: string;
+                    avatar: string | null;
+                    role: import(".prisma/client").$Enums.Role;
+                } | null;
+            } & {
                 id: string;
                 name: string;
                 email: string;
@@ -16,7 +28,7 @@ export declare class WorkspaceRepository {
                 createdAt: Date;
                 userId: number | null;
                 teamId: string;
-            }[];
+            })[];
         } & {
             id: string;
             name: string;
@@ -36,10 +48,11 @@ export declare class WorkspaceRepository {
         icon: string | null;
         description: string | null;
     }>;
-    findById(id: string): Promise<any>;
-    findBySlug(slug: string): Promise<any>;
+    private getTeamsInclude;
+    findById(id: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<any>;
+    findBySlug(slug: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<any>;
     findAll(options: FindWorkspacesOptions): Promise<IPaginatedResult<any>>;
-    findAllUserWorkspaces(userId?: number, isAdmin?: boolean): Promise<any>;
+    findAllUserWorkspaces(userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
     update(id: string, data: UpdateWorkspaceData): Promise<any>;
     delete(id: string): Promise<any>;
 }

@@ -59,8 +59,8 @@ export class WorkspaceService {
     };
   }
 
-  async findAllUserWorkspaces(userId?: number, isAdmin?: boolean) {
-    let workspaces = await workspaceRepository.findAllUserWorkspaces(userId, isAdmin);
+  async findAllUserWorkspaces(userId?: number, isAdmin?: boolean, userEmail?: string) {
+    let workspaces = await workspaceRepository.findAllUserWorkspaces(userId, isAdmin, userEmail);
 
     if (workspaces.length === 0 && userId) {
       try {
@@ -81,34 +81,54 @@ export class WorkspaceService {
     return toWorkspaceListResponse(workspaces);
   }
 
-  async findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean) {
-    let workspace = await workspaceRepository.findById(idOrSlug);
+  async findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
+    let workspace = await workspaceRepository.findById(idOrSlug, userId, isAdmin, userEmail);
 
     if (!workspace) {
-      workspace = await workspaceRepository.findBySlug(idOrSlug);
+      workspace = await workspaceRepository.findBySlug(idOrSlug, userId, isAdmin, userEmail);
     }
 
     if (!workspace) {
       throw AppError.notFound('Workspace not found');
     }
 
-    // Check permission if not admin and workspace has owner
-    if (!isAdmin && userId && workspace.userId && workspace.userId !== userId) {
-      throw AppError.forbidden('You do not have access to this workspace');
+    // Check permission if not admin:
+    // User has access if:
+    // 1) User is the workspace owner (workspace.userId === userId)
+    // 2) User is an assigned member of at least one team in this workspace
+    if (!isAdmin && userId) {
+      const isOwner = workspace.userId === userId;
+      const isMember = (workspace.teams && workspace.teams.length > 0);
+
+      if (!isOwner && !isMember) {
+        throw AppError.forbidden('You do not have access to this workspace');
+      }
     }
 
     return toWorkspaceResponse(workspace);
   }
 
-  async update(id: string, data: UpdateWorkspaceData, userId?: number, isAdmin?: boolean) {
+  async update(id: string, data: UpdateWorkspaceData, userId?: number, isAdmin?: boolean, userEmail?: string) {
     const existing = await workspaceRepository.findById(id);
 
     if (!existing) {
       throw AppError.notFound('Workspace not found');
     }
 
-    if (!isAdmin && userId && existing.userId && existing.userId !== userId) {
-      throw AppError.forbidden('You do not have permission to update this workspace');
+    if (!isAdmin && userId) {
+      const isOwner = existing.userId === userId;
+      const isLeadOrOwnerMember = existing.teams?.some((t: any) =>
+        t.members?.some(
+          (m: any) =>
+            ((m.userId && m.userId === userId) ||
+              (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase())) &&
+            (m.role === 'OWNER' || m.role === 'LEAD')
+        )
+      );
+
+      if (!isOwner && !isLeadOrOwnerMember) {
+        throw AppError.forbidden('You do not have permission to update this workspace');
+      }
     }
 
     let slug = data.slug;

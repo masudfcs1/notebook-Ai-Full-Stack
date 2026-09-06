@@ -49,21 +49,67 @@ export class TeamService {
     return toTeamResponse(team);
   }
 
-  async findByWorkspaceId(workspaceId: string) {
-    const teams = await teamRepository.findByWorkspaceId(workspaceId);
+  async findByWorkspaceId(
+    workspaceId: string,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
+    const teams = await teamRepository.findByWorkspaceId(workspaceId, userId, isAdmin, userEmail);
     return toTeamListResponse(teams);
   }
 
-  async findAll(userId?: number, isAdmin?: boolean) {
-    const teams = await teamRepository.findAll(userId, isAdmin);
+  async findAll(userId?: number, isAdmin?: boolean, userEmail?: string) {
+    const teams = await teamRepository.findAll(userId, isAdmin, userEmail);
     return toTeamListResponse(teams);
   }
 
-  async findById(id: string) {
+  async findById(id: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
     const team = await teamRepository.findById(id);
     if (!team) {
       throw AppError.notFound('Team not found');
     }
+
+    if (!isAdmin && userId) {
+      const isWorkspaceOwner = (team as any).workspace?.userId === userId;
+      const isMember = team.members?.some(
+        (m: any) =>
+          (m.userId && m.userId === userId) ||
+          (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase())
+      );
+
+      if (!isWorkspaceOwner && !isMember) {
+        const hasWorkspaceAccess = await prisma.workspace.findFirst({
+          where: {
+            id: team.workspaceId,
+            OR: [
+              { userId },
+              {
+                teams: {
+                  some: {
+                    members: {
+                      some: {
+                        OR: [
+                          { userId },
+                          ...(userEmail
+                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                            : []),
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        if (!hasWorkspaceAccess) {
+          throw AppError.forbidden('You do not have access to this team');
+        }
+      }
+    }
+
     return toTeamResponse(team);
   }
 
@@ -96,10 +142,50 @@ export class TeamService {
 
   /* ---------- Team Member Methods ---------- */
 
-  async getMembers(teamId: string) {
+  async getMembers(teamId: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
     const team = await teamRepository.findById(teamId);
     if (!team) {
       throw AppError.notFound('Team not found');
+    }
+
+    if (!isAdmin && userId) {
+      const isWorkspaceOwner = (team as any).workspace?.userId === userId;
+      const isMember = team.members?.some(
+        (m: any) =>
+          (m.userId && m.userId === userId) ||
+          (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase())
+      );
+
+      if (!isWorkspaceOwner && !isMember) {
+        const hasWorkspaceAccess = await prisma.workspace.findFirst({
+          where: {
+            id: team.workspaceId,
+            OR: [
+              { userId },
+              {
+                teams: {
+                  some: {
+                    members: {
+                      some: {
+                        OR: [
+                          { userId },
+                          ...(userEmail
+                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                            : []),
+                        ],
+                      },
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        });
+
+        if (!hasWorkspaceAccess) {
+          throw AppError.forbidden('You do not have access to this team');
+        }
+      }
     }
 
     const members = await teamRepository.getMembers(teamId);

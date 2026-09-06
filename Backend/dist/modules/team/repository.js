@@ -82,7 +82,7 @@ class TeamRepository {
             },
         });
     }
-    async findByWorkspaceId(workspaceId) {
+    async findByWorkspaceId(workspaceId, _userId, _isAdmin, _userEmail) {
         return database_1.prisma.team.findMany({
             where: { workspaceId },
             orderBy: { createdAt: 'asc' },
@@ -106,10 +106,24 @@ class TeamRepository {
             },
         });
     }
-    async findAll(userId, isAdmin) {
+    async findAll(userId, isAdmin, userEmail) {
         const where = {};
         if (!isAdmin && userId) {
-            where.workspace = { userId };
+            where.OR = [
+                { workspace: { userId } },
+                {
+                    members: {
+                        some: {
+                            OR: [
+                                { userId },
+                                ...(userEmail
+                                    ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                    : []),
+                            ],
+                        },
+                    },
+                },
+            ];
         }
         return database_1.prisma.team.findMany({
             where,
@@ -314,6 +328,10 @@ class TeamRepository {
         });
     }
     async searchAvailableUsers(teamId, search) {
+        const targetTeam = await database_1.prisma.team.findUnique({
+            where: { id: teamId },
+            select: { workspaceId: true },
+        });
         const existingMembers = await database_1.prisma.teamMember.findMany({
             where: { teamId },
             select: { userId: true, email: true },
@@ -339,9 +357,9 @@ class TeamRepository {
                 { username: { contains: q, mode: 'insensitive' } },
             ];
         }
-        return database_1.prisma.user.findMany({
+        const users = await database_1.prisma.user.findMany({
             where,
-            take: 20,
+            take: 30,
             orderBy: { createdAt: 'desc' },
             select: {
                 id: true,
@@ -352,8 +370,44 @@ class TeamRepository {
                 avatar: true,
                 role: true,
                 status: true,
+                memberships: targetTeam
+                    ? {
+                        where: {
+                            team: {
+                                workspaceId: targetTeam.workspaceId,
+                            },
+                        },
+                        include: {
+                            team: {
+                                select: {
+                                    id: true,
+                                    name: true,
+                                    key: true,
+                                    icon: true,
+                                },
+                            },
+                        },
+                    }
+                    : false,
             },
         });
+        return users.map((u) => ({
+            id: u.id,
+            uuid: u.uuid,
+            name: u.name,
+            username: u.username,
+            email: u.email,
+            avatar: u.avatar,
+            role: u.role,
+            status: u.status,
+            memberships: (u.memberships || []).map((m) => ({
+                teamId: m.team?.id,
+                teamName: m.team?.name,
+                teamKey: m.team?.key,
+                teamIcon: m.team?.icon,
+                role: m.role,
+            })),
+        }));
     }
 }
 exports.TeamRepository = TeamRepository;

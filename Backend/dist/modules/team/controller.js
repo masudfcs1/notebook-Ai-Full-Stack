@@ -22,15 +22,16 @@ class TeamController {
         const { workspaceId } = req.query;
         const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
         if (workspaceId) {
-            const teams = await service_1.teamService.findByWorkspaceId(workspaceId);
+            const teams = await service_1.teamService.findByWorkspaceId(workspaceId, req.user?.id, isAdmin, req.user?.email);
             return (0, response_1.sendSuccess)(res, 'Teams fetched successfully', teams);
         }
-        const teams = await service_1.teamService.findAll(req.user?.id, isAdmin);
+        const teams = await service_1.teamService.findAll(req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'All teams fetched successfully', teams);
     });
     getById = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { id } = req.params;
-        const team = await service_1.teamService.findById(id);
+        const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+        const team = await service_1.teamService.findById(id, req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'Team fetched successfully', team);
     });
     update = (0, async_1.catchAsync)(async (req, res, _next) => {
@@ -47,7 +48,8 @@ class TeamController {
     /* ---------- Team Member Handlers ---------- */
     getMembers = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { id } = req.params;
-        const members = await service_1.teamService.getMembers(id);
+        const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
+        const members = await service_1.teamService.getMembers(id, req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'Team members fetched successfully', members);
     });
     addMember = (0, async_1.catchAsync)(async (req, res, _next) => {

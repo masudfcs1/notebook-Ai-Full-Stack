@@ -69,6 +69,9 @@ export interface Workspace {
   slug: string;
   icon?: string | null;
   description?: string | null;
+  userId?: number | null;
+  createdAt?: string;
+  updatedAt?: string;
   teams: Team[];
 }
 

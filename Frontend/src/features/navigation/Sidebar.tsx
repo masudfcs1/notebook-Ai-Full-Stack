@@ -91,6 +91,10 @@ export function Sidebar() {
   const activeWorkspace =
     workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
   const teams = activeWorkspace?.teams || [];
+  const isWorkspaceOwner =
+    activeWorkspace?.userId === user?.id ||
+    user?.role === "SUPER_ADMIN" ||
+    user?.role === "ADMIN";
 
   // Modal & section collapse triggers
   const [wsModalOpen, setWsModalOpen] = useState(false);
@@ -174,60 +178,86 @@ export function Sidebar() {
                 Workspaces
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {workspaces.map((ws) => (
-                <DropdownMenuItem
-                  key={ws.id}
-                  onClick={() => {
-                    dispatch(setActiveWorkspace(ws.id));
-                    void router.push(`/${ws.slug}`);
-                  }}
-                  className="flex items-center justify-between py-2 cursor-pointer group"
-                >
-                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                    <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/8 text-indigo-500">
-                      <Building2 className="h-3.5 w-3.5" />
-                    </span>
-                    <div className="truncate">
-                      <p className="text-xs font-semibold">{ws.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
-                        {ws.teams?.length || 0} teams
-                      </p>
+              {workspaces.map((ws) => {
+                const isOwner =
+                  ws.userId === user?.id ||
+                  user?.role === "SUPER_ADMIN" ||
+                  user?.role === "ADMIN";
+                const userMembership = ws.teams
+                  ?.flatMap((t) => t.members || [])
+                  .find(
+                    (m) =>
+                      (m.userId && m.userId === user?.id) ||
+                      (user?.email &&
+                        m.email?.toLowerCase() === user.email.toLowerCase()),
+                  );
+
+                return (
+                  <DropdownMenuItem
+                    key={ws.id}
+                    onClick={() => {
+                      dispatch(setActiveWorkspace(ws.id));
+                      void router.push(`/${ws.slug}`);
+                    }}
+                    className="flex items-center justify-between py-2 cursor-pointer group"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-indigo-500/8 text-indigo-500">
+                        <Building2 className="h-3.5 w-3.5" />
+                      </span>
+                      <div className="truncate">
+                        <div className="flex items-center gap-1.5">
+                          <p className="text-xs font-semibold">{ws.name}</p>
+                          {!isOwner && (
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/10 text-indigo-400 font-medium">
+                              {userMembership?.role ? `${userMembership.role.charAt(0) + userMembership.role.slice(1).toLowerCase()}` : "Assigned"}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-muted-foreground">
+                          {ws.teams?.length || 0} teams
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {ws.id === activeWorkspaceId && (
-                      <Check className="mr-0.5 h-3.5 w-3.5 text-indigo-500" />
-                    )}
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setWsToEdit(ws);
-                        setWsModalMode("edit");
-                        setWsModalOpen(true);
-                      }}
-                      title="Edit workspace"
-                      className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
-                    >
-                      <Edit3 className="h-3 w-3" />
-                    </button>
-                    {workspaces.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setWsToDelete(ws);
-                          setDeleteModalOpen(true);
-                        }}
-                        title="Delete workspace"
-                        className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    )}
-                  </div>
-                </DropdownMenuItem>
-              ))}
+                    <div className="flex items-center gap-1">
+                      {ws.id === activeWorkspaceId && (
+                        <Check className="mr-0.5 h-3.5 w-3.5 text-indigo-500" />
+                      )}
+                      {isOwner && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setWsToEdit(ws);
+                              setWsModalMode("edit");
+                              setWsModalOpen(true);
+                            }}
+                            title="Edit workspace"
+                            className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                          >
+                            <Edit3 className="h-3 w-3" />
+                          </button>
+                          {workspaces.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                              e.stopPropagation();
+                              setWsToDelete(ws);
+                              setDeleteModalOpen(true);
+                            }}
+                            title="Delete workspace"
+                            className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  </DropdownMenuItem>
+                );
+              })}
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
@@ -261,17 +291,19 @@ export function Sidebar() {
                     {teams.length}
                   </span>
                 </button>
-                <button
-                  onClick={() => {
-                    setTeamToEdit(null);
-                    setTeamModalMode("create");
-                    setTeamModalOpen(true);
-                  }}
-                  className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
-                  title="Create Team"
-                >
-                  <Plus className="h-3 w-3" />
-                </button>
+                {isWorkspaceOwner && (
+                  <button
+                    onClick={() => {
+                      setTeamToEdit(null);
+                      setTeamModalMode("create");
+                      setTeamModalOpen(true);
+                    }}
+                    className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                    title="Create Team"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                )}
               </div>
 
               <AnimatePresence initial={false}>
@@ -301,63 +333,93 @@ export function Sidebar() {
                       <span className="truncate">All Teams</span>
                     </button>
 
-                    {teams.map((t) => (
-                      <div
-                        key={t.id}
-                        className={cn(
-                          "group/team flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
-                          activeTeamId === t.id
-                            ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                            : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
-                        )}
-                      >
-                        <button
-                          onClick={() => {
-                            dispatch(setActiveTeam(t.id));
-                            dispatch(setView("team"));
-                            if (activeWorkspace) {
-                              void router.push(
-                                `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
-                              );
-                            }
-                          }}
-                          className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
+                    {teams.map((t) => {
+                      const userMembership = t.members?.find(
+                        (m) =>
+                          (m.userId && m.userId === user?.id) ||
+                          (user?.email &&
+                            m.email?.toLowerCase() ===
+                              user.email.toLowerCase())
+                      );
+                      const isTeamOwnerOrLead =
+                        activeWorkspace?.userId === user?.id ||
+                        user?.role === "SUPER_ADMIN" ||
+                        user?.role === "ADMIN" ||
+                        userMembership?.role === "OWNER" ||
+                        userMembership?.role === "LEAD";
+
+                      const roleBadge = userMembership?.role
+                        ? userMembership.role.charAt(0) +
+                          userMembership.role.slice(1).toLowerCase()
+                        : null;
+
+                      return (
+                        <div
+                          key={t.id}
+                          className={cn(
+                            "group/team flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
+                            activeTeamId === t.id
+                              ? "bg-indigo-500/15 font-semibold text-indigo-400"
+                              : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
+                          )}
                         >
-                          <UsersRound className="h-3 w-3 text-indigo-500/80" />
-                          <span className="truncate">{t.name}</span>
-                        </button>
-                        <div className="flex items-center gap-1">
-                          <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
-                            {t.key}
-                          </span>
                           <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTeamToEdit(t);
-                              setTeamModalMode("edit");
-                              setTeamModalOpen(true);
+                            onClick={() => {
+                              dispatch(setActiveTeam(t.id));
+                              dispatch(setView("team"));
+                              if (activeWorkspace) {
+                                void router.push(
+                                  `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
+                                );
+                              }
                             }}
-                            title="Edit team"
-                            className="p-0.5 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                            className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
                           >
-                            <Edit3 className="h-3 w-3" />
+                            <UsersRound className="h-3 w-3 text-indigo-500/80 shrink-0" />
+                            <span className="truncate">{t.name}</span>
                           </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setTeamToDelete(t);
-                              setDeleteTeamModalOpen(true);
-                            }}
-                            title="Delete team"
-                            className="p-0.5 text-muted-foreground hover:text-rose-500 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </button>
+                          <div className="flex items-center gap-1 shrink-0">
+                            {roleBadge && (
+                              <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-400 font-medium font-mono">
+                                {roleBadge}
+                              </span>
+                            )}
+                            <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
+                              {t.key}
+                            </span>
+                            {isTeamOwnerOrLead && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTeamToEdit(t);
+                                    setTeamModalMode("edit");
+                                    setTeamModalOpen(true);
+                                  }}
+                                  title="Edit team"
+                                  className="p-0.5 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                >
+                                  <Edit3 className="h-3 w-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setTeamToDelete(t);
+                                    setDeleteTeamModalOpen(true);
+                                  }}
+                                  title="Delete team"
+                                  className="p-0.5 text-muted-foreground hover:text-rose-500 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </button>
+                              </>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </motion.div>
                 )}
               </AnimatePresence>

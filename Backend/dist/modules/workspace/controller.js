@@ -28,26 +28,27 @@ class WorkspaceController {
             sortBy: sortBy || 'createdAt',
             sortOrder: sortOrder || 'desc',
             userId: req.user?.id,
+            userEmail: req.user?.email,
             isAdmin,
         });
         return (0, response_1.sendSuccess)(res, 'Workspaces fetched successfully', result.data, result.meta);
     });
     getAllUserWorkspaces = (0, async_1.catchAsync)(async (req, res, _next) => {
         const isAdmin = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN';
-        const workspaces = await service_1.workspaceService.findAllUserWorkspaces(req.user?.id, isAdmin);
+        const workspaces = await service_1.workspaceService.findAllUserWorkspaces(req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'User workspaces fetched successfully', workspaces);
     });
     getByIdOrSlug = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { idOrSlug } = req.params;
         const isAdmin = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN';
-        const workspace = await service_1.workspaceService.findByIdOrSlug(idOrSlug, req.user?.id, isAdmin);
+        const workspace = await service_1.workspaceService.findByIdOrSlug(idOrSlug, req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'Workspace fetched successfully', workspace);
     });
     update = (0, async_1.catchAsync)(async (req, res, _next) => {
         const { id } = req.params;
         const { name, slug, icon, description } = req.body;
         const isAdmin = req.user?.role === 'SUPER_ADMIN' || req.user?.role === 'ADMIN';
-        const workspace = await service_1.workspaceService.update(id, { name, slug, icon, description }, req.user?.id, isAdmin);
+        const workspace = await service_1.workspaceService.update(id, { name, slug, icon, description }, req.user?.id, isAdmin, req.user?.email);
         return (0, response_1.sendSuccess)(res, 'Workspace updated successfully', workspace);
     });
     delete = (0, async_1.catchAsync)(async (req, res, _next) => {
