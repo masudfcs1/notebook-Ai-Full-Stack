@@ -79,34 +79,7 @@ export class TeamService {
       );
 
       if (!isWorkspaceOwner && !isMember) {
-        const hasWorkspaceAccess = await prisma.workspace.findFirst({
-          where: {
-            id: team.workspaceId,
-            OR: [
-              { userId },
-              {
-                teams: {
-                  some: {
-                    members: {
-                      some: {
-                        OR: [
-                          { userId },
-                          ...(userEmail
-                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
-                            : []),
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        });
-
-        if (!hasWorkspaceAccess) {
-          throw AppError.forbidden('You do not have access to this team');
-        }
+        throw AppError.forbidden('You do not have access to this team');
       }
     }
 
@@ -157,34 +130,7 @@ export class TeamService {
       );
 
       if (!isWorkspaceOwner && !isMember) {
-        const hasWorkspaceAccess = await prisma.workspace.findFirst({
-          where: {
-            id: team.workspaceId,
-            OR: [
-              { userId },
-              {
-                teams: {
-                  some: {
-                    members: {
-                      some: {
-                        OR: [
-                          { userId },
-                          ...(userEmail
-                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
-                            : []),
-                        ],
-                      },
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        });
-
-        if (!hasWorkspaceAccess) {
-          throw AppError.forbidden('You do not have access to this team');
-        }
+        throw AppError.forbidden('You do not have access to this team');
       }
     }
 

@@ -72,7 +72,7 @@ export declare class TeamRepository {
         icon: string | null;
         workspaceId: string;
     }) | null>;
-    findByWorkspaceId(workspaceId: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<({
+    findByWorkspaceId(workspaceId: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<({
         members: ({
             user: {
                 status: import(".prisma/client").$Enums.UserStatus;

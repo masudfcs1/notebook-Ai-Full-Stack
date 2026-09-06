@@ -58,33 +58,7 @@ class TeamService {
             const isMember = team.members?.some((m) => (m.userId && m.userId === userId) ||
                 (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase()));
             if (!isWorkspaceOwner && !isMember) {
-                const hasWorkspaceAccess = await database_1.prisma.workspace.findFirst({
-                    where: {
-                        id: team.workspaceId,
-                        OR: [
-                            { userId },
-                            {
-                                teams: {
-                                    some: {
-                                        members: {
-                                            some: {
-                                                OR: [
-                                                    { userId },
-                                                    ...(userEmail
-                                                        ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
-                                                        : []),
-                                                ],
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                });
-                if (!hasWorkspaceAccess) {
-                    throw error_helper_1.AppError.forbidden('You do not have access to this team');
-                }
+                throw error_helper_1.AppError.forbidden('You do not have access to this team');
             }
         }
         return (0, dto_1.toTeamResponse)(team);
@@ -121,33 +95,7 @@ class TeamService {
             const isMember = team.members?.some((m) => (m.userId && m.userId === userId) ||
                 (userEmail && m.email && m.email.toLowerCase() === userEmail.toLowerCase()));
             if (!isWorkspaceOwner && !isMember) {
-                const hasWorkspaceAccess = await database_1.prisma.workspace.findFirst({
-                    where: {
-                        id: team.workspaceId,
-                        OR: [
-                            { userId },
-                            {
-                                teams: {
-                                    some: {
-                                        members: {
-                                            some: {
-                                                OR: [
-                                                    { userId },
-                                                    ...(userEmail
-                                                        ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
-                                                        : []),
-                                                ],
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        ],
-                    },
-                });
-                if (!hasWorkspaceAccess) {
-                    throw error_helper_1.AppError.forbidden('You do not have access to this team');
-                }
+                throw error_helper_1.AppError.forbidden('You do not have access to this team');
             }
         }
         const members = await repository_1.teamRepository.getMembers(teamId);

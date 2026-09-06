@@ -60,8 +60,28 @@ class WorkspaceRepository {
             },
         });
     }
-    getTeamsInclude() {
+    getTeamsInclude(userId, isAdmin, userEmail) {
+        const teamWhere = !isAdmin && userId
+            ? {
+                OR: [
+                    { workspace: { userId } },
+                    {
+                        members: {
+                            some: {
+                                OR: [
+                                    { userId },
+                                    ...(userEmail
+                                        ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                        : []),
+                                ],
+                            },
+                        },
+                    },
+                ],
+            }
+            : undefined;
         return {
+            where: teamWhere,
             orderBy: { createdAt: 'asc' },
             include: {
                 members: {
@@ -83,11 +103,11 @@ class WorkspaceRepository {
             },
         };
     }
-    async findById(id, _userId, _isAdmin, _userEmail) {
+    async findById(id, userId, isAdmin, userEmail) {
         return database_1.prisma.workspace.findUnique({
             where: { id },
             include: {
-                teams: this.getTeamsInclude(),
+                teams: this.getTeamsInclude(userId, isAdmin, userEmail),
                 notes: {
                     take: 10,
                     orderBy: { createdAt: 'desc' },
@@ -95,11 +115,11 @@ class WorkspaceRepository {
             },
         });
     }
-    async findBySlug(slug, _userId, _isAdmin, _userEmail) {
+    async findBySlug(slug, userId, isAdmin, userEmail) {
         return database_1.prisma.workspace.findUnique({
             where: { slug },
             include: {
-                teams: this.getTeamsInclude(),
+                teams: this.getTeamsInclude(userId, isAdmin, userEmail),
                 notes: {
                     take: 10,
                     orderBy: { createdAt: 'desc' },
@@ -147,7 +167,7 @@ class WorkspaceRepository {
                 take: limit,
                 orderBy: (0, pagination_1.buildSortQuery)({ sortBy, sortOrder }) || { [sortBy]: sortOrder },
                 include: {
-                    teams: this.getTeamsInclude(),
+                    teams: this.getTeamsInclude(userId, isAdmin, userEmail),
                 },
             }),
             database_1.prisma.workspace.count({ where }),
@@ -186,7 +206,7 @@ class WorkspaceRepository {
             where,
             orderBy: { createdAt: 'desc' },
             include: {
-                teams: this.getTeamsInclude(),
+                teams: this.getTeamsInclude(userId, isAdmin, userEmail),
             },
         });
     }

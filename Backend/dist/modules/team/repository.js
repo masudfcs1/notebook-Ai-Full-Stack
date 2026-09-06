@@ -82,9 +82,27 @@ class TeamRepository {
             },
         });
     }
-    async findByWorkspaceId(workspaceId, _userId, _isAdmin, _userEmail) {
+    async findByWorkspaceId(workspaceId, userId, isAdmin, userEmail) {
+        const where = { workspaceId };
+        if (!isAdmin && userId) {
+            where.OR = [
+                { workspace: { userId } }, // Workspace owner sees all teams in this workspace
+                {
+                    members: {
+                        some: {
+                            OR: [
+                                { userId },
+                                ...(userEmail
+                                    ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                                    : []),
+                            ],
+                        },
+                    },
+                },
+            ];
+        }
         return database_1.prisma.team.findMany({
-            where: { workspaceId },
+            where,
             orderBy: { createdAt: 'asc' },
             include: {
                 members: {

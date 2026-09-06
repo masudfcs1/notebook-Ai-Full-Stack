@@ -49,8 +49,8 @@ export declare class WorkspaceRepository {
         description: string | null;
     }>;
     private getTeamsInclude;
-    findById(id: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<any>;
-    findBySlug(slug: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string): Promise<any>;
+    findById(id: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
+    findBySlug(slug: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
     findAll(options: FindWorkspacesOptions): Promise<IPaginatedResult<any>>;
     findAllUserWorkspaces(userId?: number, isAdmin?: boolean, userEmail?: string): Promise<any>;
     update(id: string, data: UpdateWorkspaceData): Promise<any>;

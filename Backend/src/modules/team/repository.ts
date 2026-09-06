@@ -87,12 +87,31 @@ export class TeamRepository {
 
   async findByWorkspaceId(
     workspaceId: string,
-    _userId?: number,
-    _isAdmin?: boolean,
-    _userEmail?: string
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
   ) {
+    const where: any = { workspaceId };
+    if (!isAdmin && userId) {
+      where.OR = [
+        { workspace: { userId } }, // Workspace owner sees all teams in this workspace
+        {
+          members: {
+            some: {
+              OR: [
+                { userId },
+                ...(userEmail
+                  ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                  : []),
+              ],
+            },
+          },
+        },
+      ];
+    }
+
     return prisma.team.findMany({
-      where: { workspaceId },
+      where,
       orderBy: { createdAt: 'asc' },
       include: {
         members: {

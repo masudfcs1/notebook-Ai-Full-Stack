@@ -73,8 +73,30 @@ export class WorkspaceRepository {
     });
   }
 
-  private getTeamsInclude() {
+  private getTeamsInclude(userId?: number, isAdmin?: boolean, userEmail?: string) {
+    const teamWhere =
+      !isAdmin && userId
+        ? {
+            OR: [
+              { workspace: { userId } },
+              {
+                members: {
+                  some: {
+                    OR: [
+                      { userId },
+                      ...(userEmail
+                        ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                        : []),
+                    ],
+                  },
+                },
+              },
+            ],
+          }
+        : undefined;
+
     return {
+      where: teamWhere,
       orderBy: { createdAt: 'asc' as const },
       include: {
         members: {
@@ -97,11 +119,11 @@ export class WorkspaceRepository {
     };
   }
 
-  async findById(id: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string) {
+  async findById(id: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
     return (prisma.workspace as any).findUnique({
       where: { id },
       include: {
-        teams: this.getTeamsInclude(),
+        teams: this.getTeamsInclude(userId, isAdmin, userEmail),
         notes: {
           take: 10,
           orderBy: { createdAt: 'desc' },
@@ -110,11 +132,11 @@ export class WorkspaceRepository {
     });
   }
 
-  async findBySlug(slug: string, _userId?: number, _isAdmin?: boolean, _userEmail?: string) {
+  async findBySlug(slug: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
     return (prisma.workspace as any).findUnique({
       where: { slug },
       include: {
-        teams: this.getTeamsInclude(),
+        teams: this.getTeamsInclude(userId, isAdmin, userEmail),
         notes: {
           take: 10,
           orderBy: { createdAt: 'desc' },
@@ -144,7 +166,7 @@ export class WorkspaceRepository {
                         OR: [
                           { userId },
                           ...(userEmail
-                            ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
                             : []),
                         ],
                       },
@@ -168,7 +190,7 @@ export class WorkspaceRepository {
         take: limit,
         orderBy: buildSortQuery({ sortBy, sortOrder }) || { [sortBy]: sortOrder },
         include: {
-          teams: this.getTeamsInclude(),
+          teams: this.getTeamsInclude(userId, isAdmin, userEmail),
         },
       }),
       (prisma.workspace as any).count({ where }),
@@ -196,7 +218,7 @@ export class WorkspaceRepository {
                         OR: [
                           { userId },
                           ...(userEmail
-                            ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
+                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
                             : []),
                         ],
                       },
@@ -212,7 +234,7 @@ export class WorkspaceRepository {
       where,
       orderBy: { createdAt: 'desc' },
       include: {
-        teams: this.getTeamsInclude(),
+        teams: this.getTeamsInclude(userId, isAdmin, userEmail),
       },
     });
   }
