@@ -1,7 +1,6 @@
 import { teamRepository } from './repository';
-import { workspaceRepository } from '../workspace/repository';
 import { notificationService } from '../notification/service';
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
 import {
   toTeamResponse,
@@ -15,33 +14,40 @@ import { logger } from '@/logger';
 
 export class TeamService {
   async create(data: CreateTeamData) {
-    const workspace = await workspaceRepository.findSummaryById(data.workspaceId);
-    if (!workspace) {
-      throw AppError.notFound('Workspace not found');
+    const key = data.key.toUpperCase();
+    let team;
+
+    try {
+      team = await teamRepository.create({
+        ...data,
+        key,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2003') {
+        throw AppError.notFound('Workspace not found');
+      }
+      throw error;
     }
 
-    const key = data.key.toUpperCase();
-
-    const team = await teamRepository.create({
-      ...data,
-      key,
-    });
+    const workspace = team.workspace;
 
     logger.info(`Team created: ${team.name} (${team.id}) in workspace ${data.workspaceId}`);
 
     // Fire-and-forget: don't block response
-    notificationService.create({
-      type: NotificationType.TEAM_CREATED,
-      title: 'New Team Created',
-      message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
-      data: {
-        teamId: team.id,
-        name: team.name,
-        key: team.key,
-        workspaceId: workspace.id,
-        workspaceName: workspace.name,
-      },
-    }).catch((err) => logger.error({ err }, 'Failed to emit TEAM_CREATED notification'));
+    notificationService
+      .create({
+        type: NotificationType.TEAM_CREATED,
+        title: 'New Team Created',
+        message: `Team "${team.name}" (${team.key}) was created in workspace "${workspace.name}".`,
+        data: {
+          teamId: team.id,
+          name: team.name,
+          key: team.key,
+          workspaceId: workspace.id,
+          workspaceName: workspace.name,
+        },
+      })
+      .catch((err) => logger.error({ err }, 'Failed to emit TEAM_CREATED notification'));
 
     return toTeamResponse(team);
   }
@@ -174,13 +180,15 @@ export class TeamService {
 
     // Fire-and-forget notification
     if (resolvedUserId && resolvedUserId !== requestedByUserId) {
-      notificationService.create({
-        userId: resolvedUserId,
-        type: NotificationType.SYSTEM,
-        title: 'Added to Team',
-        message: `You were added to team "${team.name}" as ${member.role}.`,
-        data: { teamId: team.id, role: member.role },
-      }).catch((err) => logger.error({ err }, 'Failed to create add member notification'));
+      notificationService
+        .create({
+          userId: resolvedUserId,
+          type: NotificationType.SYSTEM,
+          title: 'Added to Team',
+          message: `You were added to team "${team.name}" as ${member.role}.`,
+          data: { teamId: team.id, role: member.role },
+        })
+        .catch((err) => logger.error({ err }, 'Failed to create add member notification'));
     }
 
     return toTeamMemberResponse(member);
@@ -203,9 +211,7 @@ export class TeamService {
     );
 
     // ─── Batch user lookups instead of sequential queries ───
-    const userIdsToLookup = membersData
-      .filter((m) => m.userId)
-      .map((m) => m.userId as number);
+    const userIdsToLookup = membersData.filter((m) => m.userId).map((m) => m.userId as number);
     const emailsToLookup = membersData
       .filter((m) => !m.userId && m.email)
       .map((m) => m.email.trim().toLowerCase());
@@ -286,13 +292,15 @@ export class TeamService {
     // Fire-and-forget: batch notifications
     for (const mem of created) {
       if (mem.userId && mem.userId !== requestedByUserId) {
-        notificationService.create({
-          userId: mem.userId,
-          type: NotificationType.SYSTEM,
-          title: 'Added to Team',
-          message: `You were added to team "${team.name}" as ${mem.role}.`,
-          data: { teamId: team.id, role: mem.role },
-        }).catch((err) => logger.error({ err }, 'Failed to emit notification for bulk add member'));
+        notificationService
+          .create({
+            userId: mem.userId,
+            type: NotificationType.SYSTEM,
+            title: 'Added to Team',
+            message: `You were added to team "${team.name}" as ${mem.role}.`,
+            data: { teamId: team.id, role: mem.role },
+          })
+          .catch((err) => logger.error({ err }, 'Failed to emit notification for bulk add member'));
       }
     }
 

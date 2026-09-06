@@ -16,18 +16,26 @@ class WorkspaceService {
             .replace(/^-|-$/g, '');
     }
     async create(data) {
-        let slug = data.slug ? this.generateSlug(data.slug) : this.generateSlug(data.name);
-        // Check if slug exists
-        const existing = await repository_1.workspaceRepository.findSlugOwner(slug);
-        if (existing) {
-            slug = `${slug}-${Date.now().toString().slice(-4)}`;
+        const baseSlug = data.slug ? this.generateSlug(data.slug) : this.generateSlug(data.name);
+        let workspace;
+        try {
+            workspace = await repository_1.workspaceRepository.create({
+                ...data,
+                slug: baseSlug,
+            });
         }
-        const workspace = await repository_1.workspaceRepository.create({
-            ...data,
-            slug,
-        });
+        catch (error) {
+            if (!(error instanceof client_1.Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') {
+                throw error;
+            }
+            workspace = await repository_1.workspaceRepository.create({
+                ...data,
+                slug: `${baseSlug}-${Date.now().toString(36).slice(-6)}`,
+            });
+        }
         logger_1.logger.info(`Workspace created: ${workspace.name} (${workspace.id}) by user ${data.userId}`);
-        service_1.notificationService.create({
+        service_1.notificationService
+            .create({
             type: client_1.NotificationType.WORKSPACE_CREATED,
             title: 'New Workspace Created',
             message: `Workspace "${workspace.name}" was created.`,
@@ -79,7 +87,7 @@ class WorkspaceService {
         // 2) User is an assigned member of at least one team in this workspace
         if (!isAdmin && userId) {
             const isOwner = workspace.userId === userId;
-            const isMember = (workspace.teams && workspace.teams.length > 0);
+            const isMember = workspace.teams && workspace.teams.length > 0;
             if (!isOwner && !isMember) {
                 throw error_helper_1.AppError.forbidden('You do not have access to this workspace');
             }
@@ -98,18 +106,23 @@ class WorkspaceService {
                 throw error_helper_1.AppError.forbidden('You do not have permission to update this workspace');
             }
         }
-        let slug = data.slug;
-        if (slug) {
-            slug = this.generateSlug(slug);
-            const slugWorkspace = await repository_1.workspaceRepository.findSlugOwner(slug);
-            if (slugWorkspace && slugWorkspace.id !== id) {
+        const slug = data.slug ? this.generateSlug(data.slug) : undefined;
+        let updated;
+        try {
+            updated = await repository_1.workspaceRepository.update(id, {
+                ...data,
+                ...(slug && { slug }),
+            });
+        }
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
                 throw error_helper_1.AppError.conflict('Workspace slug already in use');
             }
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+                throw error_helper_1.AppError.notFound('Workspace not found');
+            }
+            throw error;
         }
-        const updated = await repository_1.workspaceRepository.update(id, {
-            ...data,
-            ...(slug && { slug }),
-        });
         logger_1.logger.info(`Workspace updated: ${updated.id}`);
         return (0, dto_1.toWorkspaceResponse)(updated);
     }

@@ -17,6 +17,10 @@ export declare const TEAM_MEMBER_INCLUDE: {
 };
 export declare class TeamRepository {
     create(data: CreateTeamData): Promise<{
+        workspace: {
+            id: string;
+            name: string;
+        };
         members: ({
             user: {
                 status: import(".prisma/client").$Enums.UserStatus;

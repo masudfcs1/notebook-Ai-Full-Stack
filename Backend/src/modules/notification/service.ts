@@ -4,6 +4,7 @@ import { toNotificationResponse, toNotificationListResponse } from './dto';
 import { emitNotification } from '@/socket';
 import { logger } from '@/logger';
 import { AppError } from '@/helpers/error.helper';
+import { Prisma } from '@prisma/client';
 
 export class NotificationService {
   /**
@@ -29,13 +30,15 @@ export class NotificationService {
   }
 
   async markAsRead(id: string) {
-    const existing = await notificationRepository.findById(id);
-    if (!existing) {
-      throw AppError.notFound('Notification not found');
+    try {
+      const updated = await notificationRepository.markAsRead(id);
+      return toNotificationResponse(updated);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw AppError.notFound('Notification not found');
+      }
+      throw error;
     }
-
-    const updated = await notificationRepository.markAsRead(id);
-    return toNotificationResponse(updated);
   }
 
   async markAllAsRead(userId?: number | null) {
@@ -49,13 +52,15 @@ export class NotificationService {
   }
 
   async delete(id: string) {
-    const existing = await notificationRepository.findById(id);
-    if (!existing) {
-      throw AppError.notFound('Notification not found');
+    try {
+      await notificationRepository.delete(id);
+      return { message: 'Notification deleted successfully' };
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw AppError.notFound('Notification not found');
+      }
+      throw error;
     }
-
-    await notificationRepository.delete(id);
-    return { message: 'Notification deleted successfully' };
   }
 }
 

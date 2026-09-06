@@ -1,6 +1,6 @@
 import { workspaceRepository, FindWorkspacesOptions } from './repository';
 import { notificationService } from '../notification/service';
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
 import { toWorkspaceResponse, toWorkspaceListResponse } from './dto';
 import { CreateWorkspaceData, UpdateWorkspaceData } from './types';
@@ -16,22 +16,29 @@ export class WorkspaceService {
   }
 
   async create(data: CreateWorkspaceData) {
-    let slug = data.slug ? this.generateSlug(data.slug) : this.generateSlug(data.name);
+    const baseSlug = data.slug ? this.generateSlug(data.slug) : this.generateSlug(data.name);
+    let workspace;
 
-    // Check if slug exists
-    const existing = await workspaceRepository.findSlugOwner(slug);
-    if (existing) {
-      slug = `${slug}-${Date.now().toString().slice(-4)}`;
+    try {
+      workspace = await workspaceRepository.create({
+        ...data,
+        slug: baseSlug,
+      });
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') {
+        throw error;
+      }
+
+      workspace = await workspaceRepository.create({
+        ...data,
+        slug: `${baseSlug}-${Date.now().toString(36).slice(-6)}`,
+      });
     }
-
-    const workspace = await workspaceRepository.create({
-      ...data,
-      slug,
-    });
 
     logger.info(`Workspace created: ${workspace.name} (${workspace.id}) by user ${data.userId}`);
 
-    notificationService.create({
+    notificationService
+      .create({
         type: NotificationType.WORKSPACE_CREATED,
         title: 'New Workspace Created',
         message: `Workspace "${workspace.name}" was created.`,
@@ -98,7 +105,7 @@ export class WorkspaceService {
     // 2) User is an assigned member of at least one team in this workspace
     if (!isAdmin && userId) {
       const isOwner = workspace.userId === userId;
-      const isMember = (workspace.teams && workspace.teams.length > 0);
+      const isMember = workspace.teams && workspace.teams.length > 0;
 
       if (!isOwner && !isMember) {
         throw AppError.forbidden('You do not have access to this workspace');
@@ -108,7 +115,13 @@ export class WorkspaceService {
     return toWorkspaceResponse(workspace);
   }
 
-  async update(id: string, data: UpdateWorkspaceData, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  async update(
+    id: string,
+    data: UpdateWorkspaceData,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     const existing = await workspaceRepository.findWriteAccess(id, userId, userEmail);
 
     if (!existing) {
@@ -124,19 +137,23 @@ export class WorkspaceService {
       }
     }
 
-    let slug = data.slug;
-    if (slug) {
-      slug = this.generateSlug(slug);
-      const slugWorkspace = await workspaceRepository.findSlugOwner(slug);
-      if (slugWorkspace && slugWorkspace.id !== id) {
+    const slug = data.slug ? this.generateSlug(data.slug) : undefined;
+    let updated;
+
+    try {
+      updated = await workspaceRepository.update(id, {
+        ...data,
+        ...(slug && { slug }),
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw AppError.conflict('Workspace slug already in use');
       }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw AppError.notFound('Workspace not found');
+      }
+      throw error;
     }
-
-    const updated = await workspaceRepository.update(id, {
-      ...data,
-      ...(slug && { slug }),
-    });
 
     logger.info(`Workspace updated: ${updated.id}`);
     return toWorkspaceResponse(updated);

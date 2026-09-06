@@ -302,35 +302,38 @@ class UserRepository {
         });
     }
     async getStats() {
-        const [totalUsers, activeUsers, pendingUsers, suspendedUsers, inactiveUsers, superAdminCount, adminCount, managerCount, employeeCount, userCount, recentUsers,] = await Promise.all([
-            database_1.prisma.user.count({ where: { deletedAt: null } }),
-            database_1.prisma.user.count({ where: { status: 'ACTIVE', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { status: 'PENDING', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { status: 'SUSPENDED', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { status: 'INACTIVE', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { role: 'SUPER_ADMIN', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { role: 'ADMIN', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { role: 'MANAGER', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { role: 'EMPLOYEE', deletedAt: null } }),
-            database_1.prisma.user.count({ where: { role: 'USER', deletedAt: null } }),
+        const [groups, recentUsers] = await Promise.all([
+            database_1.prisma.user.groupBy({
+                by: ['status', 'role'],
+                where: { deletedAt: null },
+                _count: { _all: true },
+            }),
             database_1.prisma.user.findMany({
                 where: { deletedAt: null },
                 orderBy: { createdAt: 'desc' },
                 take: 10,
             }),
         ]);
+        const statusCounts = new Map();
+        const roleCounts = new Map();
+        let totalUsers = 0;
+        for (const row of groups) {
+            totalUsers += row._count._all;
+            statusCounts.set(row.status, (statusCounts.get(row.status) || 0) + row._count._all);
+            roleCounts.set(row.role, (roleCounts.get(row.role) || 0) + row._count._all);
+        }
         return {
             totalUsers,
-            activeUsers,
-            pendingUsers,
-            suspendedUsers,
-            inactiveUsers,
+            activeUsers: statusCounts.get('ACTIVE') || 0,
+            pendingUsers: statusCounts.get('PENDING') || 0,
+            suspendedUsers: statusCounts.get('SUSPENDED') || 0,
+            inactiveUsers: statusCounts.get('INACTIVE') || 0,
             usersByRole: {
-                SUPER_ADMIN: superAdminCount,
-                ADMIN: adminCount,
-                MANAGER: managerCount,
-                EMPLOYEE: employeeCount,
-                USER: userCount,
+                SUPER_ADMIN: roleCounts.get('SUPER_ADMIN') || 0,
+                ADMIN: roleCounts.get('ADMIN') || 0,
+                MANAGER: roleCounts.get('MANAGER') || 0,
+                EMPLOYEE: roleCounts.get('EMPLOYEE') || 0,
+                USER: roleCounts.get('USER') || 0,
             },
             recentUsers,
         };
@@ -402,10 +405,12 @@ class UserRepository {
     }
     async getLoginStats(userId) {
         const where = userId ? { userId } : {};
-        const [totalLogins, successfulLogins, failedLogins, lastLoginRecord, allRecords] = await Promise.all([
-            database_1.prisma.loginHistory.count({ where }),
-            database_1.prisma.loginHistory.count({ where: { ...where, successful: true } }),
-            database_1.prisma.loginHistory.count({ where: { ...where, successful: false } }),
+        const [outcomeGroups, lastLoginRecord, allRecords] = await Promise.all([
+            database_1.prisma.loginHistory.groupBy({
+                by: ['successful'],
+                where,
+                _count: { _all: true },
+            }),
             database_1.prisma.loginHistory.findFirst({
                 where: { ...where, successful: true },
                 orderBy: { createdAt: 'desc' },
@@ -418,6 +423,9 @@ class UserRepository {
                 orderBy: { createdAt: 'desc' },
             }),
         ]);
+        const successfulLogins = outcomeGroups.find((row) => row.successful)?._count._all || 0;
+        const failedLogins = outcomeGroups.find((row) => !row.successful)?._count._all || 0;
+        const totalLogins = successfulLogins + failedLogins;
         const uniqueIps = new Set(allRecords.map((r) => r.ipAddress).filter(Boolean)).size;
         const uniqueDevices = new Set(allRecords.map((r) => r.device).filter(Boolean)).size;
         const successRate = totalLogins > 0 ? Number(((successfulLogins / totalLogins) * 100).toFixed(1)) : 100;

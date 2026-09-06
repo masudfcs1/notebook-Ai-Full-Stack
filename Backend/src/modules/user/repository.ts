@@ -354,29 +354,12 @@ export class UserRepository {
   }
 
   async getStats() {
-    const [
-      totalUsers,
-      activeUsers,
-      pendingUsers,
-      suspendedUsers,
-      inactiveUsers,
-      superAdminCount,
-      adminCount,
-      managerCount,
-      employeeCount,
-      userCount,
-      recentUsers,
-    ] = await Promise.all([
-      prisma.user.count({ where: { deletedAt: null } }),
-      prisma.user.count({ where: { status: 'ACTIVE', deletedAt: null } }),
-      prisma.user.count({ where: { status: 'PENDING', deletedAt: null } }),
-      prisma.user.count({ where: { status: 'SUSPENDED', deletedAt: null } }),
-      prisma.user.count({ where: { status: 'INACTIVE', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'SUPER_ADMIN', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'ADMIN', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'MANAGER', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'EMPLOYEE', deletedAt: null } }),
-      prisma.user.count({ where: { role: 'USER', deletedAt: null } }),
+    const [groups, recentUsers] = await Promise.all([
+      prisma.user.groupBy({
+        by: ['status', 'role'],
+        where: { deletedAt: null },
+        _count: { _all: true },
+      }),
       prisma.user.findMany({
         where: { deletedAt: null },
         orderBy: { createdAt: 'desc' },
@@ -384,18 +367,28 @@ export class UserRepository {
       }),
     ]);
 
+    const statusCounts = new Map<UserStatus, number>();
+    const roleCounts = new Map<Role, number>();
+    let totalUsers = 0;
+
+    for (const row of groups) {
+      totalUsers += row._count._all;
+      statusCounts.set(row.status, (statusCounts.get(row.status) || 0) + row._count._all);
+      roleCounts.set(row.role, (roleCounts.get(row.role) || 0) + row._count._all);
+    }
+
     return {
       totalUsers,
-      activeUsers,
-      pendingUsers,
-      suspendedUsers,
-      inactiveUsers,
+      activeUsers: statusCounts.get('ACTIVE') || 0,
+      pendingUsers: statusCounts.get('PENDING') || 0,
+      suspendedUsers: statusCounts.get('SUSPENDED') || 0,
+      inactiveUsers: statusCounts.get('INACTIVE') || 0,
       usersByRole: {
-        SUPER_ADMIN: superAdminCount,
-        ADMIN: adminCount,
-        MANAGER: managerCount,
-        EMPLOYEE: employeeCount,
-        USER: userCount,
+        SUPER_ADMIN: roleCounts.get('SUPER_ADMIN') || 0,
+        ADMIN: roleCounts.get('ADMIN') || 0,
+        MANAGER: roleCounts.get('MANAGER') || 0,
+        EMPLOYEE: roleCounts.get('EMPLOYEE') || 0,
+        USER: roleCounts.get('USER') || 0,
       },
       recentUsers,
     };
@@ -491,23 +484,28 @@ export class UserRepository {
   async getLoginStats(userId?: number) {
     const where = userId ? { userId } : {};
 
-    const [totalLogins, successfulLogins, failedLogins, lastLoginRecord, allRecords] =
-      await Promise.all([
-        prisma.loginHistory.count({ where }),
-        prisma.loginHistory.count({ where: { ...where, successful: true } }),
-        prisma.loginHistory.count({ where: { ...where, successful: false } }),
-        prisma.loginHistory.findFirst({
-          where: { ...where, successful: true },
-          orderBy: { createdAt: 'desc' },
-          select: { createdAt: true },
-        }),
-        prisma.loginHistory.findMany({
-          where,
-          select: { ipAddress: true, device: true, browser: true, os: true },
-          take: 500,
-          orderBy: { createdAt: 'desc' },
-        }),
-      ]);
+    const [outcomeGroups, lastLoginRecord, allRecords] = await Promise.all([
+      prisma.loginHistory.groupBy({
+        by: ['successful'],
+        where,
+        _count: { _all: true },
+      }),
+      prisma.loginHistory.findFirst({
+        where: { ...where, successful: true },
+        orderBy: { createdAt: 'desc' },
+        select: { createdAt: true },
+      }),
+      prisma.loginHistory.findMany({
+        where,
+        select: { ipAddress: true, device: true, browser: true, os: true },
+        take: 500,
+        orderBy: { createdAt: 'desc' },
+      }),
+    ]);
+
+    const successfulLogins = outcomeGroups.find((row) => row.successful)?._count._all || 0;
+    const failedLogins = outcomeGroups.find((row) => !row.successful)?._count._all || 0;
+    const totalLogins = successfulLogins + failedLogins;
 
     const uniqueIps = new Set(allRecords.map((r) => r.ipAddress).filter(Boolean)).size;
     const uniqueDevices = new Set(allRecords.map((r) => r.device).filter(Boolean)).size;

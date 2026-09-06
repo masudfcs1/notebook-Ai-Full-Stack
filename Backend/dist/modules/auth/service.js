@@ -7,6 +7,7 @@ const service_1 = require("../notification/service");
 const client_1 = require("@prisma/client");
 const password_1 = require("../../utils/password");
 const database_1 = require("../../database");
+const auth_middleware_1 = require("../../middlewares/auth.middleware");
 const jwt_1 = require("../../utils/jwt");
 const generators_1 = require("../../utils/generators");
 const date_1 = require("../../utils/date");
@@ -16,26 +17,30 @@ const logger_1 = require("../../logger");
 const dto_1 = require("./dto");
 class AuthService {
     async register(data) {
-        const [existingUser, existingUsername, hashedPassword] = await Promise.all([
-            repository_1.authRepository.findByEmail(data.email),
-            data.username ? repository_1.authRepository.findByUsername(data.username) : Promise.resolve(null),
-            (0, password_1.hashPassword)(data.password),
-        ]);
-        if (existingUser) {
-            throw error_helper_1.AppError.conflict(constants_1.MESSAGES.EMAIL_ALREADY_EXISTS);
+        const hashedPassword = await (0, password_1.hashPassword)(data.password);
+        let user;
+        try {
+            user = await repository_1.authRepository.create({
+                name: data.name || undefined,
+                username: data.username || (0, generators_1.generateUUID)().split('-')[0],
+                email: data.email,
+                password: hashedPassword,
+                phone: data.phone || undefined,
+                status: constants_1.USER_STATUS.ACTIVE,
+                isVerified: true,
+            });
         }
-        if (existingUsername) {
-            throw error_helper_1.AppError.conflict(constants_1.MESSAGES.USERNAME_ALREADY_EXISTS);
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+                const target = String(error.meta?.target || '');
+                if (target.includes('email'))
+                    throw error_helper_1.AppError.conflict(constants_1.MESSAGES.EMAIL_ALREADY_EXISTS);
+                if (target.includes('username'))
+                    throw error_helper_1.AppError.conflict(constants_1.MESSAGES.USERNAME_ALREADY_EXISTS);
+                throw error_helper_1.AppError.conflict('Email or username already exists');
+            }
+            throw error;
         }
-        const user = await repository_1.authRepository.create({
-            name: data.name || undefined,
-            username: data.username || (0, generators_1.generateUUID)().split('-')[0],
-            email: data.email,
-            password: hashedPassword,
-            phone: data.phone || undefined,
-            status: constants_1.USER_STATUS.ACTIVE,
-            isVerified: true,
-        });
         const displayName = data.name || user.username || 'Personal';
         const workspaceName = `${displayName}'s Workspace`;
         const baseSlug = displayName
@@ -75,7 +80,8 @@ class AuthService {
         }
         logger_1.logger.info({ userId: user.id, email: user.email }, 'User registered');
         // Notify admins about new user registration
-        service_1.notificationService.create({
+        service_1.notificationService
+            .create({
             type: client_1.NotificationType.USER_CREATED,
             title: 'New User Registered',
             message: `${user.name || user.username || user.email} just registered an account.`,
@@ -295,23 +301,31 @@ class AuthService {
         return (0, dto_1.toUserResponse)(user);
     }
     async updateProfile(userId, data) {
-        if (data.username) {
-            const existingUser = await repository_1.authRepository.findByUsername(data.username);
-            if (existingUser && existingUser.id !== userId) {
+        try {
+            const user = await repository_1.authRepository.updateProfile(userId, data);
+            (0, auth_middleware_1.invalidateUserCache)(userId);
+            logger_1.logger.info({ userId }, 'Profile updated');
+            return (0, dto_1.toUserResponse)(user);
+        }
+        catch (error) {
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
                 throw error_helper_1.AppError.conflict(constants_1.MESSAGES.USERNAME_ALREADY_EXISTS);
             }
+            if (error instanceof client_1.Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+                throw error_helper_1.AppError.notFound(constants_1.MESSAGES.USER_NOT_FOUND);
+            }
+            throw error;
         }
-        const user = await repository_1.authRepository.updateProfile(userId, data);
-        logger_1.logger.info({ userId }, 'Profile updated');
-        return (0, dto_1.toUserResponse)(user);
     }
     async updateProfileImage(userId, avatarUrl) {
         const user = await repository_1.authRepository.updateProfile(userId, { avatar: avatarUrl });
+        (0, auth_middleware_1.invalidateUserCache)(userId);
         logger_1.logger.info({ userId }, 'Profile image updated');
         return (0, dto_1.toUserResponse)(user);
     }
     async deleteProfileImage(userId) {
         await repository_1.authRepository.updateProfile(userId, { avatar: null });
+        (0, auth_middleware_1.invalidateUserCache)(userId);
         logger_1.logger.info({ userId }, 'Profile image deleted');
     }
     async deleteAccount(userId, password) {
@@ -324,6 +338,7 @@ class AuthService {
             throw error_helper_1.AppError.badRequest('Password is incorrect');
         }
         await repository_1.authRepository.softDelete(userId);
+        (0, auth_middleware_1.invalidateUserCache)(userId);
         await repository_1.authRepository.revokeAllUserTokens(userId);
         logger_1.logger.info({ userId }, 'Account deleted');
     }

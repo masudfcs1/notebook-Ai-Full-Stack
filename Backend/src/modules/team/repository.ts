@@ -63,6 +63,7 @@ export class TeamRepository {
           : undefined,
       },
       include: {
+        workspace: { select: { id: true, name: true } },
         members: {
           include: {
             user: {
@@ -167,9 +168,7 @@ export class TeamRepository {
             some: {
               OR: [
                 { userId },
-                ...(userEmail
-                  ? [{ email: { equals: userEmail, mode: 'insensitive' } }]
-                  : []),
+                ...(userEmail ? [{ email: { equals: userEmail, mode: 'insensitive' } }] : []),
               ],
             },
           },

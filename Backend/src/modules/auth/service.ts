@@ -1,9 +1,10 @@
 import { authRepository } from './repository';
 import { workspaceRepository } from '../workspace/repository';
 import { notificationService } from '../notification/service';
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma } from '@prisma/client';
 import { hashPassword, comparePassword } from '@/utils/password';
 import { prisma } from '@/database';
+import { invalidateUserCache } from '@/middlewares/auth.middleware';
 
 import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from '@/utils/jwt';
 import { generateOTP, generateUUID, generateVerificationToken } from '@/utils/generators';
@@ -22,29 +23,28 @@ export class AuthService {
     password: string;
     phone?: string;
   }): Promise<{ user: ReturnType<typeof toUserResponse>; message: string }> {
-    const [existingUser, existingUsername, hashedPassword] = await Promise.all([
-      authRepository.findByEmail(data.email),
-      data.username ? authRepository.findByUsername(data.username) : Promise.resolve(null),
-      hashPassword(data.password),
-    ]);
+    const hashedPassword = await hashPassword(data.password);
 
-    if (existingUser) {
-      throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
+    let user;
+    try {
+      user = await authRepository.create({
+        name: data.name || undefined,
+        username: data.username || generateUUID().split('-')[0],
+        email: data.email,
+        password: hashedPassword,
+        phone: data.phone || undefined,
+        status: USER_STATUS.ACTIVE,
+        isVerified: true,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = String(error.meta?.target || '');
+        if (target.includes('email')) throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
+        if (target.includes('username')) throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
+        throw AppError.conflict('Email or username already exists');
+      }
+      throw error;
     }
-
-    if (existingUsername) {
-      throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
-    }
-
-    const user = await authRepository.create({
-      name: data.name || undefined,
-      username: data.username || generateUUID().split('-')[0],
-      email: data.email,
-      password: hashedPassword,
-      phone: data.phone || undefined,
-      status: USER_STATUS.ACTIVE,
-      isVerified: true,
-    });
 
     const displayName = data.name || user.username || 'Personal';
     const workspaceName = `${displayName}'s Workspace`;
@@ -96,7 +96,8 @@ export class AuthService {
     logger.info({ userId: user.id, email: user.email }, 'User registered');
 
     // Notify admins about new user registration
-    notificationService.create({
+    notificationService
+      .create({
         type: NotificationType.USER_CREATED,
         title: 'New User Registered',
         message: `${user.name || user.username || user.email} just registered an account.`,
@@ -403,18 +404,20 @@ export class AuthService {
     userId: number,
     data: { name?: string; username?: string; phone?: string }
   ): Promise<ReturnType<typeof toUserResponse>> {
-    if (data.username) {
-      const existingUser = await authRepository.findByUsername(data.username);
-      if (existingUser && existingUser.id !== userId) {
+    try {
+      const user = await authRepository.updateProfile(userId, data);
+      invalidateUserCache(userId);
+      logger.info({ userId }, 'Profile updated');
+      return toUserResponse(user);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
         throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
       }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
+      }
+      throw error;
     }
-
-    const user = await authRepository.updateProfile(userId, data);
-
-    logger.info({ userId }, 'Profile updated');
-
-    return toUserResponse(user);
   }
 
   async updateProfileImage(
@@ -422,6 +425,7 @@ export class AuthService {
     avatarUrl: string
   ): Promise<ReturnType<typeof toUserResponse>> {
     const user = await authRepository.updateProfile(userId, { avatar: avatarUrl });
+    invalidateUserCache(userId);
 
     logger.info({ userId }, 'Profile image updated');
 
@@ -430,6 +434,7 @@ export class AuthService {
 
   async deleteProfileImage(userId: number): Promise<void> {
     await authRepository.updateProfile(userId, { avatar: null });
+    invalidateUserCache(userId);
 
     logger.info({ userId }, 'Profile image deleted');
   }
@@ -448,6 +453,7 @@ export class AuthService {
     }
 
     await authRepository.softDelete(userId);
+    invalidateUserCache(userId);
     await authRepository.revokeAllUserTokens(userId);
 
     logger.info({ userId }, 'Account deleted');

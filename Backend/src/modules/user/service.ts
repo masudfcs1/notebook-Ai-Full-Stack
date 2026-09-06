@@ -1,12 +1,11 @@
 import { userRepository } from './repository';
 import { notificationService } from '../notification/service';
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma, Role, UserStatus } from '@prisma/client';
 import { hashPassword } from '@/utils/password';
 
 import { generateUUID } from '@/utils/generators';
 import { MESSAGES } from '@/constants';
 import { AppError } from '@/helpers/error.helper';
-import { Role, UserStatus } from '@prisma/client';
 import { toUserResponse, toUserListResponse } from './dto';
 import { logger } from '@/logger';
 import { invalidateUserCache } from '@/middlewares/auth.middleware';
@@ -58,33 +57,33 @@ export class UserService {
     role?: Role;
     status?: UserStatus;
   }) {
-    const [existingUser, existingUsername, hashedPassword] = await Promise.all([
-      userRepository.findByEmail(data.email),
-      data.username ? userRepository.findByUsername(data.username) : Promise.resolve(null),
-      hashPassword(data.password),
-    ]);
+    const hashedPassword = await hashPassword(data.password);
+    let user;
 
-    if (existingUser) {
-      throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
+    try {
+      user = await userRepository.create({
+        name: data.name,
+        username: data.username || generateUUID().split('-')[0],
+        email: data.email,
+        password: hashedPassword,
+        phone: data.phone,
+        role: data.role,
+        status: data.status,
+      });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = String(error.meta?.target || '');
+        if (target.includes('email')) throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
+        if (target.includes('username')) throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
+        throw AppError.conflict('Email or username already exists');
+      }
+      throw error;
     }
-
-    if (existingUsername) {
-      throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
-    }
-
-    const user = await userRepository.create({
-      name: data.name,
-      username: data.username || generateUUID().split('-')[0],
-      email: data.email,
-      password: hashedPassword,
-      phone: data.phone,
-      role: data.role,
-      status: data.status,
-    });
 
     logger.info({ userId: user.id, email: user.email }, 'User created by admin');
 
-    notificationService.create({
+    notificationService
+      .create({
         type: NotificationType.USER_CREATED,
         title: 'User Created',
         message: `User ${user.name || user.username || user.email} was created with role ${user.role}.`,
@@ -106,25 +105,21 @@ export class UserService {
     id: number,
     data: { name?: string; username?: string; email?: string; phone?: string }
   ) {
-    const user = await userRepository.findBasicById(id);
-
-    if (!user) {
-      throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
+    let updatedUser;
+    try {
+      updatedUser = await userRepository.update(id, data);
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2025') {
+        throw AppError.notFound(MESSAGES.USER_NOT_FOUND);
+      }
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+        const target = String(error.meta?.target || '');
+        if (target.includes('email')) throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
+        if (target.includes('username')) throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
+        throw AppError.conflict('Email or username already exists');
+      }
+      throw error;
     }
-
-    const [existingUsername, existingEmail] = await Promise.all([
-      data.username && data.username !== user.username
-        ? userRepository.findByUsername(data.username)
-        : Promise.resolve(null),
-      data.email && data.email !== user.email
-        ? userRepository.findByEmail(data.email)
-        : Promise.resolve(null),
-    ]);
-
-    if (existingUsername) throw AppError.conflict(MESSAGES.USERNAME_ALREADY_EXISTS);
-    if (existingEmail) throw AppError.conflict(MESSAGES.EMAIL_ALREADY_EXISTS);
-
-    const updatedUser = await userRepository.update(id, data);
     invalidateUserCache(id);
 
     logger.info({ userId: id }, 'User updated by admin');
@@ -163,7 +158,8 @@ export class UserService {
 
     logger.info({ userId, role, previousRole }, 'User role updated');
 
-    notificationService.create({
+    notificationService
+      .create({
         type: NotificationType.ROLE_UPDATED,
         title: 'User Role Updated',
         message: `Role for ${updatedUser.name || updatedUser.username || updatedUser.email} was changed from ${previousRole} to ${role}.`,
@@ -176,9 +172,7 @@ export class UserService {
           newRole: role,
         },
       })
-      .catch((notifErr) =>
-        logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification')
-      );
+      .catch((notifErr) => logger.error({ notifErr }, 'Failed to emit ROLE_UPDATED notification'));
 
     return toUserResponse(updatedUser);
   }

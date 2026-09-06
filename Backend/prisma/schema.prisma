@@ -2,7 +2,8 @@
 // Note: Multi-Workspace, Multi-Team, TeamMember, MeetingNote, Summary, ActionItem, User
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {

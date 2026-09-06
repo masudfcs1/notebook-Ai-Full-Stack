@@ -138,13 +138,15 @@ export class TaskRepository {
     });
   }
 
-  async findByWorkspaceId(workspaceId: string, accessibleTeamIds?: string[], filters: TaskFilterQuery = {}) {
+  async findByWorkspaceId(
+    workspaceId: string,
+    accessibleTeamIds?: string[],
+    filters: TaskFilterQuery = {}
+  ) {
     const where: any = {
       team: {
         workspaceId,
-        ...(accessibleTeamIds !== undefined
-          ? { id: { in: accessibleTeamIds } }
-          : {}),
+        ...(accessibleTeamIds !== undefined ? { id: { in: accessibleTeamIds } } : {}),
       },
     };
 
@@ -190,7 +192,11 @@ export class TaskRepository {
     });
   }
 
-  async getStats(teamId?: string, workspaceId?: string, accessibleTeamIds?: string[]): Promise<TaskStatsResponse> {
+  async getStats(
+    teamId?: string,
+    workspaceId?: string,
+    accessibleTeamIds?: string[]
+  ): Promise<TaskStatsResponse> {
     const where: any = {};
 
     if (teamId) {
@@ -198,32 +204,43 @@ export class TaskRepository {
     } else if (workspaceId) {
       where.team = {
         workspaceId,
-        ...(accessibleTeamIds !== undefined
-          ? { id: { in: accessibleTeamIds } }
-          : {}),
+        ...(accessibleTeamIds !== undefined ? { id: { in: accessibleTeamIds } } : {}),
       };
     } else if (accessibleTeamIds !== undefined) {
       where.teamId = { in: accessibleTeamIds };
     }
 
-    const tasks = await prisma.actionItem.findMany({
-      where,
-      select: {
-        id: true,
-        status: true,
-        priority: true,
-        dueDate: true,
-      },
-    });
-
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
 
-    let backlog = 0;
-    let todo = 0;
-    let inProgress = 0;
-    let done = 0;
-    let overdue = 0;
+    const [statusGroups, priorityGroups, overdue] = await Promise.all([
+      prisma.actionItem.groupBy({
+        by: ['status'],
+        where,
+        _count: { _all: true },
+      }),
+      prisma.actionItem.groupBy({
+        by: ['priority'],
+        where,
+        _count: { _all: true },
+      }),
+      prisma.actionItem.count({
+        where: {
+          ...where,
+          dueDate: { lt: todayStr },
+          status: { notIn: ['done', 'completed'] },
+        },
+      }),
+    ]);
+
+    const statusCounts = new Map(
+      statusGroups.map((row) => [row.status.toLowerCase(), row._count._all])
+    );
+
+    const backlog = statusCounts.get('backlog') || 0;
+    const todo = statusCounts.get('todo') || 0;
+    const inProgress = statusCounts.get('in_progress') || 0;
+    const done = (statusCounts.get('done') || 0) + (statusCounts.get('completed') || 0);
 
     const byPriority = {
       urgent: 0,
@@ -232,27 +249,14 @@ export class TaskRepository {
       low: 0,
     };
 
-    for (const t of tasks) {
-      const status = t.status?.toLowerCase() || 'todo';
-      if (status === 'backlog') backlog++;
-      else if (status === 'todo') todo++;
-      else if (status === 'in_progress') inProgress++;
-      else if (status === 'done' || status === 'completed') done++;
-
-      const p = (t.priority?.toLowerCase() || 'medium') as keyof typeof byPriority;
-      if (byPriority[p] !== undefined) {
-        byPriority[p]++;
-      }
-
-      // Check overdue: dueDate is before today and not done
-      if (t.dueDate && status !== 'done' && status !== 'completed') {
-        if (t.dueDate < todayStr) {
-          overdue++;
-        }
+    for (const row of priorityGroups) {
+      const priority = row.priority.toLowerCase() as keyof typeof byPriority;
+      if (byPriority[priority] !== undefined) {
+        byPriority[priority] = row._count._all;
       }
     }
 
-    const total = tasks.length;
+    const total = statusGroups.reduce((sum, row) => sum + row._count._all, 0);
     const completionRate = total > 0 ? Math.round((done / total) * 100) : 0;
 
     return {
