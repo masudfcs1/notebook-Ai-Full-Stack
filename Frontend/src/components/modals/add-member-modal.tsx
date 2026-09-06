@@ -46,12 +46,18 @@ interface ManualMemberRow {
 
 export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
   const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState<"directory" | "manual">("directory");
+  const [activeTab, setActiveTab] = useState<"directory" | "manual">(
+    "directory",
+  );
 
   // Directory Search State
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(new Set());
-  const [selectedRole, setSelectedRole] = useState<"OWNER" | "LEAD" | "MEMBER">("MEMBER");
+  const [selectedUserIds, setSelectedUserIds] = useState<Set<number>>(
+    new Set(),
+  );
+  const [selectedRole, setSelectedRole] = useState<"OWNER" | "LEAD" | "MEMBER">(
+    "MEMBER",
+  );
 
   // Manual Invite Rows
   const [manualRows, setManualRows] = useState<ManualMemberRow[]>([
@@ -65,11 +71,13 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
     refetch: refetchUsers,
   } = useGetAvailableUsersForTeamQuery(
     { teamId: team.id, search: searchQuery },
-    { skip: !open || !team.id }
+    { skip: !open || !team.id },
   );
 
-  const [addMemberMutation, { isLoading: isAddingSingle }] = useAddTeamMemberMutation();
-  const [addBulkMutation, { isLoading: isAddingBulk }] = useAddTeamMembersBulkMutation();
+  const [addMemberMutation, { isLoading: isAddingSingle }] =
+    useAddTeamMemberMutation();
+  const [addBulkMutation, { isLoading: isAddingBulk }] =
+    useAddTeamMembersBulkMutation();
 
   const isSubmitting = isAddingSingle || isAddingBulk;
   const availableUsers = availableUsersRes?.data || [];
@@ -101,7 +109,10 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
 
   // Select all or deselect all
   function handleSelectAll() {
-    if (selectedUserIds.size === availableUsers.length && availableUsers.length > 0) {
+    if (
+      selectedUserIds.size === availableUsers.length &&
+      availableUsers.length > 0
+    ) {
       setSelectedUserIds(new Set());
     } else {
       setSelectedUserIds(new Set(availableUsers.map((u) => u.id)));
@@ -115,7 +126,9 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
       return;
     }
 
-    const selectedUsers = availableUsers.filter((u) => selectedUserIds.has(u.id));
+    const selectedUsers = availableUsers.filter((u) =>
+      selectedUserIds.has(u.id),
+    );
 
     try {
       if (selectedUsers.length === 1) {
@@ -138,7 +151,7 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
               title: "Member added",
               description: `Added ${res.data.name} to ${team.name}.`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
@@ -157,19 +170,23 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
         }).unwrap();
 
         if (res.success) {
-          toast.success(`Added ${res.data.addedCount} members to ${team.name}!`);
+          toast.success(
+            `Added ${res.data.addedCount} members to ${team.name}!`,
+          );
           dispatch(
             pushNotification({
               title: "Team members added",
               description: `Added ${res.data.addedCount} members to ${team.name}.`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to add team members");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to add team members",
+      );
     }
   }
 
@@ -191,9 +208,13 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
     setManualRows((prev) => prev.filter((r) => r.id !== id));
   }
 
-  function updateManualRow(id: string, field: keyof ManualMemberRow, val: string) {
+  function updateManualRow(
+    id: string,
+    field: keyof ManualMemberRow,
+    val: string,
+  ) {
     setManualRows((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, [field]: val } : r))
+      prev.map((r) => (r.id === id ? { ...r, [field]: val } : r)),
     );
   }
 
@@ -202,7 +223,7 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
     e.preventDefault();
 
     const validRows = manualRows.filter(
-      (r) => r.email.trim().length > 0 && r.email.includes("@")
+      (r) => r.email.trim().length > 0 && r.email.includes("@"),
     );
 
     if (validRows.length === 0) {
@@ -229,7 +250,7 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
               title: "Member added",
               description: `Added ${res.data.name} to ${team.name}.`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
@@ -246,19 +267,23 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
         }).unwrap();
 
         if (res.success) {
-          toast.success(`Added ${res.data.addedCount} members to ${team.name}!`);
+          toast.success(
+            `Added ${res.data.addedCount} members to ${team.name}!`,
+          );
           dispatch(
             pushNotification({
               title: "Team members added",
               description: `Added ${res.data.addedCount} members to ${team.name}.`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to add members");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to add members",
+      );
     }
   }
 
@@ -322,7 +347,7 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
               "flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer",
               activeTab === "directory"
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <Users className="h-3.5 w-3.5" />
@@ -335,7 +360,7 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
               "flex items-center gap-2 border-b-2 px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer",
               activeTab === "manual"
                 ? "border-indigo-500 text-indigo-400"
-                : "border-transparent text-muted-foreground hover:text-foreground"
+                : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <Mail className="h-3.5 w-3.5" />
@@ -408,7 +433,8 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                       : "All platform users are already members of this team"}
                   </p>
                   <p className="text-[11px]">
-                    Switch to the &quot;Invite by Email&quot; tab to invite new members.
+                    Switch to the &quot;Invite by Email&quot; tab to invite new
+                    members.
                   </p>
                 </div>
               ) : (
@@ -426,12 +452,17 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                           "group relative flex items-center justify-between gap-3 rounded-xl border p-2.5 transition-all cursor-pointer select-none",
                           isSelected
                             ? "border-indigo-500/80 bg-indigo-500/10 shadow-sm shadow-indigo-500/10"
-                            : "border-white/5 bg-card/60 hover:border-indigo-500/40 hover:bg-card/90"
+                            : "border-white/5 bg-card/60 hover:border-indigo-500/40 hover:bg-card/90",
                         )}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
                           <Avatar className="h-8 w-8 border border-white/10 shrink-0">
-                            {avatar && <AvatarImage src={avatar} alt={user.name || user.email} />}
+                            {avatar && (
+                              <AvatarImage
+                                src={avatar}
+                                alt={user.name || user.email}
+                              />
+                            )}
                             <AvatarFallback className="bg-indigo-500/20 text-[10px] font-bold text-indigo-300">
                               {initials}
                             </AvatarFallback>
@@ -453,10 +484,12 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                             "flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-all",
                             isSelected
                               ? "border-indigo-500 bg-indigo-500 text-white"
-                              : "border-border/80 bg-background/60 group-hover:border-indigo-400"
+                              : "border-border/80 bg-background/60 group-hover:border-indigo-400",
                           )}
                         >
-                          {isSelected && <Check className="h-3.5 w-3.5 stroke-[3]" />}
+                          {isSelected && (
+                            <Check className="h-3.5 w-3.5 stroke-[3]" />
+                          )}
                         </div>
                       </div>
                     );
@@ -468,8 +501,10 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
             {/* Footer Actions */}
             <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-4">
               <span className="text-xs text-muted-foreground">
-                <strong className="text-foreground">{selectedUserIds.size}</strong> of{" "}
-                {availableUsers.length} users selected
+                <strong className="text-foreground">
+                  {selectedUserIds.size}
+                </strong>{" "}
+                of {availableUsers.length} users selected
               </span>
 
               <div className="flex items-center gap-2">
@@ -505,7 +540,10 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
 
         {/* Tab 2: Manual Multi-Row Email Invite */}
         {activeTab === "manual" && (
-          <form onSubmit={handleManualSubmit} className="flex flex-1 flex-col p-5">
+          <form
+            onSubmit={handleManualSubmit}
+            className="flex flex-1 flex-col p-5"
+          >
             <div className="flex items-center justify-between pb-2">
               <p className="text-xs text-muted-foreground">
                 Add multiple people at once by entering their email addresses:
@@ -536,7 +574,9 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                     type="text"
                     placeholder="Full Name (optional)"
                     value={row.name}
-                    onChange={(e) => updateManualRow(row.id, "name", e.target.value)}
+                    onChange={(e) =>
+                      updateManualRow(row.id, "name", e.target.value)
+                    }
                     className="flex-1 rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500"
                   />
 
@@ -545,13 +585,17 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                     placeholder="user@example.com *"
                     value={row.email}
                     required
-                    onChange={(e) => updateManualRow(row.id, "email", e.target.value)}
+                    onChange={(e) =>
+                      updateManualRow(row.id, "email", e.target.value)
+                    }
                     className="flex-[1.4] rounded-lg border border-border/60 bg-background px-2.5 py-1.5 text-xs outline-none focus:border-indigo-500"
                   />
 
                   <select
                     value={row.role}
-                    onChange={(e) => updateManualRow(row.id, "role", e.target.value as any)}
+                    onChange={(e) =>
+                      updateManualRow(row.id, "role", e.target.value as any)
+                    }
                     className="w-24 rounded-lg border border-border/60 bg-background px-2 py-1.5 text-xs outline-none focus:border-indigo-500"
                   >
                     <option value="MEMBER">Member</option>
@@ -576,7 +620,8 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
             {/* Footer */}
             <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-4">
               <span className="text-xs text-muted-foreground">
-                Total to invite: <strong className="text-foreground">{manualRows.length}</strong>
+                Total to invite:{" "}
+                <strong className="text-foreground">{manualRows.length}</strong>
               </span>
 
               <div className="flex items-center gap-2">

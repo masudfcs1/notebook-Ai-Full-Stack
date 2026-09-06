@@ -31,9 +31,20 @@ router.delete('/:id', validate(DeleteTeamParamsSchema), teamController.delete);
 router.get('/:id/members', validate(GetTeamMembersSchema), teamController.getMembers);
 router.post('/:id/members', validate(AddTeamMemberSchema), teamController.addMember);
 router.post('/:id/members/bulk', validate(AddTeamMembersBulkSchema), teamController.addMembersBulk);
-router.get('/:id/available-users', validate(SearchAvailableUsersSchema), teamController.getAvailableUsers);
-router.patch('/:id/members/:memberId', validate(UpdateTeamMemberSchema), teamController.updateMember);
-router.delete('/:id/members/:memberId', validate(DeleteTeamMemberSchema), teamController.deleteMember);
+router.get(
+  '/:id/available-users',
+  validate(SearchAvailableUsersSchema),
+  teamController.getAvailableUsers
+);
+router.patch(
+  '/:id/members/:memberId',
+  validate(UpdateTeamMemberSchema),
+  teamController.updateMember
+);
+router.delete(
+  '/:id/members/:memberId',
+  validate(DeleteTeamMemberSchema),
+  teamController.deleteMember
+);
 
 export default router;
-

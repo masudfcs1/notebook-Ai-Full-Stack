@@ -230,7 +230,7 @@ export const adminApi = createApi({
         return `/users?${searchParams.toString()}`;
       },
       serializeQueryArgs: ({ endpointName, queryArgs }) => {
-        return `${endpointName}-${queryArgs.limit}-${queryArgs.search || ''}-${queryArgs.role || ''}-${queryArgs.status || ''}-${queryArgs.sortBy || ''}-${queryArgs.sortOrder || ''}`;
+        return `${endpointName}-${queryArgs.limit}-${queryArgs.search || ""}-${queryArgs.role || ""}-${queryArgs.status || ""}-${queryArgs.sortBy || ""}-${queryArgs.sortOrder || ""}`;
       },
       merge: (currentCache, newResponse, { arg }) => {
         if ((arg.page || 1) === 1) {
@@ -267,7 +267,10 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
-    updateUser: builder.mutation<SingleUserResponse, { id: number; data: UpdateUserRequest }>({
+    updateUser: builder.mutation<
+      SingleUserResponse,
+      { id: number; data: UpdateUserRequest }
+    >({
       query: ({ id, data }) => ({
         url: `/users/${id}`,
         method: "PATCH",
@@ -275,14 +278,19 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["AdminUsers"],
     }),
-    deleteUser: builder.mutation<{ success: boolean; message: string }, number>({
-      query: (id) => ({
-        url: `/users/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["AdminUsers", "AdminStats"],
-    }),
-    updateUserStatus: builder.mutation<SingleUserResponse, UpdateUserStatusRequest>({
+    deleteUser: builder.mutation<{ success: boolean; message: string }, number>(
+      {
+        query: (id) => ({
+          url: `/users/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["AdminUsers", "AdminStats"],
+      },
+    ),
+    updateUserStatus: builder.mutation<
+      SingleUserResponse,
+      UpdateUserStatusRequest
+    >({
       query: (body) => ({
         url: "/users/status",
         method: "PATCH",
@@ -290,18 +298,23 @@ export const adminApi = createApi({
       }),
       invalidatesTags: ["AdminUsers", "AdminStats"],
     }),
-    updateUserRole: builder.mutation<SingleUserResponse, UpdateUserRoleRequest>({
-      query: (body) => ({
-        url: "/users/role",
-        method: "PATCH",
-        body,
-      }),
-      invalidatesTags: ["AdminUsers", "AdminStats"],
-    }),
+    updateUserRole: builder.mutation<SingleUserResponse, UpdateUserRoleRequest>(
+      {
+        query: (body) => ({
+          url: "/users/role",
+          method: "PATCH",
+          body,
+        }),
+        invalidatesTags: ["AdminUsers", "AdminStats"],
+      },
+    ),
     getRoles: builder.query<RolesResponse, void>({
       query: () => "/roles",
     }),
-    getGlobalLoginHistory: builder.query<LoginHistoryResponse, GetLoginHistoryParams>({
+    getGlobalLoginHistory: builder.query<
+      LoginHistoryResponse,
+      GetLoginHistoryParams
+    >({
       query: (params) => {
         const searchParams = new URLSearchParams();
         if (params.page) searchParams.set("page", String(params.page));
@@ -359,4 +372,3 @@ export const {
   useGetGlobalLoginHistoryQuery,
   useGetUserLoginHistoryQuery,
 } = adminApi;
-

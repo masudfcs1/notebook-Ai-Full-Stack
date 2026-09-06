@@ -24,9 +24,12 @@ export function notifySessionExpired(customMessage?: string) {
   const now = Date.now();
   if (now - lastToastTime > 3000) {
     lastToastTime = now;
-    toast.error(customMessage || "Your session has expired. Please sign in again.", {
-      id: "session-expired-toast",
-    });
+    toast.error(
+      customMessage || "Your session has expired. Please sign in again.",
+      {
+        id: "session-expired-toast",
+      },
+    );
   }
 }
 
@@ -40,7 +43,9 @@ const rawBaseQuery = fetchBaseQuery({
     const state = getState() as RootState;
     const token =
       state.auth?.token ||
-      (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null);
+      (typeof window !== "undefined"
+        ? localStorage.getItem("accessToken")
+        : null);
 
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
@@ -61,7 +66,9 @@ export const baseQueryWithAuthHandling: BaseQueryFn<
   const state = api.getState() as RootState;
   const currentToken =
     state.auth?.token ||
-    (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null);
+    (typeof window !== "undefined"
+      ? localStorage.getItem("accessToken")
+      : null);
 
   const url = typeof args === "string" ? args : args.url;
   const isAuthEndpoint =
@@ -88,7 +95,9 @@ export const baseQueryWithAuthHandling: BaseQueryFn<
   if (result.error && result.error.status === 401) {
     // If it's a login or register endpoint, do NOT trigger auto-logout session expired toast
     if (!isAuthEndpoint) {
-      const wasAuthenticated = Boolean(state.auth?.isAuthenticated || currentToken);
+      const wasAuthenticated = Boolean(
+        state.auth?.isAuthenticated || currentToken,
+      );
       api.dispatch(logout());
       api.dispatch(setView("login"));
 

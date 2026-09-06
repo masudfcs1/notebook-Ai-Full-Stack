@@ -9,12 +9,7 @@ import {
   toTeamMemberResponse,
   toTeamMemberListResponse,
 } from './dto';
-import {
-  CreateTeamData,
-  UpdateTeamData,
-  AddTeamMemberData,
-  UpdateTeamMemberData,
-} from './types';
+import { CreateTeamData, UpdateTeamData, AddTeamMemberData, UpdateTeamMemberData } from './types';
 import { prisma } from '@/database';
 import { logger } from '@/logger';
 
@@ -267,7 +262,6 @@ export class TeamService {
     };
   }
 
-
   async updateMember(teamId: string, memberId: string, data: UpdateTeamMemberData) {
     const member = await teamRepository.findMemberById(memberId);
     if (!member || member.teamId !== teamId) {
@@ -304,4 +298,3 @@ export class TeamService {
 }
 
 export const teamService = new TeamService();
-

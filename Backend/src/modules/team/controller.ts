@@ -71,7 +71,13 @@ export class TeamController {
       req.user?.id
     );
 
-    return sendSuccess(res, 'Team member added successfully', member, undefined, HTTP_STATUS.CREATED);
+    return sendSuccess(
+      res,
+      'Team member added successfully',
+      member,
+      undefined,
+      HTTP_STATUS.CREATED
+    );
   });
 
   addMembersBulk = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
@@ -113,4 +119,3 @@ export class TeamController {
 }
 
 export const teamController = new TeamController();
-

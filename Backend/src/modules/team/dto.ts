@@ -83,4 +83,3 @@ export const toTeamResponse = (team: any): TeamResponseDTO => {
 export const toTeamListResponse = (teams: any[]): TeamResponseDTO[] => {
   return teams.map(toTeamResponse);
 };
-

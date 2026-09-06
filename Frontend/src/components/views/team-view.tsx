@@ -1,38 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Users,
-  UserPlus,
-  Shield,
-  Trash2,
-  Edit3,
-  Check,
-  X,
-  Crown,
-  Search,
-  LayoutGrid,
-  List,
-  Mail,
-  Loader2,
-  Calendar,
-  Sparkles,
-} from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import { updateTeam } from "@/lib/redux/dataSlice";
-import { pushNotification } from "@/lib/redux/appSlice";
-import {
-  useUpdateTeamMutation,
-  useGetTeamMembersQuery,
-  useUpdateTeamMemberMutation,
-  useRemoveTeamMemberMutation,
-  type TeamMember,
-} from "@/lib/redux/api/workspaceApiSlice";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { AddMemberModal } from "@/components/modals/add-member-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,9 +13,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import {
+  useGetTeamMembersQuery,
+  useRemoveTeamMemberMutation,
+  useUpdateTeamMemberMutation,
+  useUpdateTeamMutation,
+  type TeamMember,
+} from "@/lib/redux/api/workspaceApiSlice";
+import { pushNotification } from "@/lib/redux/appSlice";
+import { updateTeam } from "@/lib/redux/dataSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
-import { AddMemberModal } from "@/components/modals/add-member-modal";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Check,
+  Crown,
+  Edit3,
+  LayoutGrid,
+  List,
+  Loader2,
+  Search,
+  Shield,
+  Trash2,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 const ROLE_BADGES: Record<
   string,
@@ -82,12 +79,10 @@ export function TeamView() {
 
   // API Hooks
   const [updateTeamMutation] = useUpdateTeamMutation();
-  const {
-    data: teamMembersRes,
-    isLoading: isLoadingMembers,
-  } = useGetTeamMembersQuery(currentTeam?.id || "", {
-    skip: !currentTeam?.id,
-  });
+  const { data: teamMembersRes, isLoading: isLoadingMembers } =
+    useGetTeamMembersQuery(currentTeam?.id || "", {
+      skip: !currentTeam?.id,
+    });
 
   const [updateMemberMutation] = useUpdateTeamMemberMutation();
   const [removeMemberMutation] = useRemoveTeamMemberMutation();
@@ -110,7 +105,9 @@ export function TeamView() {
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<"ALL" | "OWNER" | "LEAD" | "MEMBER">("ALL");
+  const [roleFilter, setRoleFilter] = useState<
+    "ALL" | "OWNER" | "LEAD" | "MEMBER"
+  >("ALL");
 
   // Add member modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
@@ -119,7 +116,9 @@ export function TeamView() {
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [editMemName, setEditMemName] = useState("");
   const [editMemEmail, setEditMemEmail] = useState("");
-  const [editMemRole, setEditMemRole] = useState<"OWNER" | "LEAD" | "MEMBER">("MEMBER");
+  const [editMemRole, setEditMemRole] = useState<"OWNER" | "LEAD" | "MEMBER">(
+    "MEMBER",
+  );
 
   // Remove confirmation modal state
   const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
@@ -178,7 +177,7 @@ export function TeamView() {
             teamId: currentTeam.id,
             name: res.data.name,
             key: res.data.key,
-          })
+          }),
         );
 
         dispatch(
@@ -186,14 +185,16 @@ export function TeamView() {
             title: "Team details updated",
             description: `Renamed team to "${res.data.name}" (${res.data.key}).`,
             type: "success",
-          })
+          }),
         );
 
         toast.success("Team settings saved!");
         setIsEditingTeam(false);
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to update team");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to update team",
+      );
     }
   }
 
@@ -229,16 +230,21 @@ export function TeamView() {
             title: "Member updated",
             description: `Updated ${editMemName.trim()}'s role to ${editMemRole}.`,
             type: "success",
-          })
+          }),
         );
         setEditingMember(null);
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to update member");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to update member",
+      );
     }
   }
 
-  async function handleQuickRoleChange(member: TeamMember, newRole: "OWNER" | "LEAD" | "MEMBER") {
+  async function handleQuickRoleChange(
+    member: TeamMember,
+    newRole: "OWNER" | "LEAD" | "MEMBER",
+  ) {
     if (member.role === newRole) return;
     try {
       const res = await updateMemberMutation({
@@ -255,11 +261,13 @@ export function TeamView() {
             title: "Role changed",
             description: `Changed ${memName}'s role to ${newRole} in ${currentTeam.name}.`,
             type: "success",
-          })
+          }),
         );
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to change role");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to change role",
+      );
     }
   }
 
@@ -281,12 +289,14 @@ export function TeamView() {
             title: "Member removed",
             description: `Removed ${memName} from ${currentTeam.name}.`,
             type: "info",
-          })
+          }),
         );
         setMemberToDelete(null);
       }
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to remove member");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to remove member",
+      );
     } finally {
       setIsDeletingMember(false);
     }
@@ -374,13 +384,16 @@ export function TeamView() {
             {/* Stat Badges */}
             <div className="hidden md:flex items-center gap-1.5 border-r border-white/10 pr-3.5 text-xs">
               <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
-                👑 <strong className="text-amber-400">{ownerCount}</strong> Owners
+                👑 <strong className="text-amber-400">{ownerCount}</strong>{" "}
+                Owners
               </span>
               <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
-                🛡️ <strong className="text-indigo-400">{leadCount}</strong> Leads
+                🛡️ <strong className="text-indigo-400">{leadCount}</strong>{" "}
+                Leads
               </span>
               <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
-                👥 <strong className="text-foreground">{memberCount}</strong> Members
+                👥 <strong className="text-foreground">{memberCount}</strong>{" "}
+                Members
               </span>
             </div>
 
@@ -437,11 +450,13 @@ export function TeamView() {
                   "flex items-center gap-1 rounded-md px-2.5 py-1 transition-all cursor-pointer",
                   roleFilter === r.key
                     ? "bg-indigo-500 text-white font-bold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <span>{r.label}</span>
-                <span className="text-[9px] opacity-75 font-mono">({r.count})</span>
+                <span className="text-[9px] opacity-75 font-mono">
+                  ({r.count})
+                </span>
               </button>
             ))}
           </div>
@@ -454,7 +469,7 @@ export function TeamView() {
                 "rounded-md p-1.5 transition-colors cursor-pointer",
                 viewMode === "grid"
                   ? "bg-indigo-500/20 text-indigo-400"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               title="Card Grid View"
             >
@@ -466,7 +481,7 @@ export function TeamView() {
                 "rounded-md p-1.5 transition-colors cursor-pointer",
                 viewMode === "table"
                   ? "bg-indigo-500/20 text-indigo-400"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
               title="Table / List View"
             >
@@ -508,7 +523,9 @@ export function TeamView() {
             const RoleIcon = RoleMeta.icon;
             const displayName = member.user?.name || member.name;
             const displayEmail = member.user?.email || member.email;
-            const avatarSrc = getAvatarUrl(member.user?.avatar || member.avatar);
+            const avatarSrc = getAvatarUrl(
+              member.user?.avatar || member.avatar,
+            );
             const initials = getUserInitials(displayName, displayEmail);
 
             return (
@@ -523,7 +540,7 @@ export function TeamView() {
                   <div
                     className={cn(
                       "absolute top-0 left-0 right-0 h-[2.5px] opacity-80 transition-opacity group-hover:opacity-100",
-                      RoleMeta.bar
+                      RoleMeta.bar,
                     )}
                   />
 
@@ -532,7 +549,9 @@ export function TeamView() {
                     <div className="flex items-center gap-3 min-w-0">
                       <div className="relative shrink-0">
                         <Avatar className="h-9 w-9 border border-white/20 ring-1 ring-white/10 transition-all group-hover:ring-indigo-500/40">
-                          {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                          {avatarSrc && (
+                            <AvatarImage src={avatarSrc} alt={displayName} />
+                          )}
                           <AvatarFallback className="bg-indigo-500/20 text-[11px] font-bold text-indigo-300">
                             {initials}
                           </AvatarFallback>
@@ -579,7 +598,7 @@ export function TeamView() {
                             variant="outline"
                             className={cn(
                               "gap-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all hover:scale-105",
-                              RoleMeta.style
+                              RoleMeta.style,
                             )}
                           >
                             <RoleIcon className="h-2.5 w-2.5" />
@@ -613,7 +632,9 @@ export function TeamView() {
                           )}
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => handleQuickRoleChange(member, "MEMBER")}
+                          onClick={() =>
+                            handleQuickRoleChange(member, "MEMBER")
+                          }
                           className="gap-2 text-xs font-medium cursor-pointer"
                         >
                           <Users className="h-3.5 w-3.5 text-slate-400" />
@@ -627,10 +648,13 @@ export function TeamView() {
 
                     <span className="text-[10px] text-muted-foreground/70 font-mono">
                       {member.createdAt
-                        ? new Date(member.createdAt).toLocaleDateString(undefined, {
-                            month: "short",
-                            day: "numeric",
-                          })
+                        ? new Date(member.createdAt).toLocaleDateString(
+                            undefined,
+                            {
+                              month: "short",
+                              day: "numeric",
+                            },
+                          )
                         : "Active"}
                     </span>
                   </div>
@@ -655,11 +679,14 @@ export function TeamView() {
               </thead>
               <tbody className="divide-y divide-border/40">
                 {filteredMembers.map((member) => {
-                  const RoleMeta = ROLE_BADGES[member.role] || ROLE_BADGES.MEMBER;
+                  const RoleMeta =
+                    ROLE_BADGES[member.role] || ROLE_BADGES.MEMBER;
                   const RoleIcon = RoleMeta.icon;
                   const displayName = member.user?.name || member.name;
                   const displayEmail = member.user?.email || member.email;
-                  const avatarSrc = getAvatarUrl(member.user?.avatar || member.avatar);
+                  const avatarSrc = getAvatarUrl(
+                    member.user?.avatar || member.avatar,
+                  );
                   const initials = getUserInitials(displayName, displayEmail);
 
                   return (
@@ -670,12 +697,16 @@ export function TeamView() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2.5">
                           <Avatar className="h-7 w-7 border border-white/10 shrink-0">
-                            {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                            {avatarSrc && (
+                              <AvatarImage src={avatarSrc} alt={displayName} />
+                            )}
                             <AvatarFallback className="bg-indigo-500/20 text-[10px] font-bold text-indigo-300">
                               {initials}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="font-bold text-foreground">{displayName}</span>
+                          <span className="font-bold text-foreground">
+                            {displayName}
+                          </span>
                         </div>
                       </td>
                       <td className="py-3 px-4 font-mono text-muted-foreground">
@@ -689,31 +720,40 @@ export function TeamView() {
                                 variant="outline"
                                 className={cn(
                                   "gap-1 px-2 py-0.5 text-[9px] font-bold uppercase",
-                                  RoleMeta.style
+                                  RoleMeta.style,
                                 )}
                               >
-                                <RoleIcon className="h-2.5 w-2.5" /> {RoleMeta.label}
+                                <RoleIcon className="h-2.5 w-2.5" />{" "}
+                                {RoleMeta.label}
                               </Badge>
                             </button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="start" className="w-36">
                             <DropdownMenuItem
-                              onClick={() => handleQuickRoleChange(member, "OWNER")}
+                              onClick={() =>
+                                handleQuickRoleChange(member, "OWNER")
+                              }
                               className="gap-2 text-xs cursor-pointer"
                             >
                               <Crown className="h-3 w-3 text-amber-400" /> Owner
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleQuickRoleChange(member, "LEAD")}
+                              onClick={() =>
+                                handleQuickRoleChange(member, "LEAD")
+                              }
                               className="gap-2 text-xs cursor-pointer"
                             >
-                              <Shield className="h-3 w-3 text-indigo-400" /> Lead
+                              <Shield className="h-3 w-3 text-indigo-400" />{" "}
+                              Lead
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleQuickRoleChange(member, "MEMBER")}
+                              onClick={() =>
+                                handleQuickRoleChange(member, "MEMBER")
+                              }
                               className="gap-2 text-xs cursor-pointer"
                             >
-                              <Users className="h-3 w-3 text-slate-400" /> Member
+                              <Users className="h-3 w-3 text-slate-400" />{" "}
+                              Member
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -799,7 +839,10 @@ export function TeamView() {
                 </button>
               </div>
 
-              <form onSubmit={handleSaveMemberEdit} className="mt-3.5 space-y-3">
+              <form
+                onSubmit={handleSaveMemberEdit}
+                className="mt-3.5 space-y-3"
+              >
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Full Name *
@@ -833,9 +876,15 @@ export function TeamView() {
                     onChange={(e) => setEditMemRole(e.target.value as any)}
                     className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
                   >
-                    <option value="MEMBER">Member (Standard contributor)</option>
-                    <option value="LEAD">Team Lead (Sprint lead & reviewer)</option>
-                    <option value="OWNER">Owner (Full administrative rights)</option>
+                    <option value="MEMBER">
+                      Member (Standard contributor)
+                    </option>
+                    <option value="LEAD">
+                      Team Lead (Sprint lead & reviewer)
+                    </option>
+                    <option value="OWNER">
+                      Owner (Full administrative rights)
+                    </option>
                   </select>
                 </div>
 
@@ -893,7 +942,8 @@ export function TeamView() {
                     <strong className="text-foreground">
                       {memberToDelete.user?.name || memberToDelete.name}
                     </strong>{" "}
-                    from <span className="text-indigo-400">{currentTeam.name}</span>?
+                    from{" "}
+                    <span className="text-indigo-400">{currentTeam.name}</span>?
                   </p>
                 </div>
               </div>
@@ -930,4 +980,3 @@ export function TeamView() {
     </div>
   );
 }
-

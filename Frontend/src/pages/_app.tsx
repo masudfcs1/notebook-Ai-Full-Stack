@@ -1,36 +1,36 @@
-import type { AppProps } from 'next/app'
-import Head from 'next/head'
-import { Inter, Manrope } from 'next/font/google'
-import '@/styles/globals.css'
-import { Providers } from '@/components/providers'
-import { RouteStateSync } from '@/components/routing/route-state-sync'
-import { AuthTokenWatcher } from '@/components/auth/auth-token-watcher'
-import { Toaster } from '@/components/ui/toaster'
-import { Toaster as SonnerToaster } from '@/components/ui/sonner'
-import { SITE_CONFIG } from '@/config/site'
+import type { AppProps } from "next/app";
+import Head from "next/head";
+import { Inter, Manrope } from "next/font/google";
+import "@/styles/globals.css";
+import { Providers } from "@/components/providers";
+import { RouteStateSync } from "@/components/routing/route-state-sync";
+import { AuthTokenWatcher } from "@/components/auth/auth-token-watcher";
+import { Toaster } from "@/components/ui/toaster";
+import { Toaster as SonnerToaster } from "@/components/ui/sonner";
+import { SITE_CONFIG } from "@/config/site";
 
 const inter = Inter({
-  variable: '--font-inter',
-  subsets: ['latin'],
-  display: 'swap',
-})
+  variable: "--font-inter",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 const manrope = Manrope({
-  variable: '--font-manrope',
-  subsets: ['latin'],
-  display: 'swap',
-})
+  variable: "--font-manrope",
+  subsets: ["latin"],
+  display: "swap",
+});
 
 export default function Application({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <meta name='description' content={SITE_CONFIG.description} />
-        <meta name='keywords' content={SITE_CONFIG.keywords} />
-        <link rel='icon' href='/logo.png' />
-        <link rel='shortcut icon' href='/logo.png' />
-        <link rel='apple-touch-icon' href='/logo.png' />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="description" content={SITE_CONFIG.description} />
+        <meta name="keywords" content={SITE_CONFIG.keywords} />
+        <link rel="icon" href="/logo.png" />
+        <link rel="shortcut icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.png" />
       </Head>
       <Providers>
         <AuthTokenWatcher />
@@ -41,9 +41,8 @@ export default function Application({ Component, pageProps }: AppProps) {
           <Component {...pageProps} />
         </div>
         <Toaster />
-        <SonnerToaster position='bottom-right' richColors />
+        <SonnerToaster position="bottom-right" richColors />
       </Providers>
     </>
-  )
+  );
 }
-

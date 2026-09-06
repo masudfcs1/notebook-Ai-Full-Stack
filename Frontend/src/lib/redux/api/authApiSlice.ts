@@ -110,4 +110,3 @@ export const {
   useDeleteProfileImageMutation,
   useLogoutUserMutation,
 } = authApi;
-

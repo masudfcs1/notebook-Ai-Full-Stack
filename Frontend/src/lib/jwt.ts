@@ -28,7 +28,7 @@ export function decodeJwt(token?: string | null): JwtPayload | null {
       atob(base64)
         .split("")
         .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
+        .join(""),
     );
 
     return JSON.parse(jsonPayload) as JwtPayload;
@@ -42,7 +42,10 @@ export function decodeJwt(token?: string | null): JwtPayload | null {
  * @param token - Bearer JWT token string
  * @param offsetSeconds - Optional safety margin in seconds (e.g. consider expired 5s early)
  */
-export function isJwtExpired(token?: string | null, offsetSeconds = 0): boolean {
+export function isJwtExpired(
+  token?: string | null,
+  offsetSeconds = 0,
+): boolean {
   if (!token) return true;
 
   const payload = decodeJwt(token);

@@ -1,41 +1,48 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
-import type { Workspace, Team, TeamMember, ActionItem, PriorityLevel, TaskStatus } from "@/types"
+import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type {
+  Workspace,
+  Team,
+  TeamMember,
+  ActionItem,
+  PriorityLevel,
+  TaskStatus,
+} from "@/types";
 
 export interface MeetingNote {
-  id: string
-  workspaceId?: string
-  teamId?: string
-  title: string
-  content: string
-  source: "manual" | "upload" | "ongoing"
-  fileName?: string
-  fileSize?: number
-  status: "draft" | "summarized"
-  createdAt: string
-  updatedAt: string
+  id: string;
+  workspaceId?: string;
+  teamId?: string;
+  title: string;
+  content: string;
+  source: "manual" | "upload" | "ongoing";
+  fileName?: string;
+  fileSize?: number;
+  status: "draft" | "summarized";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Summary {
-  id: string
-  noteId: string
-  content: string
-  keyPoints: string[]
-  decisions: string[]
-  participants: string[]
-  sentiment: "positive" | "neutral" | "negative"
-  wordCount: number
-  createdAt: string
+  id: string;
+  noteId: string;
+  content: string;
+  keyPoints: string[];
+  decisions: string[];
+  participants: string[];
+  sentiment: "positive" | "neutral" | "negative";
+  wordCount: number;
+  createdAt: string;
 }
 
 interface DataState {
-  workspaces: Workspace[]
-  activeWorkspaceId: string
-  activeTeamId: string | null // null = All Teams
-  notes: MeetingNote[]
-  summaries: Summary[]
-  tasks: ActionItem[]
-  loading: boolean
-  generating: boolean
+  workspaces: Workspace[];
+  activeWorkspaceId: string;
+  activeTeamId: string | null; // null = All Teams
+  notes: MeetingNote[];
+  summaries: Summary[];
+  tasks: ActionItem[];
+  loading: boolean;
+  generating: boolean;
 }
 
 const initialState: DataState = {
@@ -47,7 +54,7 @@ const initialState: DataState = {
   tasks: [],
   loading: false,
   generating: false,
-}
+};
 
 const dataSlice = createSlice({
   name: "data",
@@ -56,220 +63,276 @@ const dataSlice = createSlice({
     // Workspaces
 
     setActiveWorkspace(state, action: PayloadAction<string>) {
-      state.activeWorkspaceId = action.payload
-      state.activeTeamId = null
+      state.activeWorkspaceId = action.payload;
+      state.activeTeamId = null;
     },
     setActiveWorkspaceBySlug(state, action: PayloadAction<string>) {
-      const ws = state.workspaces.find((w) => w.slug === action.payload)
+      const ws = state.workspaces.find((w) => w.slug === action.payload);
       if (ws) {
-        state.activeWorkspaceId = ws.id
-        state.activeTeamId = null
+        state.activeWorkspaceId = ws.id;
+        state.activeTeamId = null;
       }
     },
     setWorkspaces(state, action: PayloadAction<Workspace[]>) {
-      state.workspaces = action.payload
+      state.workspaces = action.payload;
       if (action.payload.length > 0) {
-        const exists = action.payload.some((w) => w.id === state.activeWorkspaceId)
+        const exists = action.payload.some(
+          (w) => w.id === state.activeWorkspaceId,
+        );
         if (!exists) {
-          state.activeWorkspaceId = action.payload[0].id
-          state.activeTeamId = null
+          state.activeWorkspaceId = action.payload[0].id;
+          state.activeTeamId = null;
         }
       }
     },
     addWorkspace(state, action: PayloadAction<Workspace>) {
-      const exists = state.workspaces.some((w) => w.id === action.payload.id)
+      const exists = state.workspaces.some((w) => w.id === action.payload.id);
       if (!exists) {
-        state.workspaces.push(action.payload)
+        state.workspaces.push(action.payload);
       }
-      state.activeWorkspaceId = action.payload.id
-      state.activeTeamId = null
+      state.activeWorkspaceId = action.payload.id;
+      state.activeTeamId = null;
     },
     updateWorkspaceInState(
       state,
-      action: PayloadAction<{ id: string; name?: string; icon?: string; description?: string; slug?: string }>
+      action: PayloadAction<{
+        id: string;
+        name?: string;
+        icon?: string;
+        description?: string;
+        slug?: string;
+      }>,
     ) {
-      const idx = state.workspaces.findIndex((w) => w.id === action.payload.id)
+      const idx = state.workspaces.findIndex((w) => w.id === action.payload.id);
       if (idx >= 0) {
         state.workspaces[idx] = {
           ...state.workspaces[idx],
           ...action.payload,
-        }
+        };
       }
     },
     deleteWorkspaceFromState(state, action: PayloadAction<string>) {
-      state.workspaces = state.workspaces.filter((w) => w.id !== action.payload)
+      state.workspaces = state.workspaces.filter(
+        (w) => w.id !== action.payload,
+      );
       if (state.activeWorkspaceId === action.payload) {
-        state.activeWorkspaceId = state.workspaces[0]?.id || ""
-        state.activeTeamId = null
+        state.activeWorkspaceId = state.workspaces[0]?.id || "";
+        state.activeTeamId = null;
       }
     },
 
     // Teams
     setActiveTeam(state, action: PayloadAction<string | null>) {
-      state.activeTeamId = action.payload
+      state.activeTeamId = action.payload;
     },
     setActiveTeamBySlug(state, action: PayloadAction<string | null>) {
       if (!action.payload) {
-        state.activeTeamId = null
-        return
+        state.activeTeamId = null;
+        return;
       }
-      const activeWs = state.workspaces.find((w) => w.id === state.activeWorkspaceId)
-      const team = activeWs?.teams.find((t) => t.slug === action.payload)
+      const activeWs = state.workspaces.find(
+        (w) => w.id === state.activeWorkspaceId,
+      );
+      const team = activeWs?.teams.find((t) => t.slug === action.payload);
       if (team) {
-        state.activeTeamId = team.id
+        state.activeTeamId = team.id;
       }
     },
     addTeam(state, action: PayloadAction<Team>) {
-      const ws = state.workspaces.find((w) => w.id === (action.payload.workspaceId || state.activeWorkspaceId))
+      const ws = state.workspaces.find(
+        (w) => w.id === (action.payload.workspaceId || state.activeWorkspaceId),
+      );
       if (ws) {
-        if (!ws.teams) ws.teams = []
-        const exists = ws.teams.some((t) => t.id === action.payload.id)
+        if (!ws.teams) ws.teams = [];
+        const exists = ws.teams.some((t) => t.id === action.payload.id);
         if (!exists) {
-          ws.teams.push(action.payload)
+          ws.teams.push(action.payload);
         }
       }
     },
-    updateTeam(state, action: PayloadAction<{ teamId: string; name?: string; key?: string; icon?: string }>) {
+    updateTeam(
+      state,
+      action: PayloadAction<{
+        teamId: string;
+        name?: string;
+        key?: string;
+        icon?: string;
+      }>,
+    ) {
       for (const ws of state.workspaces) {
-        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        const team = ws.teams.find((t) => t.id === action.payload.teamId);
         if (team) {
           if (action.payload.name) {
-            team.name = action.payload.name
-            team.slug = action.payload.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+            team.name = action.payload.name;
+            team.slug = action.payload.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "");
           }
-          if (action.payload.key) team.key = action.payload.key.toUpperCase()
-          if (action.payload.icon) team.icon = action.payload.icon
-          break
+          if (action.payload.key) team.key = action.payload.key.toUpperCase();
+          if (action.payload.icon) team.icon = action.payload.icon;
+          break;
         }
       }
     },
     deleteTeamFromState(state, action: PayloadAction<string>) {
       for (const ws of state.workspaces) {
         if (ws.teams) {
-          const idx = ws.teams.findIndex((t) => t.id === action.payload)
+          const idx = ws.teams.findIndex((t) => t.id === action.payload);
           if (idx >= 0) {
-            ws.teams.splice(idx, 1)
+            ws.teams.splice(idx, 1);
             if (state.activeTeamId === action.payload) {
-              state.activeTeamId = null
+              state.activeTeamId = null;
             }
-            break
+            break;
           }
         }
       }
     },
-    addTeamMember(state, action: PayloadAction<{ teamId: string; member: TeamMember }>) {
+    addTeamMember(
+      state,
+      action: PayloadAction<{ teamId: string; member: TeamMember }>,
+    ) {
       for (const ws of state.workspaces) {
-        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        const team = ws.teams.find((t) => t.id === action.payload.teamId);
         if (team) {
-          team.members.push(action.payload.member)
-          break
+          team.members.push(action.payload.member);
+          break;
         }
       }
     },
     updateTeamMember(
       state,
       action: PayloadAction<{
-        teamId: string
-        memberId: string
-        name?: string
-        email?: string
-        role?: "OWNER" | "LEAD" | "MEMBER"
-      }>
+        teamId: string;
+        memberId: string;
+        name?: string;
+        email?: string;
+        role?: "OWNER" | "LEAD" | "MEMBER";
+      }>,
     ) {
       for (const ws of state.workspaces) {
-        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        const team = ws.teams.find((t) => t.id === action.payload.teamId);
         if (team) {
-          const mem = team.members.find((m) => m.id === action.payload.memberId)
+          const mem = team.members.find(
+            (m) => m.id === action.payload.memberId,
+          );
           if (mem) {
-            if (action.payload.name) mem.name = action.payload.name
-            if (action.payload.email) mem.email = action.payload.email
-            if (action.payload.role) mem.role = action.payload.role
+            if (action.payload.name) mem.name = action.payload.name;
+            if (action.payload.email) mem.email = action.payload.email;
+            if (action.payload.role) mem.role = action.payload.role;
           }
-          break
+          break;
         }
       }
     },
-    removeTeamMember(state, action: PayloadAction<{ teamId: string; memberId: string }>) {
+    removeTeamMember(
+      state,
+      action: PayloadAction<{ teamId: string; memberId: string }>,
+    ) {
       for (const ws of state.workspaces) {
-        const team = ws.teams.find((t) => t.id === action.payload.teamId)
+        const team = ws.teams.find((t) => t.id === action.payload.teamId);
         if (team) {
-          team.members = team.members.filter((m) => m.id !== action.payload.memberId)
-          break
+          team.members = team.members.filter(
+            (m) => m.id !== action.payload.memberId,
+          );
+          break;
         }
       }
     },
 
     // Notes & Summaries
     addNote(state, action: PayloadAction<MeetingNote>) {
-      state.notes.unshift(action.payload)
+      state.notes.unshift(action.payload);
     },
-    updateNote(state, action: PayloadAction<Partial<MeetingNote> & { id: string }>) {
-      const idx = state.notes.findIndex((n) => n.id === action.payload.id)
+    updateNote(
+      state,
+      action: PayloadAction<Partial<MeetingNote> & { id: string }>,
+    ) {
+      const idx = state.notes.findIndex((n) => n.id === action.payload.id);
       if (idx >= 0) {
-        state.notes[idx] = { ...state.notes[idx], ...action.payload, updatedAt: new Date().toISOString() }
+        state.notes[idx] = {
+          ...state.notes[idx],
+          ...action.payload,
+          updatedAt: new Date().toISOString(),
+        };
       }
     },
     deleteNote(state, action: PayloadAction<string>) {
-      state.notes = state.notes.filter((n) => n.id !== action.payload)
-      state.summaries = state.summaries.filter((s) => s.noteId !== action.payload)
-      state.tasks = state.tasks.filter((t) => t.noteId !== action.payload)
+      state.notes = state.notes.filter((n) => n.id !== action.payload);
+      state.summaries = state.summaries.filter(
+        (s) => s.noteId !== action.payload,
+      );
+      state.tasks = state.tasks.filter((t) => t.noteId !== action.payload);
     },
     addSummary(state, action: PayloadAction<Summary>) {
-      const idx = state.summaries.findIndex((s) => s.noteId === action.payload.noteId)
-      if (idx >= 0) state.summaries[idx] = action.payload
-      else state.summaries.unshift(action.payload)
-      const note = state.notes.find((n) => n.id === action.payload.noteId)
-      if (note) note.status = "summarized"
+      const idx = state.summaries.findIndex(
+        (s) => s.noteId === action.payload.noteId,
+      );
+      if (idx >= 0) state.summaries[idx] = action.payload;
+      else state.summaries.unshift(action.payload);
+      const note = state.notes.find((n) => n.id === action.payload.noteId);
+      if (note) note.status = "summarized";
     },
 
     // Action Items / Tasks
     setTasks(state, action: PayloadAction<ActionItem[]>) {
-      state.tasks = action.payload
+      state.tasks = action.payload;
     },
     addTask(state, action: PayloadAction<ActionItem>) {
-      state.tasks.unshift(action.payload)
+      state.tasks.unshift(action.payload);
     },
-    updateTask(state, action: PayloadAction<Partial<ActionItem> & { id: string }>) {
-      const idx = state.tasks.findIndex((t) => t.id === action.payload.id)
+    updateTask(
+      state,
+      action: PayloadAction<Partial<ActionItem> & { id: string }>,
+    ) {
+      const idx = state.tasks.findIndex((t) => t.id === action.payload.id);
       if (idx >= 0) {
-        state.tasks[idx] = { ...state.tasks[idx], ...action.payload, updatedAt: new Date().toISOString() }
+        state.tasks[idx] = {
+          ...state.tasks[idx],
+          ...action.payload,
+          updatedAt: new Date().toISOString(),
+        };
       }
     },
-    updateTaskStatus(state, action: PayloadAction<{ id: string; status: TaskStatus }>) {
-      const t = state.tasks.find((x) => x.id === action.payload.id)
+    updateTaskStatus(
+      state,
+      action: PayloadAction<{ id: string; status: TaskStatus }>,
+    ) {
+      const t = state.tasks.find((x) => x.id === action.payload.id);
       if (t) {
-        t.status = action.payload.status
-        t.updatedAt = new Date().toISOString()
+        t.status = action.payload.status;
+        t.updatedAt = new Date().toISOString();
       }
     },
     moveTask(state, action: PayloadAction<{ id: string; status: TaskStatus }>) {
-      const t = state.tasks.find((x) => x.id === action.payload.id)
+      const t = state.tasks.find((x) => x.id === action.payload.id);
       if (t) {
-        t.status = action.payload.status
-        t.updatedAt = new Date().toISOString()
+        t.status = action.payload.status;
+        t.updatedAt = new Date().toISOString();
       }
     },
     deleteTask(state, action: PayloadAction<string>) {
-      state.tasks = state.tasks.filter((t) => t.id !== action.payload)
+      state.tasks = state.tasks.filter((t) => t.id !== action.payload);
     },
     setLoading(state, action: PayloadAction<boolean>) {
-      state.loading = action.payload
+      state.loading = action.payload;
     },
     setGenerating(state, action: PayloadAction<boolean>) {
-      state.generating = action.payload
+      state.generating = action.payload;
     },
     resetDataState(state) {
-      state.workspaces = []
-      state.activeWorkspaceId = ""
-      state.activeTeamId = null
-      state.notes = []
-      state.summaries = []
-      state.tasks = []
-      state.loading = false
-      state.generating = false
+      state.workspaces = [];
+      state.activeWorkspaceId = "";
+      state.activeTeamId = null;
+      state.notes = [];
+      state.summaries = [];
+      state.tasks = [];
+      state.loading = false;
+      state.generating = false;
     },
   },
-})
+});
 
 export const {
   setActiveWorkspace,
@@ -299,6 +362,6 @@ export const {
   setLoading,
   setGenerating,
   resetDataState,
-} = dataSlice.actions
+} = dataSlice.actions;
 
-export default dataSlice.reducer
+export default dataSlice.reducer;

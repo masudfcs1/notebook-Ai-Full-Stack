@@ -47,4 +47,3 @@ export interface AvailableUser {
   role: string;
   status: string;
 }
-

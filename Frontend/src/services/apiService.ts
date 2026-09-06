@@ -43,9 +43,15 @@ class ApiService {
   /**
    * Generic HTTP fetch wrapper with error handling and response formatting
    */
-  async request<T>(endpoint: string, options?: RequestInit): Promise<ApiResponse<T>> {
+  async request<T>(
+    endpoint: string,
+    options?: RequestInit,
+  ): Promise<ApiResponse<T>> {
     try {
-      const token = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null;
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("accessToken")
+          : null;
 
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         headers: {
@@ -63,12 +69,16 @@ class ApiService {
           localStorage.removeItem("refreshToken");
           localStorage.removeItem("user");
           if (hadToken) {
-            import("@/lib/redux/api/baseQuery").then(({ notifySessionExpired }) => {
-              notifySessionExpired();
-            }).catch(() => {});
+            import("@/lib/redux/api/baseQuery")
+              .then(({ notifySessionExpired }) => {
+                notifySessionExpired();
+              })
+              .catch(() => {});
           }
         }
-        throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+        throw new Error(
+          `HTTP Error ${response.status}: ${response.statusText}`,
+        );
       }
 
       const data = await response.json();
@@ -78,7 +88,8 @@ class ApiService {
         timestamp: new Date().toISOString(),
       };
     } catch (err: unknown) {
-      const errorMsg = err instanceof Error ? err.message : "An unexpected error occurred";
+      const errorMsg =
+        err instanceof Error ? err.message : "An unexpected error occurred";
       return {
         success: false,
         error: errorMsg,
@@ -98,7 +109,7 @@ class ApiService {
     type?: string;
     read?: boolean;
     sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
+    sortOrder?: "asc" | "desc";
   }) {
     const sp = new URLSearchParams();
     if (params?.page) sp.set("page", String(params.page));
@@ -122,7 +133,6 @@ class ApiService {
       method: "DELETE",
     });
   }
-
 
   /**
    * Mark a single notification as read
@@ -149,11 +159,13 @@ class ApiService {
     return this.request<{ unreadCount: number }>("/notifications/unread-count");
   }
 
-
   /**
    * Summarize notes with Gemini AI
    */
-  async summarizeNotes(title: string, content: string): Promise<SummarizeResponse> {
+  async summarizeNotes(
+    title: string,
+    content: string,
+  ): Promise<SummarizeResponse> {
     try {
       const res = await geminiService.summarizeMeetingNotes(title, content);
       return {
@@ -203,7 +215,10 @@ class ApiService {
   /**
    * AI Assistant query handler calling Gemini API
    */
-  async askAiAssistant(query: string, history?: { role: string; content: string }[]): Promise<string> {
+  async askAiAssistant(
+    query: string,
+    history?: { role: string; content: string }[],
+  ): Promise<string> {
     try {
       return await geminiService.askAiAssistant(query, history);
     } catch (e) {

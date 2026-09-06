@@ -180,7 +180,10 @@ export const workspaceApi = createApi({
   baseQuery: baseQueryWithAuthHandling,
   tagTypes: ["Workspaces", "Workspace", "Teams", "TeamMembers"],
   endpoints: (builder) => ({
-    getWorkspaces: builder.query<WorkspacesResponse, GetWorkspacesParams | void>({
+    getWorkspaces: builder.query<
+      WorkspacesResponse,
+      GetWorkspacesParams | void
+    >({
       query: (params) => {
         if (!params) return "/workspaces";
         const searchParams = new URLSearchParams();
@@ -199,9 +202,14 @@ export const workspaceApi = createApi({
     }),
     getWorkspaceById: builder.query<SingleWorkspaceResponse, string>({
       query: (idOrSlug) => `/workspaces/${idOrSlug}`,
-      providesTags: (_result, _error, idOrSlug) => [{ type: "Workspace", id: idOrSlug }],
+      providesTags: (_result, _error, idOrSlug) => [
+        { type: "Workspace", id: idOrSlug },
+      ],
     }),
-    createWorkspace: builder.mutation<SingleWorkspaceResponse, CreateWorkspaceRequest>({
+    createWorkspace: builder.mutation<
+      SingleWorkspaceResponse,
+      CreateWorkspaceRequest
+    >({
       query: (body) => ({
         url: "/workspaces",
         method: "POST",
@@ -218,9 +226,15 @@ export const workspaceApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: (_result, _error, { id }) => ["Workspaces", { type: "Workspace", id }],
+      invalidatesTags: (_result, _error, { id }) => [
+        "Workspaces",
+        { type: "Workspace", id },
+      ],
     }),
-    deleteWorkspace: builder.mutation<{ success: boolean; message: string }, string>({
+    deleteWorkspace: builder.mutation<
+      { success: boolean; message: string },
+      string
+    >({
       query: (id) => ({
         url: `/workspaces/${id}`,
         method: "DELETE",
@@ -252,13 +266,15 @@ export const workspaceApi = createApi({
       }),
       invalidatesTags: ["Workspaces", "Teams"],
     }),
-    deleteTeam: builder.mutation<{ success: boolean; message: string }, string>({
-      query: (id) => ({
-        url: `/teams/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: ["Workspaces", "Teams"],
-    }),
+    deleteTeam: builder.mutation<{ success: boolean; message: string }, string>(
+      {
+        query: (id) => ({
+          url: `/teams/${id}`,
+          method: "DELETE",
+        }),
+        invalidatesTags: ["Workspaces", "Teams"],
+      },
+    ),
 
     // Team Members Endpoints
     getTeamMembers: builder.query<TeamMembersResponse, string>({
@@ -331,7 +347,9 @@ export const workspaceApi = createApi({
       { teamId: string; search?: string }
     >({
       query: ({ teamId, search }) => {
-        const queryParam = search ? `?search=${encodeURIComponent(search)}` : "";
+        const queryParam = search
+          ? `?search=${encodeURIComponent(search)}`
+          : "";
         return `/teams/${teamId}/available-users${queryParam}`;
       },
       providesTags: (_result, _error, { teamId }) => [
@@ -359,4 +377,3 @@ export const {
   useRemoveTeamMemberMutation,
   useGetAvailableUsersForTeamQuery,
 } = workspaceApi;
-

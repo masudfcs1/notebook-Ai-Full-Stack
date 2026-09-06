@@ -21,99 +21,103 @@ export type ViewKey =
   | "admin-roles"
   | "admin-activity"
   | "admin-notifications"
-  | "admin-settings"
+  | "admin-settings";
 
-
-export type PriorityLevel = "urgent" | "high" | "medium" | "low"
-export type TaskStatus = "backlog" | "todo" | "in_progress" | "done" | "pending" | "completed"
+export type PriorityLevel = "urgent" | "high" | "medium" | "low";
+export type TaskStatus =
+  | "backlog"
+  | "todo"
+  | "in_progress"
+  | "done"
+  | "pending"
+  | "completed";
 
 export interface TeamMember {
-  id: string
-  teamId: string
-  userId?: number | null
-  name: string
-  email: string
-  avatar?: string | null
-  role: "OWNER" | "LEAD" | "MEMBER"
-  createdAt?: string
+  id: string;
+  teamId: string;
+  userId?: number | null;
+  name: string;
+  email: string;
+  avatar?: string | null;
+  role: "OWNER" | "LEAD" | "MEMBER";
+  createdAt?: string;
   user?: {
-    id: number
-    uuid: string
-    name: string | null
-    username: string | null
-    email: string
-    avatar: string | null
-    role: string
-    status: string
-  } | null
+    id: number;
+    uuid: string;
+    name: string | null;
+    username: string | null;
+    email: string;
+    avatar: string | null;
+    role: string;
+    status: string;
+  } | null;
 }
 
-
 export interface Team {
-  id: string
-  workspaceId: string
-  name: string
-  slug?: string
-  key: string
-  icon?: string | null
-  members: TeamMember[]
+  id: string;
+  workspaceId: string;
+  name: string;
+  slug?: string;
+  key: string;
+  icon?: string | null;
+  members: TeamMember[];
 }
 
 export interface Workspace {
-  id: string
-  name: string
-  slug: string
-  icon?: string | null
-  description?: string | null
-  teams: Team[]
+  id: string;
+  name: string;
+  slug: string;
+  icon?: string | null;
+  description?: string | null;
+  teams: Team[];
 }
 
 export interface ActionItem {
-  id: string
-  identifier?: string // e.g. ENG-104
-  noteId?: string
-  workspaceId?: string
-  teamId?: string
-  teamName?: string
-  title: string
-  description?: string
-  assignee?: string
-  assigneeAvatar?: string
-  dueDate?: string
-  priority: PriorityLevel
-  status: TaskStatus
-  createdAt: string
-  updatedAt?: string
+  id: string;
+  identifier?: string; // e.g. ENG-104
+  noteId?: string;
+  workspaceId?: string;
+  teamId?: string;
+  teamName?: string;
+  title: string;
+  description?: string;
+  assignee?: string;
+  assigneeAvatar?: string;
+  dueDate?: string;
+  priority: PriorityLevel;
+  status: TaskStatus;
+  createdAt: string;
+  updatedAt?: string;
 }
 
-export type NotificationType = "info" | "success" | "warning" | "error"
+export type NotificationType = "info" | "success" | "warning" | "error";
 
 export interface NotificationItem {
-  id: string
-  title: string
-  description: string
-  time: string
-  read: boolean
-  type: NotificationType
+  id: string;
+  title: string;
+  description: string;
+  time: string;
+  read: boolean;
+  type: NotificationType;
 }
 
 export interface UserSession {
-  id: string
-  name: string
-  email: string
-  avatar?: string
-  role: "admin" | "member" | "viewer"
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role: "admin" | "member" | "viewer";
 }
 
 export interface ViewMetadata {
-  title: string
-  subtitle: string
-  sysCode: string
+  title: string;
+  subtitle: string;
+  sysCode: string;
 }
 
 export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
-  error?: string
-  timestamp: string
+  success: boolean;
+  data?: T;
+  error?: string;
+  timestamp: string;
 }

@@ -380,4 +380,3 @@ export class TeamRepository {
 }
 
 export const teamRepository = new TeamRepository();
-

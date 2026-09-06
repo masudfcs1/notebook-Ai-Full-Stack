@@ -106,4 +106,3 @@ export const SearchAvailableUsersSchema = z.object({
     search: z.string().optional(),
   }),
 });
-
