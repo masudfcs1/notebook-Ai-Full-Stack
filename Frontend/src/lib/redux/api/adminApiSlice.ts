@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithAuthHandling } from "./baseQuery";
 import type { User } from "../authSlice";
 
 /* ---------- Types ---------- */
@@ -208,27 +208,9 @@ export interface GetLoginHistoryParams {
 
 /* ---------- API ---------- */
 
-const getBaseUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5015/api/v1";
-};
-
 export const adminApi = createApi({
   reducerPath: "adminApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: getBaseUrl(),
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token =
-        state.auth?.token ||
-        (typeof window !== "undefined"
-          ? localStorage.getItem("accessToken")
-          : null);
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuthHandling,
   tagTypes: ["AdminUsers", "AdminStats", "AdminLoginHistory"],
   endpoints: (builder) => ({
     getAdminStats: builder.query<AdminStatsResponse, void>({

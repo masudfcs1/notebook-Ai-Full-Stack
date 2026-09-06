@@ -12,29 +12,38 @@ import {
   X,
   Crown,
   Search,
-  Filter,
+  LayoutGrid,
+  List,
   Mail,
-  Key,
-  UserCheck,
+  Loader2,
+  Calendar,
   Sparkles,
-  MoreHorizontal,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import {
-  updateTeam,
-  addTeamMember,
-  updateTeamMember,
-  removeTeamMember,
-} from "@/lib/redux/dataSlice";
+import { updateTeam } from "@/lib/redux/dataSlice";
 import { pushNotification } from "@/lib/redux/appSlice";
-import { useUpdateTeamMutation } from "@/lib/redux/api/workspaceApiSlice";
+import {
+  useUpdateTeamMutation,
+  useGetTeamMembersQuery,
+  useUpdateTeamMemberMutation,
+  useRemoveTeamMemberMutation,
+  type TeamMember,
+} from "@/lib/redux/api/workspaceApiSlice";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
-import type { TeamMember } from "@/types";
+import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
+import { AddMemberModal } from "@/components/modals/add-member-modal";
 
 const ROLE_BADGES: Record<
   string,
@@ -71,8 +80,28 @@ export function TeamView() {
   const currentTeam =
     activeWs?.teams.find((t) => t.id === activeTeamId) || activeWs?.teams[0];
 
-  const [updateTeamMutation, { isLoading: isUpdatingTeam }] =
-    useUpdateTeamMutation();
+  // API Hooks
+  const [updateTeamMutation] = useUpdateTeamMutation();
+  const {
+    data: teamMembersRes,
+    isLoading: isLoadingMembers,
+  } = useGetTeamMembersQuery(currentTeam?.id || "", {
+    skip: !currentTeam?.id,
+  });
+
+  const [updateMemberMutation] = useUpdateTeamMemberMutation();
+  const [removeMemberMutation] = useRemoveTeamMemberMutation();
+
+  // Active members combined from API with fallback to redux
+  const allMembers: TeamMember[] = useMemo(() => {
+    if (teamMembersRes?.success && teamMembersRes.data) {
+      return teamMembersRes.data;
+    }
+    return (currentTeam?.members as TeamMember[]) || [];
+  }, [teamMembersRes, currentTeam?.members]);
+
+  // View style: Cards Grid vs Table View
+  const [viewMode, setViewMode] = useState<"grid" | "table">("grid");
 
   // Editing team name/key state
   const [isEditingTeam, setIsEditingTeam] = useState(false);
@@ -81,42 +110,40 @@ export function TeamView() {
 
   // Search & Filter state
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState<
-    "ALL" | "OWNER" | "LEAD" | "MEMBER"
-  >("ALL");
+  const [roleFilter, setRoleFilter] = useState<"ALL" | "OWNER" | "LEAD" | "MEMBER">("ALL");
 
   // Add member modal state
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-  const [newRole, setNewRole] = useState<"OWNER" | "LEAD" | "MEMBER">("MEMBER");
 
   // Edit member modal state
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null);
   const [editMemName, setEditMemName] = useState("");
   const [editMemEmail, setEditMemEmail] = useState("");
-  const [editMemRole, setEditMemRole] = useState<"OWNER" | "LEAD" | "MEMBER">(
-    "MEMBER",
-  );
+  const [editMemRole, setEditMemRole] = useState<"OWNER" | "LEAD" | "MEMBER">("MEMBER");
+
+  // Remove confirmation modal state
+  const [memberToDelete, setMemberToDelete] = useState<TeamMember | null>(null);
+  const [isDeletingMember, setIsDeletingMember] = useState(false);
 
   // Filtered members list
   const filteredMembers = useMemo(() => {
-    if (!currentTeam) return [];
-    return currentTeam.members.filter((m) => {
+    return allMembers.filter((m) => {
+      const name = m.user?.name || m.name || "";
+      const email = m.user?.email || m.email || "";
       const matchSearch =
         !searchQuery.trim() ||
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.email.toLowerCase().includes(searchQuery.toLowerCase());
+        name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchRole = roleFilter === "ALL" || m.role === roleFilter;
       return matchSearch && matchRole;
     });
-  }, [currentTeam, searchQuery, roleFilter]);
+  }, [allMembers, searchQuery, roleFilter]);
 
   // Counts for quick metrics
-  const totalCount = currentTeam?.members.length || 0;
-  const leadCount =
-    currentTeam?.members.filter((m) => m.role === "LEAD" || m.role === "OWNER")
-      .length || 0;
+  const totalCount = allMembers.length;
+  const leadCount = allMembers.filter((m) => m.role === "LEAD").length;
+  const ownerCount = allMembers.filter((m) => m.role === "OWNER").length;
+  const memberCount = allMembers.filter((m) => m.role === "MEMBER").length;
 
   if (!currentTeam) {
     return (
@@ -151,7 +178,7 @@ export function TeamView() {
             teamId: currentTeam.id,
             name: res.data.name,
             key: res.data.key,
-          }),
+          })
         );
 
         dispatch(
@@ -159,91 +186,122 @@ export function TeamView() {
             title: "Team details updated",
             description: `Renamed team to "${res.data.name}" (${res.data.key}).`,
             type: "success",
-          }),
+          })
         );
 
         toast.success("Team settings saved!");
         setIsEditingTeam(false);
       }
     } catch (err: any) {
-      toast.error(
-        err?.data?.message || err?.message || "Failed to update team",
-      );
+      toast.error(err?.data?.message || err?.message || "Failed to update team");
     }
-  }
-
-  function handleAddMember(e: React.FormEvent) {
-    e.preventDefault();
-    if (!newName.trim() || !newEmail.trim()) {
-      toast.error("Name and email are required");
-      return;
-    }
-
-    const member: TeamMember = {
-      id: `mem-${Date.now()}`,
-      teamId: currentTeam.id,
-      name: newName.trim(),
-      email: newEmail.trim(),
-      role: newRole,
-      avatar: `https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&h=100&fit=crop&crop=faces`,
-    };
-
-    dispatch(addTeamMember({ teamId: currentTeam.id, member }));
-    dispatch(
-      pushNotification({
-        title: "Team member added",
-        description: `Added ${newName.trim()} to ${currentTeam.name}.`,
-        type: "success",
-      }),
-    );
-
-    toast.success(`Added ${newName.trim()} to team!`);
-    setNewName("");
-    setNewEmail("");
-    setAddModalOpen(false);
   }
 
   function handleStartEditMember(mem: TeamMember) {
     setEditingMember(mem);
-    setEditMemName(mem.name);
-    setEditMemEmail(mem.email);
+    setEditMemName(mem.user?.name || mem.name);
+    setEditMemEmail(mem.user?.email || mem.email);
     setEditMemRole(mem.role);
   }
 
-  function handleSaveMemberEdit(e: React.FormEvent) {
+  async function handleSaveMemberEdit(e: React.FormEvent) {
     e.preventDefault();
     if (!editingMember || !editMemName.trim() || !editMemEmail.trim()) {
       toast.error("Name and email are required");
       return;
     }
 
-    dispatch(
-      updateTeamMember({
+    try {
+      const res = await updateMemberMutation({
         teamId: currentTeam.id,
         memberId: editingMember.id,
-        name: editMemName.trim(),
-        email: editMemEmail.trim(),
-        role: editMemRole,
-      }),
-    );
+        data: {
+          name: editMemName.trim(),
+          email: editMemEmail.trim(),
+          role: editMemRole,
+        },
+      }).unwrap();
 
-    toast.success(`Updated ${editMemName.trim()}'s details!`);
-    setEditingMember(null);
+      if (res.success) {
+        toast.success(`Updated ${editMemName.trim()}'s details!`);
+        dispatch(
+          pushNotification({
+            title: "Member updated",
+            description: `Updated ${editMemName.trim()}'s role to ${editMemRole}.`,
+            type: "success",
+          })
+        );
+        setEditingMember(null);
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to update member");
+    }
   }
 
-  function handleRemoveMember(memberId: string, memberName: string) {
-    dispatch(removeTeamMember({ teamId: currentTeam.id, memberId }));
-    toast.success(`Removed ${memberName} from team`);
+  async function handleQuickRoleChange(member: TeamMember, newRole: "OWNER" | "LEAD" | "MEMBER") {
+    if (member.role === newRole) return;
+    try {
+      const res = await updateMemberMutation({
+        teamId: currentTeam.id,
+        memberId: member.id,
+        data: { role: newRole },
+      }).unwrap();
+
+      if (res.success) {
+        const memName = member.user?.name || member.name;
+        toast.success(`Changed ${memName}'s role to ${newRole}`);
+        dispatch(
+          pushNotification({
+            title: "Role changed",
+            description: `Changed ${memName}'s role to ${newRole} in ${currentTeam.name}.`,
+            type: "success",
+          })
+        );
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to change role");
+    }
+  }
+
+  async function handleConfirmRemoveMember() {
+    if (!memberToDelete) return;
+    setIsDeletingMember(true);
+    const memName = memberToDelete.user?.name || memberToDelete.name;
+
+    try {
+      const res = await removeMemberMutation({
+        teamId: currentTeam.id,
+        memberId: memberToDelete.id,
+      }).unwrap();
+
+      if (res.success) {
+        toast.success(`Removed ${memName} from team`);
+        dispatch(
+          pushNotification({
+            title: "Member removed",
+            description: `Removed ${memName} from ${currentTeam.name}.`,
+            type: "info",
+          })
+        );
+        setMemberToDelete(null);
+      }
+    } catch (err: any) {
+      toast.error(err?.data?.message || err?.message || "Failed to remove member");
+    } finally {
+      setIsDeletingMember(false);
+    }
   }
 
   return (
     <div className="space-y-4">
-      {/* Sleek Header & Metrics Panel */}
-      <Card className="border-white/10 bg-background/50 p-4 backdrop-blur-xl shadow-md">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-indigo-500/30 bg-indigo-500/15 text-xl shadow-inner">
-              {currentTeam.icon || "💻"}
+      {/* Sleek Header & Metrics Hero Card */}
+      <Card className="relative overflow-hidden border-white/10 bg-gradient-to-r from-card/90 via-card/70 to-background/50 p-4.5 backdrop-blur-xl shadow-lg">
+        <div className="pointer-events-none absolute -right-16 -top-16 h-44 w-44 rounded-full bg-indigo-500/15 blur-2xl" />
+
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-indigo-500/30 bg-gradient-to-br from-indigo-500/20 to-violet-600/20 text-2xl shadow-inner ring-1 ring-white/10">
+              {currentTeam.icon || "👥"}
             </div>
 
             {isEditingTeam ? (
@@ -252,21 +310,21 @@ export function TeamView() {
                   type="text"
                   value={editTeamName}
                   onChange={(e) => setEditTeamName(e.target.value)}
-                  className="rounded-lg border border-indigo-500 bg-background px-2.5 py-1 text-xs font-bold text-foreground outline-none"
+                  className="rounded-lg border border-indigo-500 bg-background px-3 py-1.5 text-xs font-bold text-foreground outline-none shadow-sm"
                   placeholder="Team Name"
                 />
                 <input
                   type="text"
                   value={editTeamKey}
                   onChange={(e) => setEditTeamKey(e.target.value.toUpperCase())}
-                  maxLength={4}
-                  className="w-16 rounded-lg border border-indigo-500 bg-background px-2.5 py-1 font-mono text-xs font-bold uppercase text-indigo-400 outline-none"
+                  maxLength={6}
+                  className="w-18 rounded-lg border border-indigo-500 bg-background px-2.5 py-1.5 font-mono text-xs font-bold uppercase text-indigo-400 outline-none shadow-sm"
                   placeholder="KEY"
                 />
                 <Button
                   size="sm"
                   onClick={handleSaveTeamDetails}
-                  className="h-7 gap-1 rounded-lg bg-indigo-500 px-2.5 text-xs text-white"
+                  className="h-8 gap-1 rounded-lg bg-indigo-500 px-3 text-xs font-semibold text-white shadow-md hover:bg-indigo-600 cursor-pointer"
                 >
                   <Check className="h-3.5 w-3.5" /> Save
                 </Button>
@@ -274,7 +332,7 @@ export function TeamView() {
                   size="sm"
                   variant="ghost"
                   onClick={() => setIsEditingTeam(false)}
-                  className="h-7 rounded-lg px-2"
+                  className="h-8 rounded-lg px-2 text-muted-foreground hover:bg-muted cursor-pointer"
                 >
                   <X className="h-3.5 w-3.5" />
                 </Button>
@@ -282,10 +340,10 @@ export function TeamView() {
             ) : (
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
-                  <h1 className="truncate text-base font-bold tracking-tight text-foreground">
+                  <h1 className="truncate text-lg font-bold tracking-tight text-foreground">
                     {currentTeam.name}
                   </h1>
-                  <span className="rounded bg-indigo-500/15 px-1.5 py-0.2 font-mono text-[10px] font-bold text-indigo-400 border border-indigo-500/30">
+                  <span className="rounded-md bg-indigo-500/15 px-2 py-0.5 font-mono text-[11px] font-bold text-indigo-400 border border-indigo-500/30 shadow-inner">
                     {currentTeam.key}
                   </span>
                   <button
@@ -294,39 +352,42 @@ export function TeamView() {
                       setEditTeamKey(currentTeam.key);
                       setIsEditingTeam(true);
                     }}
-                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    className="rounded p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer"
                     title="Edit Team Name & Key"
                   >
-                    <Edit3 className="h-3 w-3" />
+                    <Edit3 className="h-3.5 w-3.5" />
                   </button>
                 </div>
-                <p className="truncate text-[11px] text-muted-foreground">
+                <p className="truncate text-xs text-muted-foreground mt-0.5">
                   Workspace:{" "}
                   <span className="font-semibold text-foreground">
                     {activeWs.name}
                   </span>
+                  <span className="mx-2 text-muted-foreground/50">•</span>
+                  <span>{totalCount} Total Members</span>
                 </p>
               </div>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {/* Stat Pills */}
-            <div className="hidden sm:flex items-center gap-2 border-r border-white/10 pr-3 text-[11px]">
-              <span className="rounded-lg bg-muted/40 px-2 py-1 font-semibold text-muted-foreground">
-                👥 <strong className="text-foreground">{totalCount}</strong>{" "}
-                Members
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Stat Badges */}
+            <div className="hidden md:flex items-center gap-1.5 border-r border-white/10 pr-3.5 text-xs">
+              <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
+                👑 <strong className="text-amber-400">{ownerCount}</strong> Owners
               </span>
-              <span className="rounded-lg bg-muted/40 px-2 py-1 font-semibold text-muted-foreground">
-                👑 <strong className="text-foreground">{leadCount}</strong>{" "}
-                Leads
+              <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
+                🛡️ <strong className="text-indigo-400">{leadCount}</strong> Leads
+              </span>
+              <span className="rounded-lg border border-white/5 bg-background/50 px-2.5 py-1 font-semibold text-muted-foreground shadow-sm">
+                👥 <strong className="text-foreground">{memberCount}</strong> Members
               </span>
             </div>
 
             <Button
               onClick={() => setAddModalOpen(true)}
               size="sm"
-              className="h-8 gap-1.5 rounded-lg  from-indigo-500 to-violet-600 px-3 text-xs font-semibold text-white shadow-md shadow-indigo-500/20"
+              className="h-8.5 gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 via-indigo-600 to-violet-600 px-3.5 text-xs font-semibold text-white shadow-md shadow-indigo-500/25 hover:opacity-95 transition-all hover:scale-[1.02] cursor-pointer"
             >
               <UserPlus className="h-3.5 w-3.5" /> Add Member
             </Button>
@@ -334,13 +395,16 @@ export function TeamView() {
         </div>
       </Card>
 
-      {/* Roster Controls: Search & Role Filters */}
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between px-1">
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground/80">
+      {/* Roster Controls: Search, Filter Tabs, & Layout Switcher */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-1">
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
             <Users className="h-3.5 w-3.5 text-indigo-400" />
-            Team Roster ({filteredMembers.length})
+            Team Members ({filteredMembers.length})
           </div>
+          {isLoadingMembers && (
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-indigo-400" />
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -349,118 +413,354 @@ export function TeamView() {
             <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
-              placeholder="Search roster..."
+              placeholder="Filter roster..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-7 w-36 rounded-lg border border-border/60 bg-muted/30 pl-8 pr-2.5 text-xs outline-none focus:border-indigo-500 focus:w-44 transition-all"
+              className="h-8 w-40 rounded-lg border border-border/60 bg-muted/30 pl-8 pr-2.5 text-xs outline-none focus:border-indigo-500 focus:w-48 transition-all"
             />
           </div>
 
           {/* Role Filter Pills */}
-          <div className="flex items-center rounded-lg border border-border/60 bg-background/50 p-0.5 text-[10px] font-semibold">
-            {(["ALL", "OWNER", "LEAD", "MEMBER"] as const).map((r) => (
+          <div className="flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5 text-[11px] font-semibold">
+            {(
+              [
+                { key: "ALL", label: "All", count: totalCount },
+                { key: "OWNER", label: "Owners", count: ownerCount },
+                { key: "LEAD", label: "Leads", count: leadCount },
+                { key: "MEMBER", label: "Members", count: memberCount },
+              ] as const
+            ).map((r) => (
               <button
-                key={r}
-                onClick={() => setRoleFilter(r)}
+                key={r.key}
+                onClick={() => setRoleFilter(r.key)}
                 className={cn(
-                  "rounded-md px-2 py-0.5 transition-all",
-                  roleFilter === r
-                    ? "bg-indigo-500 text-white font-bold"
-                    : "text-muted-foreground hover:text-foreground",
+                  "flex items-center gap-1 rounded-md px-2.5 py-1 transition-all cursor-pointer",
+                  roleFilter === r.key
+                    ? "bg-indigo-500 text-white font-bold shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                {r === "ALL" ? "All" : r.charAt(0) + r.slice(1).toLowerCase()}
+                <span>{r.label}</span>
+                <span className="text-[9px] opacity-75 font-mono">({r.count})</span>
               </button>
             ))}
+          </div>
+
+          {/* View Mode Toggle: Grid vs Table */}
+          <div className="flex items-center rounded-lg border border-border/60 bg-background/60 p-0.5">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={cn(
+                "rounded-md p-1.5 transition-colors cursor-pointer",
+                viewMode === "grid"
+                  ? "bg-indigo-500/20 text-indigo-400"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Card Grid View"
+            >
+              <LayoutGrid className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setViewMode("table")}
+              className={cn(
+                "rounded-md p-1.5 transition-colors cursor-pointer",
+                viewMode === "table"
+                  ? "bg-indigo-500/20 text-indigo-400"
+                  : "text-muted-foreground hover:text-foreground"
+              )}
+              title="Table / List View"
+            >
+              <List className="h-3.5 w-3.5" />
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Micro Sleek & Beautiful Member Cards Grid */}
+      {/* Member Cards Grid or Table View */}
       {filteredMembers.length === 0 ? (
-        <Card className="border-white/10 bg-background/40 p-6 text-center text-xs text-muted-foreground backdrop-blur-md">
-          No team members match your search or filter.
+        <Card className="flex flex-col items-center justify-center border-white/10 bg-background/40 py-12 px-6 text-center backdrop-blur-md">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500/10 text-indigo-400 mb-3">
+            <Users className="h-6 w-6" />
+          </div>
+          <h3 className="text-sm font-bold text-foreground">
+            {searchQuery || roleFilter !== "ALL"
+              ? "No members match your filter"
+              : "No members in this team yet"}
+          </h3>
+          <p className="text-xs text-muted-foreground max-w-sm mt-1 mb-4">
+            {searchQuery || roleFilter !== "ALL"
+              ? "Try adjusting your search terms or clearing role filters."
+              : "Add team members from your organization or invite them via email."}
+          </p>
+          <Button
+            onClick={() => setAddModalOpen(true)}
+            size="sm"
+            className="gap-1.5 rounded-xl bg-indigo-500 text-xs text-white font-semibold shadow-md cursor-pointer"
+          >
+            <UserPlus className="h-3.5 w-3.5" /> Add First Member
+          </Button>
         </Card>
-      ) : (
-        <div className="grid gap-2.5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      ) : viewMode === "grid" ? (
+        /* Card Grid View */
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {filteredMembers.map((member, idx) => {
             const RoleMeta = ROLE_BADGES[member.role] || ROLE_BADGES.MEMBER;
             const RoleIcon = RoleMeta.icon;
+            const displayName = member.user?.name || member.name;
+            const displayEmail = member.user?.email || member.email;
+            const avatarSrc = getAvatarUrl(member.user?.avatar || member.avatar);
+            const initials = getUserInitials(displayName, displayEmail);
 
             return (
               <motion.div
                 key={member.id}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: idx * 0.04 }}
+                transition={{ duration: 0.2, delay: idx * 0.03 }}
               >
-                <div className="group relative flex items-center justify-between overflow-hidden rounded-xl border border-white/10 bg-gradient-lr from-card/90 via-card/60 to-background/50 p-2.5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-card/95 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-0.5">
-                  {/* Subtle top role accent bar */}
+                <div className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-b from-card/90 via-card/60 to-background/50 p-3.5 shadow-sm backdrop-blur-xl transition-all duration-300 hover:border-indigo-500/40 hover:bg-card/95 hover:shadow-lg hover:shadow-indigo-500/10 hover:-translate-y-0.5">
+                  {/* Subtle top role accent line */}
                   <div
                     className={cn(
-                      "absolute top-0 left-0 right-0 h-[2px] opacity-75 transition-opacity group-hover:opacity-100",
-                      RoleMeta.bar,
+                      "absolute top-0 left-0 right-0 h-[2.5px] opacity-80 transition-opacity group-hover:opacity-100",
+                      RoleMeta.bar
                     )}
                   />
 
-                  <div className="flex items-center gap-2.5 min-w-0 pr-1">
-                    <div className="relative shrink-0">
-                      <Avatar className="h-8 w-8 border border-white/20 ring-1 ring-white/10 transition-all group-hover:ring-indigo-500/40">
-                        <AvatarImage src={member.avatar || undefined} />
-                        <AvatarFallback className="bg-indigo-500/20 text-[10px] font-bold text-indigo-300">
-                          {member.name.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      {/* Active Status Indicator */}
-                      <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-500 ring-2 ring-background shadow-sm shadow-emerald-500/50" />
+                  {/* Top Header info */}
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="relative shrink-0">
+                        <Avatar className="h-9 w-9 border border-white/20 ring-1 ring-white/10 transition-all group-hover:ring-indigo-500/40">
+                          {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                          <AvatarFallback className="bg-indigo-500/20 text-[11px] font-bold text-indigo-300">
+                            {initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        {/* Active online dot */}
+                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-background shadow-sm shadow-emerald-500/50" />
+                      </div>
+
+                      <div className="min-w-0 flex-1">
+                        <h4 className="truncate text-xs font-bold text-foreground leading-snug group-hover:text-indigo-300 transition-colors">
+                          {displayName}
+                        </h4>
+                        <p className="truncate font-mono text-[10px] text-muted-foreground/90 mt-0.5">
+                          {displayEmail}
+                        </p>
+                      </div>
                     </div>
 
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="truncate text-xs font-bold text-foreground leading-snug group-hover:text-indigo-300 transition-colors">
-                          {member.name}
-                        </h4>
-                      </div>
-                      <p className="truncate font-mono text-[10px] text-muted-foreground/80 mt-0.5 leading-none">
-                        {member.email}
-                      </p>
-                      <div className="mt-1 flex items-center gap-1">
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "gap-0.5 px-1.5 py-0 text-[8px] font-bold leading-none shrink-0 shadow-inner",
-                            RoleMeta.style,
-                          )}
-                        >
-                          <RoleIcon className="h-2 w-2" /> {RoleMeta.label}
-                        </Badge>
-                      </div>
+                    {/* Action buttons on hover */}
+                    <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+                      <button
+                        onClick={() => handleStartEditMember(member)}
+                        className="rounded p-1 text-muted-foreground hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors cursor-pointer"
+                        title="Edit Member"
+                      >
+                        <Edit3 className="h-3 w-3" />
+                      </button>
+                      <button
+                        onClick={() => setMemberToDelete(member)}
+                        className="rounded p-1 text-muted-foreground hover:bg-rose-500/20 hover:text-rose-400 transition-colors cursor-pointer"
+                        title="Remove Member"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
                     </div>
                   </div>
 
-                  {/* Floating Action Pill Bar on Hover */}
-                  <div className="flex items-center gap-0.5 opacity-0 transition-all duration-200 group-hover:opacity-100 shrink-0 ml-1 rounded-lg border border-white/10 bg-background/80 p-0.5 backdrop-blur-md shadow-sm">
-                    <button
-                      onClick={() => handleStartEditMember(member)}
-                      className="rounded p-1 text-muted-foreground hover:bg-indigo-500/20 hover:text-indigo-400 transition-colors"
-                      title="Edit Member Details"
-                    >
-                      <Edit3 className="h-3 w-3" />
-                    </button>
-                    <button
-                      onClick={() => handleRemoveMember(member.id, member.name)}
-                      className="rounded p-1 text-muted-foreground/60 hover:bg-rose-500/20 hover:text-rose-400 transition-colors"
-                      title="Remove Member"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
+                  {/* Role Dropdown / Inline Changer */}
+                  <div className="mt-3.5 flex items-center justify-between border-t border-border/40 pt-2.5">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className="flex items-center gap-1 cursor-pointer">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "gap-1 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider transition-all hover:scale-105",
+                              RoleMeta.style
+                            )}
+                          >
+                            <RoleIcon className="h-2.5 w-2.5" />
+                            <span>{RoleMeta.label}</span>
+                          </Badge>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-40">
+                        <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground">
+                          Change Role
+                        </DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => handleQuickRoleChange(member, "OWNER")}
+                          className="gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Crown className="h-3.5 w-3.5 text-amber-400" />
+                          <span>Owner</span>
+                          {member.role === "OWNER" && (
+                            <Check className="ml-auto h-3.5 w-3.5 text-indigo-400" />
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleQuickRoleChange(member, "LEAD")}
+                          className="gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Shield className="h-3.5 w-3.5 text-indigo-400" />
+                          <span>Lead</span>
+                          {member.role === "LEAD" && (
+                            <Check className="ml-auto h-3.5 w-3.5 text-indigo-400" />
+                          )}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleQuickRoleChange(member, "MEMBER")}
+                          className="gap-2 text-xs font-medium cursor-pointer"
+                        >
+                          <Users className="h-3.5 w-3.5 text-slate-400" />
+                          <span>Member</span>
+                          {member.role === "MEMBER" && (
+                            <Check className="ml-auto h-3.5 w-3.5 text-indigo-400" />
+                          )}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    <span className="text-[10px] text-muted-foreground/70 font-mono">
+                      {member.createdAt
+                        ? new Date(member.createdAt).toLocaleDateString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                          })
+                        : "Active"}
+                    </span>
                   </div>
                 </div>
               </motion.div>
             );
           })}
         </div>
+      ) : (
+        /* High-Density Table / List View */
+        <Card className="overflow-hidden border-white/10 bg-card/80 backdrop-blur-xl shadow-md">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="border-b border-border/50 bg-muted/40 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                <tr>
+                  <th className="py-3 px-4">Member</th>
+                  <th className="py-3 px-4">Email</th>
+                  <th className="py-3 px-4">Role</th>
+                  <th className="py-3 px-4">Joined Date</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border/40">
+                {filteredMembers.map((member) => {
+                  const RoleMeta = ROLE_BADGES[member.role] || ROLE_BADGES.MEMBER;
+                  const RoleIcon = RoleMeta.icon;
+                  const displayName = member.user?.name || member.name;
+                  const displayEmail = member.user?.email || member.email;
+                  const avatarSrc = getAvatarUrl(member.user?.avatar || member.avatar);
+                  const initials = getUserInitials(displayName, displayEmail);
+
+                  return (
+                    <tr
+                      key={member.id}
+                      className="group hover:bg-muted/30 transition-colors"
+                    >
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2.5">
+                          <Avatar className="h-7 w-7 border border-white/10 shrink-0">
+                            {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                            <AvatarFallback className="bg-indigo-500/20 text-[10px] font-bold text-indigo-300">
+                              {initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-bold text-foreground">{displayName}</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 font-mono text-muted-foreground">
+                        {displayEmail}
+                      </td>
+                      <td className="py-3 px-4">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="cursor-pointer">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  "gap-1 px-2 py-0.5 text-[9px] font-bold uppercase",
+                                  RoleMeta.style
+                                )}
+                              >
+                                <RoleIcon className="h-2.5 w-2.5" /> {RoleMeta.label}
+                              </Badge>
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="start" className="w-36">
+                            <DropdownMenuItem
+                              onClick={() => handleQuickRoleChange(member, "OWNER")}
+                              className="gap-2 text-xs cursor-pointer"
+                            >
+                              <Crown className="h-3 w-3 text-amber-400" /> Owner
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickRoleChange(member, "LEAD")}
+                              className="gap-2 text-xs cursor-pointer"
+                            >
+                              <Shield className="h-3 w-3 text-indigo-400" /> Lead
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleQuickRoleChange(member, "MEMBER")}
+                              className="gap-2 text-xs cursor-pointer"
+                            >
+                              <Users className="h-3 w-3 text-slate-400" /> Member
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground font-mono text-[11px]">
+                        {member.createdAt
+                          ? new Date(member.createdAt).toLocaleDateString()
+                          : "—"}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => handleStartEditMember(member)}
+                            className="rounded p-1 text-muted-foreground hover:text-indigo-400 hover:bg-muted transition-colors cursor-pointer"
+                            title="Edit Details"
+                          >
+                            <Edit3 className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => setMemberToDelete(member)}
+                            className="rounded p-1 text-muted-foreground hover:text-rose-400 hover:bg-muted transition-colors cursor-pointer"
+                            title="Remove Member"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </Card>
       )}
+
+      {/* Add Member Multi-User Modal */}
+      <AddMemberModal
+        open={addModalOpen}
+        onClose={() => setAddModalOpen(false)}
+        team={{
+          id: currentTeam.id,
+          name: currentTeam.name,
+          key: currentTeam.key,
+          icon: currentTeam.icon,
+        }}
+      />
 
       {/* Edit Member Modal */}
       <AnimatePresence>
@@ -470,7 +770,7 @@ export function TeamView() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md"
+              className="fixed inset-0 bg-black/70 backdrop-blur-md"
               onClick={() => setEditingMember(null)}
             />
             <motion.div
@@ -493,16 +793,13 @@ export function TeamView() {
                 </div>
                 <button
                   onClick={() => setEditingMember(null)}
-                  className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+                  className="rounded-lg p-1 text-muted-foreground hover:bg-muted cursor-pointer"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <form
-                onSubmit={handleSaveMemberEdit}
-                className="mt-3.5 space-y-3"
-              >
+              <form onSubmit={handleSaveMemberEdit} className="mt-3.5 space-y-3">
                 <div>
                   <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                     Full Name *
@@ -536,15 +833,9 @@ export function TeamView() {
                     onChange={(e) => setEditMemRole(e.target.value as any)}
                     className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
                   >
-                    <option value="MEMBER">
-                      Member (Standard contributor)
-                    </option>
-                    <option value="LEAD">
-                      Team Lead (Sprint lead & reviewer)
-                    </option>
-                    <option value="OWNER">
-                      Owner (Full administrative rights)
-                    </option>
+                    <option value="MEMBER">Member (Standard contributor)</option>
+                    <option value="LEAD">Team Lead (Sprint lead & reviewer)</option>
+                    <option value="OWNER">Owner (Full administrative rights)</option>
                   </select>
                 </div>
 
@@ -554,14 +845,14 @@ export function TeamView() {
                     variant="outline"
                     size="sm"
                     onClick={() => setEditingMember(null)}
-                    className="rounded-lg h-8 text-xs"
+                    className="rounded-lg h-8 text-xs cursor-pointer"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
                     size="sm"
-                    className="gap-1.5 rounded-lg h-8 bg-indigo-500 text-xs text-white shadow-md"
+                    className="gap-1.5 rounded-lg h-8 bg-indigo-500 text-xs text-white shadow-md cursor-pointer hover:bg-indigo-600"
                   >
                     <Check className="h-3.5 w-3.5" /> Save Changes
                   </Button>
@@ -572,113 +863,66 @@ export function TeamView() {
         )}
       </AnimatePresence>
 
-      {/* Add Member Modal */}
+      {/* Delete Member Confirmation Modal */}
       <AnimatePresence>
-        {addModalOpen && (
+        {memberToDelete && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/60 backdrop-blur-md"
-              onClick={() => setAddModalOpen(false)}
+              className="fixed inset-0 bg-black/70 backdrop-blur-md"
+              onClick={() => setMemberToDelete(null)}
             />
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/10 bg-background/95 p-5 shadow-2xl backdrop-blur-2xl"
+              className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-white/10 bg-background/95 p-5 shadow-2xl backdrop-blur-2xl"
             >
-              <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/15 text-indigo-400">
-                    <UserPlus className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h2 className="text-sm font-bold">
-                      Assign Member to {currentTeam.name}
-                    </h2>
-                    <p className="text-[11px] text-muted-foreground">
-                      Add user to team roster with assigned role
-                    </p>
-                  </div>
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/15 text-rose-500">
+                  <Trash2 className="h-5 w-5" />
                 </div>
-                <button
-                  onClick={() => setAddModalOpen(false)}
-                  className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+                <div>
+                  <h3 className="text-sm font-bold text-foreground">
+                    Remove Team Member
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Are you sure you want to remove{" "}
+                    <strong className="text-foreground">
+                      {memberToDelete.user?.name || memberToDelete.name}
+                    </strong>{" "}
+                    from <span className="text-indigo-400">{currentTeam.name}</span>?
+                  </p>
+                </div>
               </div>
 
-              <form onSubmit={handleAddMember} className="mt-3.5 space-y-3">
-                <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Full Name *
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Sarah Chen"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="w-full rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                    autoFocus
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Email Address *
-                  </label>
-                  <input
-                    type="email"
-                    placeholder="sarah@acme.io"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="w-full rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                    Team Role
-                  </label>
-                  <select
-                    value={newRole}
-                    onChange={(e) => setNewRole(e.target.value as any)}
-                    className="w-full rounded-lg border border-border/60 bg-background px-3 py-2 text-xs outline-none focus:border-indigo-500"
-                  >
-                    <option value="MEMBER">
-                      Member (Standard contributor)
-                    </option>
-                    <option value="LEAD">
-                      Team Lead (Sprint lead & reviewer)
-                    </option>
-                    <option value="OWNER">
-                      Owner (Full administrative rights)
-                    </option>
-                  </select>
-                </div>
-
-                <div className="flex items-center justify-end gap-2.5 pt-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setAddModalOpen(false)}
-                    className="rounded-lg h-8 text-xs"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    size="sm"
-                    className="gap-1.5 rounded-lg h-8  from-indigo-500 to-violet-600 text-xs text-white shadow-md"
-                  >
-                    <UserPlus className="h-3.5 w-3.5" /> Add Member
-                  </Button>
-                </div>
-              </form>
+              <div className="flex items-center justify-end gap-2.5 pt-4 mt-2 border-t border-border/40">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setMemberToDelete(null)}
+                  className="rounded-xl h-8.5 text-xs cursor-pointer"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={isDeletingMember}
+                  onClick={handleConfirmRemoveMember}
+                  className="gap-1.5 rounded-xl h-8.5 bg-rose-600 text-xs font-semibold text-white shadow-md hover:bg-rose-700 cursor-pointer disabled:opacity-50"
+                >
+                  {isDeletingMember ? (
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-3.5 w-3.5" />
+                  )}
+                  Remove Member
+                </Button>
+              </div>
             </motion.div>
           </div>
         )}
@@ -686,3 +930,4 @@ export function TeamView() {
     </div>
   );
 }
+

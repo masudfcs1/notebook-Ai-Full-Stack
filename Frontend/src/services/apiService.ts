@@ -57,6 +57,17 @@ class ApiService {
       });
 
       if (!response.ok) {
+        if (response.status === 401 && typeof window !== "undefined") {
+          const hadToken = Boolean(localStorage.getItem("accessToken"));
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("user");
+          if (hadToken) {
+            import("@/lib/redux/api/baseQuery").then(({ notifySessionExpired }) => {
+              notifySessionExpired();
+            }).catch(() => {});
+          }
+        }
         throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
       }
 

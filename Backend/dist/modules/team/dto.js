@@ -1,6 +1,35 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toTeamListResponse = exports.toTeamResponse = void 0;
+exports.toTeamListResponse = exports.toTeamResponse = exports.toTeamMemberListResponse = exports.toTeamMemberResponse = void 0;
+const toTeamMemberResponse = (member) => {
+    return {
+        id: member.id,
+        teamId: member.teamId,
+        userId: member.userId || null,
+        name: member.user?.name || member.name,
+        email: member.user?.email || member.email,
+        avatar: member.user?.avatar || member.avatar || null,
+        role: member.role || 'MEMBER',
+        createdAt: member.createdAt,
+        user: member.user
+            ? {
+                id: member.user.id,
+                uuid: member.user.uuid,
+                name: member.user.name,
+                username: member.user.username,
+                email: member.user.email,
+                avatar: member.user.avatar,
+                role: member.user.role,
+                status: member.user.status,
+            }
+            : null,
+    };
+};
+exports.toTeamMemberResponse = toTeamMemberResponse;
+const toTeamMemberListResponse = (members) => {
+    return (members || []).map(exports.toTeamMemberResponse);
+};
+exports.toTeamMemberListResponse = toTeamMemberListResponse;
 const toTeamResponse = (team) => {
     const slug = team.slug ||
         team.name
@@ -16,7 +45,7 @@ const toTeamResponse = (team) => {
         icon: team.icon || '💬',
         createdAt: team.createdAt,
         updatedAt: team.updatedAt,
-        members: team.members || [],
+        members: (0, exports.toTeamMemberListResponse)(team.members),
     };
 };
 exports.toTeamResponse = toTeamResponse;

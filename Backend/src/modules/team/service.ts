@@ -3,8 +3,19 @@ import { workspaceRepository } from '../workspace/repository';
 import { notificationService } from '../notification/service';
 import { NotificationType } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
-import { toTeamResponse, toTeamListResponse } from './dto';
-import { CreateTeamData, UpdateTeamData } from './types';
+import {
+  toTeamResponse,
+  toTeamListResponse,
+  toTeamMemberResponse,
+  toTeamMemberListResponse,
+} from './dto';
+import {
+  CreateTeamData,
+  UpdateTeamData,
+  AddTeamMemberData,
+  UpdateTeamMemberData,
+} from './types';
+import { prisma } from '@/database';
 import { logger } from '@/logger';
 
 export class TeamService {
@@ -87,6 +98,210 @@ export class TeamService {
 
     return { message: 'Team deleted successfully' };
   }
+
+  /* ---------- Team Member Methods ---------- */
+
+  async getMembers(teamId: string) {
+    const team = await teamRepository.findById(teamId);
+    if (!team) {
+      throw AppError.notFound('Team not found');
+    }
+
+    const members = await teamRepository.getMembers(teamId);
+    return toTeamMemberListResponse(members);
+  }
+
+  async addMember(teamId: string, data: AddTeamMemberData, requestedByUserId?: number) {
+    const team = await teamRepository.findById(teamId);
+    if (!team) {
+      throw AppError.notFound('Team not found');
+    }
+
+    let resolvedUserId = data.userId;
+    let resolvedName = data.name;
+    let resolvedEmail = data.email.trim().toLowerCase();
+    let resolvedAvatar = data.avatar;
+
+    // Look up registered user if userId given or if email matches a platform user
+    if (resolvedUserId) {
+      const user = await prisma.user.findUnique({ where: { id: resolvedUserId } });
+      if (user) {
+        resolvedName = user.name || resolvedName;
+        resolvedEmail = user.email.toLowerCase();
+        resolvedAvatar = user.avatar || resolvedAvatar;
+      }
+    } else {
+      const user = await prisma.user.findUnique({ where: { email: resolvedEmail } });
+      if (user) {
+        resolvedUserId = user.id;
+        resolvedName = user.name || resolvedName;
+        resolvedAvatar = user.avatar || resolvedAvatar;
+      }
+    }
+
+    // Check duplicate
+    const existing = await teamRepository.findMemberByTeamAndEmailOrUserId(
+      teamId,
+      resolvedEmail,
+      resolvedUserId
+    );
+    if (existing) {
+      throw AppError.conflict(`User "${resolvedEmail}" is already a member of this team`);
+    }
+
+    const member = await teamRepository.addMember(teamId, {
+      userId: resolvedUserId,
+      name: resolvedName,
+      email: resolvedEmail,
+      avatar: resolvedAvatar,
+      role: data.role || 'MEMBER',
+    });
+
+    logger.info(`Member ${member.name} (${member.email}) added to team ${team.name} (${teamId})`);
+
+    try {
+      if (resolvedUserId && resolvedUserId !== requestedByUserId) {
+        await notificationService.create({
+          userId: resolvedUserId,
+          type: NotificationType.SYSTEM,
+          title: 'Added to Team',
+          message: `You were added to team "${team.name}" as ${member.role}.`,
+          data: { teamId: team.id, role: member.role },
+        });
+      }
+    } catch (err) {
+      logger.error({ err }, 'Failed to create add member notification');
+    }
+
+    return toTeamMemberResponse(member);
+  }
+
+  async addMembersBulk(
+    teamId: string,
+    membersData: AddTeamMemberData[],
+    requestedByUserId?: number
+  ) {
+    const team = await teamRepository.findById(teamId);
+    if (!team) {
+      throw AppError.notFound('Team not found');
+    }
+
+    const existingMembers = await teamRepository.getMembers(teamId);
+    const existingEmails = new Set(existingMembers.map((m) => m.email.toLowerCase()));
+    const existingUserIds = new Set(
+      existingMembers.map((m) => m.userId).filter((id): id is number => typeof id === 'number')
+    );
+
+    const resolvedList: AddTeamMemberData[] = [];
+    const seenBatchEmails = new Set<string>();
+
+    for (const mem of membersData) {
+      let resolvedUserId = mem.userId;
+      let resolvedName = mem.name;
+      let resolvedEmail = mem.email.trim().toLowerCase();
+      let resolvedAvatar = mem.avatar;
+
+      if (resolvedUserId) {
+        const user = await prisma.user.findUnique({ where: { id: resolvedUserId } });
+        if (user) {
+          resolvedName = user.name || resolvedName;
+          resolvedEmail = user.email.toLowerCase();
+          resolvedAvatar = user.avatar || resolvedAvatar;
+        }
+      } else {
+        const user = await prisma.user.findUnique({ where: { email: resolvedEmail } });
+        if (user) {
+          resolvedUserId = user.id;
+          resolvedName = user.name || resolvedName;
+          resolvedAvatar = user.avatar || resolvedAvatar;
+        }
+      }
+
+      // Check if already in team or already in this batch
+      if (
+        existingEmails.has(resolvedEmail) ||
+        (resolvedUserId && existingUserIds.has(resolvedUserId)) ||
+        seenBatchEmails.has(resolvedEmail)
+      ) {
+        continue;
+      }
+
+      seenBatchEmails.add(resolvedEmail);
+      resolvedList.push({
+        userId: resolvedUserId,
+        name: resolvedName,
+        email: resolvedEmail,
+        avatar: resolvedAvatar,
+        role: mem.role || 'MEMBER',
+      });
+    }
+
+    if (resolvedList.length === 0) {
+      throw AppError.badRequest('All specified users are already members of this team');
+    }
+
+    const created = await teamRepository.addMembersBulk(teamId, resolvedList);
+
+    logger.info(`Added ${created.length} members in bulk to team ${team.name} (${teamId})`);
+
+    // Emit notification to newly added platform users
+    for (const mem of created) {
+      if (mem.userId && mem.userId !== requestedByUserId) {
+        try {
+          await notificationService.create({
+            userId: mem.userId,
+            type: NotificationType.SYSTEM,
+            title: 'Added to Team',
+            message: `You were added to team "${team.name}" as ${mem.role}.`,
+            data: { teamId: team.id, role: mem.role },
+          });
+        } catch (notifErr) {
+          logger.error({ notifErr }, 'Failed to emit notification for bulk add member');
+        }
+      }
+    }
+
+    return {
+      addedCount: created.length,
+      members: toTeamMemberListResponse(created),
+    };
+  }
+
+
+  async updateMember(teamId: string, memberId: string, data: UpdateTeamMemberData) {
+    const member = await teamRepository.findMemberById(memberId);
+    if (!member || member.teamId !== teamId) {
+      throw AppError.notFound('Team member not found');
+    }
+
+    const updated = await teamRepository.updateMember(memberId, data);
+    logger.info(`Team member updated: ${memberId} in team ${teamId}`);
+
+    return toTeamMemberResponse(updated);
+  }
+
+  async deleteMember(teamId: string, memberId: string) {
+    const member = await teamRepository.findMemberById(memberId);
+    if (!member || member.teamId !== teamId) {
+      throw AppError.notFound('Team member not found');
+    }
+
+    await teamRepository.deleteMember(memberId);
+    logger.info(`Team member removed: ${memberId} from team ${teamId}`);
+
+    return { message: 'Team member removed successfully' };
+  }
+
+  async searchAvailableUsers(teamId: string, search?: string) {
+    const team = await teamRepository.findById(teamId);
+    if (!team) {
+      throw AppError.notFound('Team not found');
+    }
+
+    const users = await teamRepository.searchAvailableUsers(teamId, search);
+    return users;
+  }
 }
 
 export const teamService = new TeamService();
+

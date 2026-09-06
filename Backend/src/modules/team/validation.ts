@@ -39,3 +39,71 @@ export const DeleteTeamParamsSchema = z.object({
     id: z.string().min(1, 'Team ID is required'),
   }),
 });
+
+export const GetTeamMembersSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+  }),
+});
+
+export const AddTeamMemberSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+  }),
+  body: z.object({
+    userId: z.number().int().positive().optional(),
+    name: z.string().min(1, 'Name is required').max(100),
+    email: z.string().email('Invalid email address'),
+    role: z.enum(['OWNER', 'LEAD', 'MEMBER']).default('MEMBER'),
+    avatar: z.string().optional(),
+  }),
+});
+
+export const AddTeamMembersBulkSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+  }),
+  body: z.object({
+    members: z
+      .array(
+        z.object({
+          userId: z.number().int().positive().optional(),
+          name: z.string().min(1, 'Name is required').max(100),
+          email: z.string().email('Invalid email address'),
+          role: z.enum(['OWNER', 'LEAD', 'MEMBER']).default('MEMBER'),
+          avatar: z.string().optional(),
+        })
+      )
+      .min(1, 'At least one member is required'),
+  }),
+});
+
+export const UpdateTeamMemberSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+    memberId: z.string().min(1, 'Member ID is required'),
+  }),
+  body: z.object({
+    name: z.string().min(1).max(100).optional(),
+    email: z.string().email().optional(),
+    role: z.enum(['OWNER', 'LEAD', 'MEMBER']).optional(),
+    avatar: z.string().optional(),
+  }),
+});
+
+export const DeleteTeamMemberSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+    memberId: z.string().min(1, 'Member ID is required'),
+  }),
+});
+
+export const SearchAvailableUsersSchema = z.object({
+  params: z.object({
+    id: z.string().min(1, 'Team ID is required'),
+  }),
+  query: z.object({
+    search: z.string().optional(),
+  }),
+});
+

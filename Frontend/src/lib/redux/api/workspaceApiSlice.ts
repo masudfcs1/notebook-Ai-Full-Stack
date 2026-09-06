@@ -1,7 +1,18 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithAuthHandling } from "./baseQuery";
 
 /* ---------- Types ---------- */
+
+export interface TeamMemberUser {
+  id: number;
+  uuid: string;
+  name: string | null;
+  username: string | null;
+  email: string;
+  avatar: string | null;
+  role: string;
+  status: string;
+}
 
 export interface TeamMember {
   id: string;
@@ -12,6 +23,7 @@ export interface TeamMember {
   avatar?: string | null;
   role: "OWNER" | "LEAD" | "MEMBER";
   createdAt?: string;
+  user?: TeamMemberUser | null;
 }
 
 export interface Team {
@@ -115,30 +127,58 @@ export interface TeamsResponse {
   data: Team[];
 }
 
-/* ---------- API Slice ---------- */
+export interface TeamMembersResponse {
+  success: boolean;
+  message: string;
+  data: TeamMember[];
+}
 
-const getBaseUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5015/api/v1";
-};
+export interface SingleTeamMemberResponse {
+  success: boolean;
+  message: string;
+  data: TeamMember;
+}
+
+export interface BulkTeamMembersResponse {
+  success: boolean;
+  message: string;
+  data: {
+    addedCount: number;
+    members: TeamMember[];
+  };
+}
+
+export interface AvailableUsersResponse {
+  success: boolean;
+  message: string;
+  data: TeamMemberUser[];
+}
+
+export interface AddTeamMemberRequest {
+  userId?: number;
+  name: string;
+  email: string;
+  role?: "OWNER" | "LEAD" | "MEMBER";
+  avatar?: string;
+}
+
+export interface AddTeamMembersBulkRequest {
+  members: AddTeamMemberRequest[];
+}
+
+export interface UpdateTeamMemberRequest {
+  name?: string;
+  email?: string;
+  role?: "OWNER" | "LEAD" | "MEMBER";
+  avatar?: string;
+}
+
+/* ---------- API Slice ---------- */
 
 export const workspaceApi = createApi({
   reducerPath: "workspaceApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: getBaseUrl(),
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token =
-        state.auth?.token ||
-        (typeof window !== "undefined"
-          ? localStorage.getItem("accessToken")
-          : null);
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
-  tagTypes: ["Workspaces", "Workspace"],
+  baseQuery: baseQueryWithAuthHandling,
+  tagTypes: ["Workspaces", "Workspace", "Teams", "TeamMembers"],
   endpoints: (builder) => ({
     getWorkspaces: builder.query<WorkspacesResponse, GetWorkspacesParams | void>({
       query: (params) => {
@@ -187,10 +227,11 @@ export const workspaceApi = createApi({
       }),
       invalidatesTags: ["Workspaces"],
     }),
+
     // Team Endpoints
     getTeamsByWorkspace: builder.query<TeamsResponse, string>({
       query: (workspaceId) => `/teams?workspaceId=${workspaceId}`,
-      providesTags: ["Workspaces"],
+      providesTags: ["Workspaces", "Teams"],
     }),
     createTeam: builder.mutation<SingleTeamResponse, CreateTeamRequest>({
       query: (body) => ({
@@ -198,7 +239,7 @@ export const workspaceApi = createApi({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Workspaces"],
+      invalidatesTags: ["Workspaces", "Teams"],
     }),
     updateTeam: builder.mutation<
       SingleTeamResponse,
@@ -209,14 +250,93 @@ export const workspaceApi = createApi({
         method: "PATCH",
         body: data,
       }),
-      invalidatesTags: ["Workspaces"],
+      invalidatesTags: ["Workspaces", "Teams"],
     }),
     deleteTeam: builder.mutation<{ success: boolean; message: string }, string>({
       query: (id) => ({
         url: `/teams/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["Workspaces"],
+      invalidatesTags: ["Workspaces", "Teams"],
+    }),
+
+    // Team Members Endpoints
+    getTeamMembers: builder.query<TeamMembersResponse, string>({
+      query: (teamId) => `/teams/${teamId}/members`,
+      providesTags: (_result, _error, teamId) => [
+        { type: "TeamMembers", id: teamId },
+      ],
+    }),
+    addTeamMember: builder.mutation<
+      SingleTeamMemberResponse,
+      { teamId: string; data: AddTeamMemberRequest }
+    >({
+      query: ({ teamId, data }) => ({
+        url: `/teams/${teamId}/members`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { teamId }) => [
+        { type: "TeamMembers", id: teamId },
+        "Workspaces",
+        "Teams",
+      ],
+    }),
+    addTeamMembersBulk: builder.mutation<
+      BulkTeamMembersResponse,
+      { teamId: string; data: AddTeamMembersBulkRequest }
+    >({
+      query: ({ teamId, data }) => ({
+        url: `/teams/${teamId}/members/bulk`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { teamId }) => [
+        { type: "TeamMembers", id: teamId },
+        "Workspaces",
+        "Teams",
+      ],
+    }),
+    updateTeamMember: builder.mutation<
+      SingleTeamMemberResponse,
+      { teamId: string; memberId: string; data: UpdateTeamMemberRequest }
+    >({
+      query: ({ teamId, memberId, data }) => ({
+        url: `/teams/${teamId}/members/${memberId}`,
+        method: "PATCH",
+        body: data,
+      }),
+      invalidatesTags: (_result, _error, { teamId }) => [
+        { type: "TeamMembers", id: teamId },
+        "Workspaces",
+        "Teams",
+      ],
+    }),
+    removeTeamMember: builder.mutation<
+      { success: boolean; message: string },
+      { teamId: string; memberId: string }
+    >({
+      query: ({ teamId, memberId }) => ({
+        url: `/teams/${teamId}/members/${memberId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (_result, _error, { teamId }) => [
+        { type: "TeamMembers", id: teamId },
+        "Workspaces",
+        "Teams",
+      ],
+    }),
+    getAvailableUsersForTeam: builder.query<
+      AvailableUsersResponse,
+      { teamId: string; search?: string }
+    >({
+      query: ({ teamId, search }) => {
+        const queryParam = search ? `?search=${encodeURIComponent(search)}` : "";
+        return `/teams/${teamId}/available-users${queryParam}`;
+      },
+      providesTags: (_result, _error, { teamId }) => [
+        { type: "TeamMembers", id: teamId },
+      ],
     }),
   }),
 });
@@ -232,4 +352,11 @@ export const {
   useCreateTeamMutation,
   useUpdateTeamMutation,
   useDeleteTeamMutation,
+  useGetTeamMembersQuery,
+  useAddTeamMemberMutation,
+  useAddTeamMembersBulkMutation,
+  useUpdateTeamMemberMutation,
+  useRemoveTeamMemberMutation,
+  useGetAvailableUsersForTeamQuery,
 } = workspaceApi;
+

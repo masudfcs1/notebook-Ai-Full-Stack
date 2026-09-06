@@ -30,11 +30,24 @@ export type TaskStatus = "backlog" | "todo" | "in_progress" | "done" | "pending"
 export interface TeamMember {
   id: string
   teamId: string
+  userId?: number | null
   name: string
   email: string
   avatar?: string | null
   role: "OWNER" | "LEAD" | "MEMBER"
+  createdAt?: string
+  user?: {
+    id: number
+    uuid: string
+    name: string | null
+    username: string | null
+    email: string
+    avatar: string | null
+    role: string
+    status: string
+  } | null
 }
+
 
 export interface Team {
   id: string

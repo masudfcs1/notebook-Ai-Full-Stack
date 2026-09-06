@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { isJwtExpired } from "@/lib/jwt";
 
 export interface User {
   id: number;
@@ -32,6 +33,17 @@ export const authSlice = createSlice({
         const token = localStorage.getItem("accessToken");
         const saved = localStorage.getItem("user");
         if (token) {
+          if (isJwtExpired(token)) {
+            // Token is expired - clear stale session
+            state.user = null;
+            state.token = null;
+            state.isAuthenticated = false;
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            localStorage.removeItem("user");
+            return;
+          }
+
           state.token = token;
           state.isAuthenticated = true;
           if (saved) {

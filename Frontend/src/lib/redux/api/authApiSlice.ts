@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { baseQueryWithAuthHandling } from "./baseQuery";
 import type { User } from "../authSlice";
 
 export interface LoginRequest {
@@ -30,10 +30,6 @@ export interface LoginResponseData {
   user: User;
 }
 
-const getBaseUrl = () => {
-  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:5015/api/v1";
-};
-
 export interface UpdateProfileRequest {
   name?: string;
   username?: string;
@@ -48,17 +44,7 @@ export interface ChangePasswordRequest {
 
 export const authApi = createApi({
   reducerPath: "authApi",
-  baseQuery: fetchBaseQuery({
-    baseUrl: getBaseUrl(),
-    prepareHeaders: (headers, { getState }) => {
-      const state = getState() as RootState;
-      const token = state.auth?.token || (typeof window !== "undefined" ? localStorage.getItem("accessToken") : null);
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
-  }),
+  baseQuery: baseQueryWithAuthHandling,
   endpoints: (builder) => ({
     login: builder.mutation<ApiResponse<LoginResponseData>, LoginRequest>({
       query: (credentials) => ({

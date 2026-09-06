@@ -80,7 +80,9 @@ class UserRepository {
             }
             const workspaceCount = workspaceMap.size;
             const teamCount = Array.from(workspaceMap.values()).reduce((acc, teamSet) => acc + teamSet.size, 0);
-            const { workspaces, memberships, ...userWithoutRelations } = user;
+            const userWithoutRelations = { ...user };
+            delete userWithoutRelations.workspaces;
+            delete userWithoutRelations.memberships;
             return {
                 ...userWithoutRelations,
                 workspaceCount,
@@ -329,7 +331,7 @@ class UserRepository {
         };
     }
     async getLoginHistory(options) {
-        const { page, limit, search, userId, successful, sortBy = 'createdAt', sortOrder = 'desc' } = options;
+        const { page, limit, search, userId, successful, sortBy = 'createdAt', sortOrder = 'desc', } = options;
         const safePage = Math.max(1, page);
         const safeLimit = Math.min(Math.max(1, limit), 100);
         const where = {

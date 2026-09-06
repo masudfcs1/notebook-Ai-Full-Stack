@@ -1,8 +1,24 @@
 import { prisma } from '@/database';
-import { CreateTeamData, UpdateTeamData } from './types';
+import { CreateTeamData, UpdateTeamData, AddTeamMemberData, UpdateTeamMemberData } from './types';
 
 export class TeamRepository {
   async create(data: CreateTeamData) {
+    let ownerName = 'Team Owner';
+    let ownerEmail = '';
+    let ownerAvatar: string | undefined = undefined;
+
+    if (data.userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: data.userId },
+        select: { name: true, email: true, avatar: true },
+      });
+      if (user) {
+        ownerName = user.name || user.email.split('@')[0] || 'Team Owner';
+        ownerEmail = user.email;
+        ownerAvatar = user.avatar || undefined;
+      }
+    }
+
     return prisma.team.create({
       data: {
         workspaceId: data.workspaceId,
@@ -14,8 +30,9 @@ export class TeamRepository {
               create: [
                 {
                   userId: data.userId,
-                  name: 'Team Owner',
-                  email: '',
+                  name: ownerName,
+                  email: ownerEmail,
+                  avatar: ownerAvatar,
                   role: 'OWNER',
                 },
               ],
@@ -23,7 +40,22 @@ export class TeamRepository {
           : undefined,
       },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -32,7 +64,22 @@ export class TeamRepository {
     return prisma.team.findUnique({
       where: { id },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
         workspace: true,
       },
     });
@@ -43,7 +90,22 @@ export class TeamRepository {
       where: { workspaceId },
       orderBy: { createdAt: 'asc' },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -57,7 +119,22 @@ export class TeamRepository {
       where,
       orderBy: { createdAt: 'asc' },
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -72,7 +149,22 @@ export class TeamRepository {
       where: { id },
       data: updatePayload,
       include: {
-        members: true,
+        members: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        },
       },
     });
   }
@@ -82,6 +174,210 @@ export class TeamRepository {
       where: { id },
     });
   }
+
+  /* ---------- Team Member Methods ---------- */
+
+  async getMembers(teamId: string) {
+    return prisma.teamMember.findMany({
+      where: { teamId },
+      orderBy: [{ createdAt: 'asc' }],
+      include: {
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            name: true,
+            username: true,
+            email: true,
+            avatar: true,
+            role: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findMemberById(memberId: string) {
+    return prisma.teamMember.findUnique({
+      where: { id: memberId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            name: true,
+            username: true,
+            email: true,
+            avatar: true,
+            role: true,
+            status: true,
+          },
+        },
+        team: true,
+      },
+    });
+  }
+
+  async findMemberByTeamAndEmailOrUserId(teamId: string, email: string, userId?: number) {
+    const conditions: any[] = [{ email: { equals: email, mode: 'insensitive' } }];
+    if (userId) {
+      conditions.push({ userId });
+    }
+
+    return prisma.teamMember.findFirst({
+      where: {
+        teamId,
+        OR: conditions,
+      },
+      include: {
+        user: true,
+      },
+    });
+  }
+
+  async addMember(teamId: string, data: AddTeamMemberData) {
+    return prisma.teamMember.create({
+      data: {
+        teamId,
+        userId: data.userId,
+        name: data.name,
+        email: data.email,
+        avatar: data.avatar,
+        role: data.role || 'MEMBER',
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            name: true,
+            username: true,
+            email: true,
+            avatar: true,
+            role: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async addMembersBulk(teamId: string, membersData: AddTeamMemberData[]) {
+    const created = await prisma.$transaction(
+      membersData.map((data) =>
+        prisma.teamMember.create({
+          data: {
+            teamId,
+            userId: data.userId,
+            name: data.name,
+            email: data.email,
+            avatar: data.avatar,
+            role: data.role || 'MEMBER',
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                uuid: true,
+                name: true,
+                username: true,
+                email: true,
+                avatar: true,
+                role: true,
+                status: true,
+              },
+            },
+          },
+        })
+      )
+    );
+    return created;
+  }
+
+  async updateMember(memberId: string, data: UpdateTeamMemberData) {
+    const updatePayload: any = {};
+    if (data.name !== undefined) updatePayload.name = data.name;
+    if (data.email !== undefined) updatePayload.email = data.email;
+    if (data.role !== undefined) updatePayload.role = data.role;
+    if (data.avatar !== undefined) updatePayload.avatar = data.avatar;
+
+    return prisma.teamMember.update({
+      where: { id: memberId },
+      data: updatePayload,
+      include: {
+        user: {
+          select: {
+            id: true,
+            uuid: true,
+            name: true,
+            username: true,
+            email: true,
+            avatar: true,
+            role: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteMember(memberId: string) {
+    return prisma.teamMember.delete({
+      where: { id: memberId },
+    });
+  }
+
+  async searchAvailableUsers(teamId: string, search?: string) {
+    const existingMembers = await prisma.teamMember.findMany({
+      where: { teamId },
+      select: { userId: true, email: true },
+    });
+
+    const existingUserIds = existingMembers
+      .map((m) => m.userId)
+      .filter((id): id is number => typeof id === 'number');
+
+    const existingEmails = existingMembers.map((m) => m.email.toLowerCase()).filter(Boolean);
+
+    const where: any = {
+      status: { not: 'DELETED' },
+    };
+
+    if (existingUserIds.length > 0) {
+      where.id = { notIn: existingUserIds };
+    }
+
+    if (existingEmails.length > 0) {
+      where.email = { notIn: existingEmails };
+    }
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { email: { contains: q, mode: 'insensitive' } },
+        { username: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    return prisma.user.findMany({
+      where,
+      take: 20,
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        uuid: true,
+        name: true,
+        username: true,
+        email: true,
+        avatar: true,
+        role: true,
+        status: true,
+      },
+    });
+  }
 }
 
 export const teamRepository = new TeamRepository();
+

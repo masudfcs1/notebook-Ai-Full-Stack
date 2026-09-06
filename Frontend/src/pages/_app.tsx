@@ -4,6 +4,7 @@ import { Inter, Manrope } from 'next/font/google'
 import '@/styles/globals.css'
 import { Providers } from '@/components/providers'
 import { RouteStateSync } from '@/components/routing/route-state-sync'
+import { AuthTokenWatcher } from '@/components/auth/auth-token-watcher'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as SonnerToaster } from '@/components/ui/sonner'
 import { SITE_CONFIG } from '@/config/site'
@@ -32,6 +33,7 @@ export default function Application({ Component, pageProps }: AppProps) {
         <link rel='apple-touch-icon' href='/logo.png' />
       </Head>
       <Providers>
+        <AuthTokenWatcher />
         <RouteStateSync />
         <div
           className={`${inter.variable} ${manrope.variable} min-h-screen bg-background text-foreground antialiased`}
