@@ -170,12 +170,7 @@ export class WorkspaceRepository {
     });
   }
 
-  async findByIdOrSlug(
-    idOrSlug: string,
-    userId?: number,
-    isAdmin?: boolean,
-    userEmail?: string
-  ) {
+  async findByIdOrSlug(idOrSlug: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
     return (prisma.workspace as any).findFirst({
       where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
       include: {

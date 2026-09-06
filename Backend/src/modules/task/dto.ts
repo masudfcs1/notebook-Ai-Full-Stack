@@ -2,7 +2,11 @@ import { TaskPriority, TaskResponseDto, TaskStatus } from './types';
 
 export function toTaskResponse(task: any): TaskResponseDto {
   const teamKey = task.team?.key || 'TASK';
-  const shortId = (task.id || '').replace(/[^a-zA-Z0-9]/g, '').slice(-4).toUpperCase() || '101';
+  const shortId =
+    (task.id || '')
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .slice(-4)
+      .toUpperCase() || '101';
   const identifier = `${teamKey}-${shortId}`;
 
   return {

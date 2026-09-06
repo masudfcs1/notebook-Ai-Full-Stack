@@ -12,7 +12,12 @@ export class TaskService {
    * Lightweight team access check — uses targeted existence queries instead of
    * loading the full team with all members (saves ~30-50ms per call).
    */
-  private async checkTeamAccess(teamId: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  private async checkTeamAccess(
+    teamId: string,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     if (isAdmin) return;
 
     if (!userId) {
@@ -56,30 +61,39 @@ export class TaskService {
 
     // Fire-and-forget: don't block response for notification
     if (data.assignee) {
-      notificationService.create({
-        type: NotificationType.SYSTEM,
-        title: 'New Task Assigned',
-        message: `Task "${task.title}" has been assigned to ${data.assignee}.`,
-        data: {
-          taskId: task.id,
-          teamId: task.teamId,
-          title: task.title,
-          priority: task.priority,
-        },
-      }).catch((err) => logger.error({ err }, 'Failed to create task notification'));
+      notificationService
+        .create({
+          type: NotificationType.SYSTEM,
+          title: 'New Task Assigned',
+          message: `Task "${task.title}" has been assigned to ${data.assignee}.`,
+          data: {
+            taskId: task.id,
+            teamId: task.teamId,
+            title: task.title,
+            priority: task.priority,
+          },
+        })
+        .catch((err) => logger.error({ err }, 'Failed to create task notification'));
     }
 
     return toTaskResponse(task);
   }
 
-  async update(id: string, data: UpdateTaskData, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  async update(
+    id: string,
+    data: UpdateTaskData,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     const existing = await taskRepository.findById(id);
     if (!existing) {
       throw AppError.notFound('Task not found');
     }
 
     // Only check access once — for the relevant team
-    const targetTeamId = data.teamId && data.teamId !== existing.teamId ? data.teamId : existing.teamId;
+    const targetTeamId =
+      data.teamId && data.teamId !== existing.teamId ? data.teamId : existing.teamId;
     if (targetTeamId) {
       await this.checkTeamAccess(targetTeamId, userId, isAdmin, userEmail);
     }
@@ -90,22 +104,30 @@ export class TaskService {
 
     // Fire-and-forget: completion notification
     if (data.status === 'done' && existing.status !== 'done') {
-      notificationService.create({
-        type: NotificationType.SYSTEM,
-        title: 'Task Completed',
-        message: `Task "${updated.title}" was marked as completed.`,
-        data: {
-          taskId: updated.id,
-          teamId: updated.teamId,
-          title: updated.title,
-        },
-      }).catch((err) => logger.error({ err }, 'Failed to emit task completion notification'));
+      notificationService
+        .create({
+          type: NotificationType.SYSTEM,
+          title: 'Task Completed',
+          message: `Task "${updated.title}" was marked as completed.`,
+          data: {
+            taskId: updated.id,
+            teamId: updated.teamId,
+            title: updated.title,
+          },
+        })
+        .catch((err) => logger.error({ err }, 'Failed to emit task completion notification'));
     }
 
     return toTaskResponse(updated);
   }
 
-  async updateStatus(id: string, status: string, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  async updateStatus(
+    id: string,
+    status: string,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     const existing = await taskRepository.findById(id);
     if (!existing) {
       throw AppError.notFound('Task not found');
@@ -149,14 +171,26 @@ export class TaskService {
     return toTaskResponse(task);
   }
 
-  async findByTeamId(teamId: string, filters: TaskFilterQuery = {}, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  async findByTeamId(
+    teamId: string,
+    filters: TaskFilterQuery = {},
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     await this.checkTeamAccess(teamId, userId, isAdmin, userEmail);
 
     const tasks = await taskRepository.findByTeamId(teamId, filters);
     return toTaskListResponse(tasks);
   }
 
-  async findByWorkspaceId(workspaceId: string, filters: TaskFilterQuery = {}, userId?: number, isAdmin?: boolean, userEmail?: string) {
+  async findByWorkspaceId(
+    workspaceId: string,
+    filters: TaskFilterQuery = {},
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ) {
     // If not admin, get user's accessible team IDs in this workspace
     let accessibleTeamIds: string[] | undefined;
 
@@ -196,7 +230,13 @@ export class TaskService {
     return toTaskListResponse(tasks);
   }
 
-  async getStats(teamId?: string, workspaceId?: string, userId?: number, isAdmin?: boolean, userEmail?: string): Promise<TaskStatsResponse> {
+  async getStats(
+    teamId?: string,
+    workspaceId?: string,
+    userId?: number,
+    isAdmin?: boolean,
+    userEmail?: string
+  ): Promise<TaskStatsResponse> {
     let accessibleTeamIds: string[] | undefined;
 
     if (teamId) {

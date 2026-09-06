@@ -6,7 +6,17 @@ import { HTTP_STATUS } from '@/constants';
 
 export class TaskController {
   create = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
-    const { teamId, title, description, assignee, assigneeAvatar, dueDate, priority, status, noteId } = req.body;
+    const {
+      teamId,
+      title,
+      description,
+      assignee,
+      assigneeAvatar,
+      dueDate,
+      priority,
+      status,
+      noteId,
+    } = req.body;
     const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
     const task = await taskService.create(
@@ -32,7 +42,17 @@ export class TaskController {
 
   update = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
     const { id } = req.params;
-    const { title, description, assignee, assigneeAvatar, dueDate, priority, status, teamId, noteId } = req.body;
+    const {
+      title,
+      description,
+      assignee,
+      assigneeAvatar,
+      dueDate,
+      priority,
+      status,
+      teamId,
+      noteId,
+    } = req.body;
     const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
     const task = await taskService.update(
@@ -98,7 +118,8 @@ export class TaskController {
   });
 
   getByWorkspace = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
-    const { workspaceId, teamId, status, priority, assignee, search, sortBy, sortOrder } = req.query as any;
+    const { workspaceId, teamId, status, priority, assignee, search, sortBy, sortOrder } =
+      req.query as any;
     const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
     if (teamId) {
@@ -130,7 +151,13 @@ export class TaskController {
     const { teamId, workspaceId } = req.query as { teamId?: string; workspaceId?: string };
     const isAdmin = req.user?.role === 'ADMIN' || req.user?.role === 'SUPER_ADMIN';
 
-    const stats = await taskService.getStats(teamId, workspaceId, req.user?.id, isAdmin, req.user?.email);
+    const stats = await taskService.getStats(
+      teamId,
+      workspaceId,
+      req.user?.id,
+      isAdmin,
+      req.user?.email
+    );
     return sendSuccess(res, 'Task statistics fetched successfully', stats);
   });
 }
