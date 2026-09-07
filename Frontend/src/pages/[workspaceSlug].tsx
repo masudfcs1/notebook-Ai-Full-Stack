@@ -6,7 +6,7 @@ interface WorkspacePageProps {
 }
 
 export default function WorkspacePage({ workspaceSlug }: WorkspacePageProps) {
-  return <AppPage title='Workspace' workspaceSlug={workspaceSlug} />
+  return <AppPage title='Workspace' workspaceSlug={workspaceSlug} initialView='team' />
 }
 
 export const getServerSideProps: GetServerSideProps<WorkspacePageProps> = async ({
@@ -20,4 +20,3 @@ export const getServerSideProps: GetServerSideProps<WorkspacePageProps> = async 
 
   return { props: { workspaceSlug } }
 }
-

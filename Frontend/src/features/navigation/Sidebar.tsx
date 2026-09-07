@@ -197,7 +197,15 @@ export function Sidebar() {
                     key={ws.id}
                     onClick={() => {
                       dispatch(setActiveWorkspace(ws.id));
-                      void router.push(`/${ws.slug}`);
+                      if (view === "team" && ws.teams && ws.teams.length > 0) {
+                        const firstTeam = ws.teams[0];
+                        dispatch(setActiveTeam(firstTeam.id));
+                        void router.push(
+                          `/${ws.slug}/${firstTeam.slug || firstTeam.key.toLowerCase()}`
+                        );
+                      } else {
+                        void router.push(`/${ws.slug}`);
+                      }
                     }}
                     className="flex items-center justify-between py-2 cursor-pointer group"
                   >
