@@ -1,69 +1,12 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragStartEvent,
-  type DragEndEvent,
-  useDroppable,
-  useDraggable,
-} from "@dnd-kit/core";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  CheckSquare,
-  Clock,
-  Loader2,
-  Plus,
-  User,
-  Calendar,
-  Flame,
-  ArrowUp,
-  Minus,
-  Circle,
-  LayoutGrid,
-  List,
-  Search,
-  Filter,
-  Building2,
-  Users,
-  MoreHorizontal,
-  CheckCircle2,
-  ChevronRight,
-  X,
-  AlertTriangle,
-  TrendingUp,
-  Edit3,
-  Trash2,
-  Sparkles,
-  Layers,
-  Check,
-} from "lucide-react";
-import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
-import {
-  useGetTasksByWorkspaceQuery,
-  useGetTaskStatsQuery,
-  useUpdateTaskStatusMutation,
-  useDeleteTaskMutation,
-  type TaskItem,
-} from "@/lib/redux/api/taskApiSlice";
-import {
-  addTask,
-  updateTaskStatus,
-  deleteTask,
-  updateTask,
-} from "@/lib/redux/dataSlice";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { DeleteTaskModal } from "@/components/modals/delete-task-modal";
+import { TaskDetailModal } from "@/components/modals/task-detail-modal";
+import { TaskModal } from "@/components/modals/task-modal";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
-import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
-import { getTeamTheme } from "@/lib/team-theme";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,10 +15,55 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { TaskModal } from "@/components/modals/task-modal";
-import { DeleteTaskModal } from "@/components/modals/delete-task-modal";
-import { TaskDetailModal } from "@/components/modals/task-detail-modal";
+import {
+  useGetTasksByWorkspaceQuery,
+  useGetTaskStatsQuery,
+  useUpdateTaskMutation,
+  useUpdateTaskStatusMutation,
+  type TaskItem,
+} from "@/lib/redux/api/taskApiSlice";
+import { updateTask } from "@/lib/redux/dataSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
+import { getTeamTheme } from "@/lib/team-theme";
+import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
 import type { ActionItem, PriorityLevel, TaskStatus } from "@/types";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  ArrowUp,
+  Calendar,
+  Check,
+  CheckSquare,
+  ChevronDown,
+  ChevronRight,
+  Circle,
+  Edit3,
+  Flame,
+  Layers,
+  LayoutGrid,
+  List,
+  Minus,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Sparkles,
+  Trash2,
+  User,
+  UserPlus,
+  Users,
+  X,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 // Kanban Columns Definition
 const KANBAN_COLUMNS: {
@@ -163,7 +151,9 @@ export function ActionItemsView() {
   const teams = activeWorkspace?.teams || [];
 
   // Team Selection Filter State
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(activeTeamId);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(
+    activeTeamId,
+  );
 
   useEffect(() => {
     if (activeTeamId) {
@@ -179,24 +169,25 @@ export function ActionItemsView() {
 
   const teamTheme = useMemo(
     () => getTeamTheme(currentTeam?.key || currentTeam?.id || "TASKS"),
-    [currentTeam]
+    [currentTeam],
   );
 
   // Queries
-  const { data: tasksRes, isLoading: isLoadingTasks } = useGetTasksByWorkspaceQuery(
-    {
-      workspaceId: activeWorkspace?.id || "",
-      params: { teamId: selectedTeamId || undefined },
-    },
-    { skip: !activeWorkspace?.id }
-  );
+  const { data: tasksRes, isLoading: isLoadingTasks } =
+    useGetTasksByWorkspaceQuery(
+      {
+        workspaceId: activeWorkspace?.id || "",
+        params: { teamId: selectedTeamId || undefined },
+      },
+      { skip: !activeWorkspace?.id },
+    );
 
   const { data: statsRes } = useGetTaskStatsQuery(
     {
       teamId: selectedTeamId || undefined,
       workspaceId: !selectedTeamId ? activeWorkspace?.id : undefined,
     },
-    { skip: !activeWorkspace?.id }
+    { skip: !activeWorkspace?.id },
   );
 
   // Combine tasks from API with local fallback
@@ -213,6 +204,53 @@ export function ActionItemsView() {
 
   // Mutations
   const [updateStatusMutation] = useUpdateTaskStatusMutation();
+  const [updateTaskMutation] = useUpdateTaskMutation();
+
+  // Available members across the current scope / workspace
+  const availableMembers = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        id: string;
+        name: string;
+        email: string;
+        avatar?: string | null;
+        role: string;
+      }
+    >();
+
+    // Add current authenticated user
+    if (user) {
+      map.set((user.email || user.name || "me").toLowerCase(), {
+        id: `user-${user.id}`,
+        name: user.name || "You",
+        email: user.email || "",
+        avatar: user.avatar,
+        role: user.role || "MEMBER",
+      });
+    }
+
+    // Add members from active team or all workspace teams
+    const relevantTeams = selectedTeamId
+      ? teams.filter((t) => t.id === selectedTeamId)
+      : teams;
+    relevantTeams.forEach((t) => {
+      t.members?.forEach((m) => {
+        const key = (m.email || m.name || m.id).toLowerCase();
+        if (!map.has(key)) {
+          map.set(key, {
+            id: m.id,
+            name: m.user?.name || m.name,
+            email: m.user?.email || m.email,
+            avatar: m.user?.avatar || m.avatar,
+            role: m.role || "MEMBER",
+          });
+        }
+      });
+    });
+
+    return Array.from(map.values());
+  }, [user, teams, selectedTeamId]);
 
   // View & Filter State
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
@@ -220,24 +258,36 @@ export function ActionItemsView() {
   const [quickFilter, setQuickFilter] = useState<
     "all" | "my_tasks" | "urgent_high" | "overdue" | "done"
   >("all");
+  const [selectedUserFilter, setSelectedUserFilter] = useState<string | null>(
+    null,
+  );
 
   // Drag & Drop State
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
   );
 
   // Modals State
   const [taskModalOpen, setTaskModalOpen] = useState(false);
-  const [taskModalMode, setTaskModalMode] = useState<"create" | "edit">("create");
-  const [taskToEdit, setTaskToEdit] = useState<TaskItem | ActionItem | null>(null);
-  const [defaultModalStatus, setDefaultModalStatus] = useState<TaskStatus>("todo");
+  const [taskModalMode, setTaskModalMode] = useState<"create" | "edit">(
+    "create",
+  );
+  const [taskToEdit, setTaskToEdit] = useState<TaskItem | ActionItem | null>(
+    null,
+  );
+  const [defaultModalStatus, setDefaultModalStatus] =
+    useState<TaskStatus>("todo");
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [taskToDelete, setTaskToDelete] = useState<TaskItem | ActionItem | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<
+    TaskItem | ActionItem | null
+  >(null);
 
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const [taskToView, setTaskToView] = useState<TaskItem | ActionItem | null>(null);
+  const [taskToView, setTaskToView] = useState<TaskItem | ActionItem | null>(
+    null,
+  );
 
   // Today string for overdue checking
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
@@ -256,12 +306,28 @@ export function ActionItemsView() {
 
       if (!matchSearch) return false;
 
+      // User Token Filter
+      if (selectedUserFilter !== null) {
+        if (selectedUserFilter === "__unassigned__") {
+          if (t.assignee) return false;
+        } else {
+          const target = selectedUserFilter.toLowerCase();
+          const taskAssignee = (t.assignee || "").toLowerCase();
+          if (!taskAssignee || !taskAssignee.includes(target)) {
+            return false;
+          }
+        }
+      }
+
       // Quick Filter
       if (quickFilter === "my_tasks") {
         const userName = user?.name?.toLowerCase() || "";
         const userEmail = user?.email?.toLowerCase() || "";
         const assignee = (t.assignee || "").toLowerCase();
-        return assignee && (assignee.includes(userName) || assignee.includes(userEmail));
+        return (
+          assignee &&
+          (assignee.includes(userName) || assignee.includes(userEmail))
+        );
       }
       if (quickFilter === "urgent_high") {
         return t.priority === "urgent" || t.priority === "high";
@@ -280,7 +346,7 @@ export function ActionItemsView() {
 
       return true;
     });
-  }, [tasks, search, quickFilter, user, todayStr]);
+  }, [tasks, search, selectedUserFilter, quickFilter, user, todayStr]);
 
   // Statistics
   const stats = useMemo(() => {
@@ -301,7 +367,12 @@ export function ActionItemsView() {
       else if (s === "in_progress") inProgress++;
       else if (s === "done" || s === "completed") done++;
 
-      if (t.dueDate && t.dueDate < todayStr && s !== "done" && s !== "completed") {
+      if (
+        t.dueDate &&
+        t.dueDate < todayStr &&
+        s !== "done" &&
+        s !== "completed"
+      ) {
         overdue++;
       }
     }
@@ -320,6 +391,39 @@ export function ActionItemsView() {
   }, [statsRes, tasks, todayStr]);
 
   // Handlers
+  async function handleAssignUser(
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) {
+    try {
+      dispatch(
+        updateTask({
+          id: task.id,
+          assignee: memberName || undefined,
+          assigneeAvatar: memberAvatar || undefined,
+        }),
+      );
+
+      await updateTaskMutation({
+        id: task.id,
+        teamId: task.teamId || teams[0]?.id || "",
+        data: {
+          assignee: memberName || null,
+          assigneeAvatar: memberAvatar || null,
+        },
+      }).unwrap();
+
+      toast.success(
+        memberName ? `Assigned to ${memberName}` : "Task unassigned",
+      );
+    } catch (err: any) {
+      toast.error(
+        err?.data?.message || err?.message || "Failed to update task assignee",
+      );
+    }
+  }
+
   function handleOpenCreate(columnStatus: TaskStatus = "todo") {
     setDefaultModalStatus(columnStatus);
     setTaskModalMode("create");
@@ -352,11 +456,11 @@ export function ActionItemsView() {
         teamId: task?.teamId || undefined,
       }).unwrap();
 
-      toast.success(
-        `Moved to ${targetStatus.replace("_", " ").toUpperCase()}`
-      );
+      toast.success(`Moved to ${targetStatus.replace("_", " ").toUpperCase()}`);
     } catch (err: any) {
-      toast.error(err?.data?.message || err?.message || "Failed to update status");
+      toast.error(
+        err?.data?.message || err?.message || "Failed to update status",
+      );
     }
   }
 
@@ -388,102 +492,84 @@ export function ActionItemsView() {
     }
   }
 
-  const activeDragTask = tasks.find((t) => t.id === activeDragId) || null;
+  const activeDragTask = useMemo(() => {
+    if (!activeDragId) return null;
+    return tasks.find((t) => t.id === activeDragId) || null;
+  }, [activeDragId, tasks]);
 
   return (
-    <div className="space-y-4">
-      {/* Dynamic Team Header & Health Metric Cards */}
-      <Card className="relative overflow-hidden border-white/10 bg-gradient-to-r from-card/95 via-card/75 to-background/60 p-5 backdrop-blur-xl shadow-lg">
-        {/* Dynamic ambient glow matching team theme */}
-        <div
-          className={cn(
-            "pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full blur-3xl opacity-35",
-            teamTheme.glow
-          )}
-        />
-
-        <div className="relative flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          {/* Left Title & Team Switcher */}
-          <div className="flex items-center gap-3.5 min-w-0">
-            <div
-              className={cn(
-                "flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border text-2xl shadow-inner ring-1 ring-white/10",
-                teamTheme.subtleBg,
-                teamTheme.badgeBorder,
-                teamTheme.badgeText
+    <div className="space-y-6">
+      {/* Header & Stats Bar */}
+      <Card className="dashboard-glass-card border-white/10 bg-card/60 p-5 shadow-xl backdrop-blur-xl">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+                <CheckSquare className="h-4 w-4" />
+              </span>
+              <h2 className="text-xl font-bold tracking-tight text-foreground">
+                Action Items Matrix
+              </h2>
+              {currentTeam && (
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "gap-1 text-xs",
+                    teamTheme.badgeText,
+                    teamTheme.badgeBorder,
+                    teamTheme.subtleBg,
+                  )}
+                >
+                  <Layers className="h-3 w-3" />
+                  {currentTeam.name}
+                </Badge>
               )}
-            >
-              {currentTeam?.icon || "⚡"}
             </div>
-
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight text-foreground">
-                  {currentTeam ? currentTeam.name : "Workspace Action Items"}
-                </h1>
-                {currentTeam ? (
-                  <Badge
-                    variant="outline"
-                    className={cn("font-mono text-xs font-semibold uppercase tracking-wider", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}
-                  >
-                    {currentTeam.key}
-                  </Badge>
-                ) : (
-                  <Badge variant="outline" className="text-xs bg-indigo-500/10 text-indigo-400 border-indigo-500/30">
-                    All Workspace Teams
-                  </Badge>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                {activeWorkspace?.name} · Enterprise Linear-Style Issue & Action Item Tracking
-              </p>
-            </div>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Track tasks, assign member tokens, and monitor workspace action
+              items across pipeline stages.
+            </p>
           </div>
 
-          {/* Right Metrics Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 shrink-0">
-            {/* Total */}
-            <div className="rounded-xl border border-white/10 bg-card/60 px-3 py-2 text-left">
-              <span className="text-[10px] text-muted-foreground block font-medium">Total Tasks</span>
-              <span className="text-base font-bold text-foreground">{stats.total}</span>
+          {/* Quick Stats Grid */}
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Total Tasks
+              </span>
+              <p className="text-lg font-bold text-foreground">{stats.total}</p>
             </div>
 
-            {/* In Progress */}
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-2 text-left">
-              <span className="text-[10px] text-amber-300 block font-medium">In Progress</span>
-              <span className="text-base font-bold text-amber-400">{stats.inProgress}</span>
+            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                In Progress
+              </span>
+              <p className="text-lg font-bold text-amber-400">
+                {stats.inProgress}
+              </p>
             </div>
 
-            {/* Done Rate */}
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-left">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] text-emerald-300 block font-medium">Done</span>
-                <span className="text-[10px] text-emerald-400 font-bold">{stats.completionRate}%</span>
-              </div>
-              <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-emerald-950/40">
-                <div
-                  className="h-full bg-emerald-400 transition-all duration-500 rounded-full"
-                  style={{ width: `${stats.completionRate}%` }}
-                />
-              </div>
+            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Done Rate
+              </span>
+              <p className="text-lg font-bold text-emerald-400">
+                {stats.completionRate}%
+              </p>
             </div>
 
-            {/* Overdue */}
-            <div
-              className={cn(
-                "rounded-xl border px-3 py-2 text-left transition-colors",
-                stats.overdue > 0
-                  ? "border-rose-500/30 bg-rose-500/15"
-                  : "border-white/10 bg-card/60"
-              )}
-            >
-              <span className="text-[10px] text-rose-300 block font-medium flex items-center gap-1">
-                {stats.overdue > 0 && <AlertTriangle className="h-3 w-3 text-rose-400 animate-pulse" />}
+            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Overdue
               </span>
-              <span className={cn("text-base font-bold", stats.overdue > 0 ? "text-rose-400" : "text-muted-foreground")}>
+              <p
+                className={cn(
+                  "text-lg font-bold",
+                  stats.overdue > 0 ? "text-rose-400" : "text-muted-foreground",
+                )}
+              >
                 {stats.overdue}
-              </span>
+              </p>
             </div>
           </div>
         </div>
@@ -500,12 +586,14 @@ export function ActionItemsView() {
                 "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
                 selectedTeamId === null
                   ? "border-indigo-500/50 bg-indigo-500 text-white shadow-sm font-bold"
-                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <span>🌐</span>
               <span>All Teams</span>
-              <span className="text-[10px] opacity-80">({reduxTasks.length})</span>
+              <span className="text-[10px] opacity-80">
+                ({reduxTasks.length})
+              </span>
             </button>
 
             {teams.map((t) => {
@@ -520,16 +608,104 @@ export function ActionItemsView() {
                   className={cn(
                     "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
                     isSelected
-                      ? cn("border-transparent font-bold text-white shadow-sm bg-gradient-to-r", theme.gradient)
-                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+                      ? cn(
+                          "border-transparent font-bold text-white shadow-sm bg-gradient-to-r",
+                          theme.gradient,
+                        )
+                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <span>{t.icon || "👥"}</span>
                   <span>{t.name}</span>
-                  <span className="text-[10px] font-mono opacity-80">({t.key})</span>
+                  <span className="text-[10px] font-mono opacity-80">
+                    ({t.key})
+                  </span>
                 </button>
               );
             })}
+          </div>
+        )}
+
+        {/* User / Member Token Filter Row */}
+        {availableMembers.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-3">
+            <span className="text-xs text-muted-foreground font-semibold mr-1 flex items-center gap-1">
+              <User className="h-3.5 w-3.5 text-emerald-400" /> Member Tokens:
+            </span>
+            <button
+              onClick={() => setSelectedUserFilter(null)}
+              className={cn(
+                "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                selectedUserFilter === null
+                  ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 font-bold shadow-sm"
+                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+              )}
+            >
+              <span>All Assignees</span>
+            </button>
+
+            {availableMembers.map((m) => {
+              const isSelected =
+                selectedUserFilter?.toLowerCase() === m.name.toLowerCase() ||
+                selectedUserFilter?.toLowerCase() === m.email.toLowerCase();
+              const count = tasks.filter(
+                (x) =>
+                  (x.assignee || "")
+                    .toLowerCase()
+                    .includes(m.name.toLowerCase()) ||
+                  (x.assignee || "")
+                    .toLowerCase()
+                    .includes(m.email.toLowerCase()),
+              ).length;
+
+              return (
+                <button
+                  key={m.id}
+                  onClick={() =>
+                    setSelectedUserFilter(isSelected ? null : m.name)
+                  }
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                    isSelected
+                      ? "border-emerald-500 bg-emerald-500 text-white font-bold shadow-sm"
+                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <Avatar className="h-3.5 w-3.5">
+                    <AvatarImage src={getAvatarUrl(m.avatar)} />
+                    <AvatarFallback className="text-[7px]">
+                      {getUserInitials(m.name, m.email)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{m.name}</span>
+                  <span className="text-[10px] opacity-70">({count})</span>
+                </button>
+              );
+            })}
+
+            {/* Unassigned Filter Token */}
+            {(() => {
+              const unassignedCount = tasks.filter((x) => !x.assignee).length;
+              const isSelected = selectedUserFilter === "__unassigned__";
+              return (
+                <button
+                  onClick={() =>
+                    setSelectedUserFilter(isSelected ? null : "__unassigned__")
+                  }
+                  className={cn(
+                    "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                    isSelected
+                      ? "border-amber-500 bg-amber-500 text-white font-bold shadow-sm"
+                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  )}
+                >
+                  <span>Unassigned</span>
+                  <span className="text-[10px] opacity-70">
+                    ({unassignedCount})
+                  </span>
+                </button>
+              );
+            })()}
           </div>
         )}
       </Card>
@@ -574,7 +750,7 @@ export function ActionItemsView() {
                   "rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                   quickFilter === f.id
                     ? "bg-indigo-600 text-white font-semibold shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 {f.label}
@@ -593,7 +769,7 @@ export function ActionItemsView() {
                 "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                 viewMode === "board"
                   ? "bg-indigo-600 text-white font-semibold shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <LayoutGrid className="h-3.5 w-3.5" /> Board
@@ -604,7 +780,7 @@ export function ActionItemsView() {
                 "flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
                 viewMode === "list"
                   ? "bg-indigo-600 text-white font-semibold shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground",
               )}
             >
               <List className="h-3.5 w-3.5" /> List
@@ -631,7 +807,7 @@ export function ActionItemsView() {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {KANBAN_COLUMNS.map((col) => {
               const colTasks = filteredTasks.filter(
-                (t) => (t.status || "todo") === col.id
+                (t) => (t.status || "todo") === col.id,
               );
 
               return (
@@ -639,6 +815,8 @@ export function ActionItemsView() {
                   key={col.id}
                   column={col}
                   tasks={colTasks}
+                  availableMembers={availableMembers}
+                  onAssignUser={handleAssignUser}
                   onAdd={() => handleOpenCreate(col.id)}
                   onEdit={handleOpenEdit}
                   onDelete={handleOpenDelete}
@@ -656,6 +834,8 @@ export function ActionItemsView() {
               <div className="rotate-2 scale-105 opacity-90 shadow-2xl">
                 <TaskCardItem
                   task={activeDragTask}
+                  availableMembers={availableMembers}
+                  onAssignUser={handleAssignUser}
                   onEdit={() => {}}
                   onDelete={() => {}}
                   onView={() => {}}
@@ -669,6 +849,8 @@ export function ActionItemsView() {
       ) : (
         <ListView
           tasks={filteredTasks}
+          availableMembers={availableMembers}
+          onAssignUser={handleAssignUser}
           onAdd={() => handleOpenCreate("todo")}
           onEdit={handleOpenEdit}
           onDelete={handleOpenDelete}
@@ -704,10 +886,190 @@ export function ActionItemsView() {
           setTaskToView(null);
         }}
         task={taskToView}
+        availableMembers={availableMembers}
+        onAssignUser={handleAssignUser}
         onEdit={handleOpenEdit}
         onDelete={handleOpenDelete}
         onStatusChange={handleQuickStatusChange}
       />
+    </div>
+  );
+}
+
+/* ========================================================================= */
+/* ASSIGNEE USER TOKEN MENU COMPONENT                                        */
+/* ========================================================================= */
+
+interface AssigneeUserTokenMenuProps {
+  task: TaskItem | ActionItem;
+  availableMembers: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    role: string;
+  }[];
+  onAssign: (
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) => void;
+  size?: "sm" | "md";
+}
+
+function AssigneeUserTokenMenu({
+  task,
+  availableMembers,
+  onAssign,
+  size = "sm",
+}: AssigneeUserTokenMenuProps) {
+  const [search, setSearch] = useState("");
+  const isAssigned = !!task.assignee;
+
+  const filteredMembers = useMemo(() => {
+    if (!search.trim()) return availableMembers;
+    const s = search.toLowerCase();
+    return availableMembers.filter(
+      (m) =>
+        m.name.toLowerCase().includes(s) || m.email.toLowerCase().includes(s),
+    );
+  }, [availableMembers, search]);
+
+  return (
+    <div onClick={(e) => e.stopPropagation()}>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "group/assignee flex items-center gap-1.5 rounded-lg border transition-all cursor-pointer",
+              isAssigned
+                ? "border-border/60 bg-card/60 px-2 py-0.5 text-foreground hover:border-indigo-500/50 hover:bg-indigo-500/10"
+                : "border-dashed border-border/70 bg-transparent px-2 py-0.5 text-muted-foreground hover:border-indigo-500/60 hover:text-indigo-400 hover:bg-indigo-500/5",
+              size === "sm" ? "text-[11px]" : "text-xs px-2.5 py-1",
+            )}
+            title={
+              isAssigned
+                ? `Assigned to ${task.assignee} (Click to change)`
+                : "Click to assign user token"
+            }
+          >
+            {isAssigned ? (
+              <>
+                <Avatar
+                  className={cn(
+                    size === "sm" ? "h-4 w-4" : "h-5 w-5",
+                    "shrink-0 ring-1 ring-border/50",
+                  )}
+                >
+                  <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
+                  <AvatarFallback className="text-[8px] bg-linear-to-br from-indigo-500 to-purple-600 text-white font-semibold">
+                    {getUserInitials(task.assignee)}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="truncate max-w-[90px] font-medium">
+                  {task.assignee}
+                </span>
+                <ChevronDown className="h-2.5 w-2.5 opacity-40 group-hover/assignee:opacity-100 transition-opacity" />
+              </>
+            ) : (
+              <>
+                <UserPlus className="h-3 w-3 text-indigo-400/80" />
+                <span className="font-medium text-muted-foreground/80">
+                  + Assign
+                </span>
+              </>
+            )}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="start"
+          className="w-56 bg-popover/95 border-border shadow-xl backdrop-blur-md p-1.5 z-50"
+        >
+          <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground px-2 py-1 flex items-center justify-between">
+            <span>Assign User Token</span>
+            <Users className="h-3 w-3 text-indigo-400" />
+          </DropdownMenuLabel>
+
+          {/* Member Search input */}
+          <div className="px-1 py-1 mb-1">
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search member..."
+              className="w-full rounded-md border border-border/60 bg-muted/40 px-2 py-1 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+
+          <DropdownMenuSeparator />
+
+          {/* Members List */}
+          <div className="max-h-48 overflow-y-auto space-y-0.5">
+            {filteredMembers.map((m) => {
+              const isSelected =
+                task.assignee?.toLowerCase() === m.name.toLowerCase() ||
+                task.assignee?.toLowerCase() === m.email.toLowerCase();
+              return (
+                <DropdownMenuItem
+                  key={m.id}
+                  onClick={() => onAssign(task, m.name, m.avatar)}
+                  className={cn(
+                    "flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-xs cursor-pointer",
+                    isSelected
+                      ? "bg-indigo-500/15 font-semibold text-indigo-400"
+                      : "hover:bg-muted",
+                  )}
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Avatar className="h-5 w-5 shrink-0 ring-1 ring-border/50">
+                      <AvatarImage src={getAvatarUrl(m.avatar)} />
+                      <AvatarFallback className="text-[8px] bg-linear-to-br from-indigo-500 to-purple-600 text-white font-semibold">
+                        {getUserInitials(m.name, m.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="truncate">
+                      <p className="truncate text-xs leading-tight">{m.name}</p>
+                      <p className="truncate text-[10px] text-muted-foreground">
+                        {m.email}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    {m.role && (
+                      <span className="text-[9px] font-mono uppercase px-1 py-0.2 rounded bg-muted text-muted-foreground">
+                        {m.role}
+                      </span>
+                    )}
+                    {isSelected && (
+                      <Check className="h-3 w-3 text-indigo-400" />
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              );
+            })}
+
+            {filteredMembers.length === 0 && (
+              <p className="py-2 text-center text-[11px] text-muted-foreground italic">
+                No matching members
+              </p>
+            )}
+          </div>
+
+          {isAssigned && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onAssign(task, null, null)}
+                className="gap-2 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 cursor-pointer px-2 py-1.5"
+              >
+                <X className="h-3.5 w-3.5" /> Unassign User
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }
@@ -726,6 +1088,18 @@ interface KanbanColumnProps {
     badge: string;
   };
   tasks: (TaskItem | ActionItem)[];
+  availableMembers: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    role: string;
+  }[];
+  onAssignUser: (
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) => void;
   onAdd: () => void;
   onEdit: (task: TaskItem | ActionItem) => void;
   onDelete: (task: TaskItem | ActionItem) => void;
@@ -737,6 +1111,8 @@ interface KanbanColumnProps {
 function KanbanColumn({
   column,
   tasks,
+  availableMembers,
+  onAssignUser,
   onAdd,
   onEdit,
   onDelete,
@@ -754,7 +1130,7 @@ function KanbanColumn({
       className={cn(
         "flex flex-col rounded-2xl border bg-card/40 p-3.5 backdrop-blur-md transition-colors min-h-[480px]",
         column.border,
-        isOver && "ring-2 ring-indigo-500/40 bg-indigo-500/5"
+        isOver && "ring-2 ring-indigo-500/40 bg-indigo-500/5",
       )}
     >
       {/* Column Header */}
@@ -787,6 +1163,8 @@ function KanbanColumn({
           <DraggableTaskCard
             key={task.id}
             task={task}
+            availableMembers={availableMembers}
+            onAssignUser={onAssignUser}
             onEdit={onEdit}
             onDelete={onDelete}
             onView={onView}
@@ -818,6 +1196,18 @@ function KanbanColumn({
 
 interface DraggableCardProps {
   task: TaskItem | ActionItem;
+  availableMembers: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    role: string;
+  }[];
+  onAssignUser: (
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) => void;
   onEdit: (task: TaskItem | ActionItem) => void;
   onDelete: (task: TaskItem | ActionItem) => void;
   onView: (task: TaskItem | ActionItem) => void;
@@ -844,6 +1234,8 @@ function DraggableTaskCard(props: DraggableCardProps) {
 
 function TaskCardItem({
   task,
+  availableMembers,
+  onAssignUser,
   onEdit,
   onDelete,
   onView,
@@ -851,12 +1243,12 @@ function TaskCardItem({
   todayStr,
 }: DraggableCardProps) {
   const teamTheme = getTeamTheme(task.teamKey || task.teamId || "TASK");
-  const pMeta = PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
+  const pMeta =
+    PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
   const PriorityIcon = pMeta.icon;
 
   const isDone = task.status === "done" || task.status === "completed";
-  const isOverdue =
-    task.dueDate && task.dueDate < todayStr && !isDone;
+  const isOverdue = task.dueDate && task.dueDate < todayStr && !isDone;
   const isDueToday = task.dueDate === todayStr && !isDone;
 
   return (
@@ -864,7 +1256,7 @@ function TaskCardItem({
       onClick={() => onView(task)}
       className={cn(
         "group relative rounded-xl border bg-card/85 p-3.5 shadow-sm transition-all hover:border-indigo-500/40 hover:shadow-md cursor-pointer border-white/10",
-        isDone && "opacity-75 bg-card/40"
+        isDone && "opacity-75 bg-card/40",
       )}
     >
       {/* Top Meta Line: Identifier + Priority + Menu */}
@@ -875,7 +1267,14 @@ function TaskCardItem({
           </span>
 
           {task.teamName && (
-            <span className={cn("text-[10px] font-semibold px-1.5 py-0.5 rounded border truncate max-w-[110px]", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}>
+            <span
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0.5 rounded border truncate max-w-[110px]",
+                teamTheme.badgeText,
+                teamTheme.badgeBorder,
+                teamTheme.subtleBg,
+              )}
+            >
               {task.teamName}
             </span>
           )}
@@ -886,10 +1285,16 @@ function TaskCardItem({
           <span
             className={cn(
               "flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold",
-              pMeta.badge
+              pMeta.badge,
             )}
           >
-            <PriorityIcon className={cn("h-3 w-3", pMeta.color, task.priority === "urgent" && "animate-pulse")} />
+            <PriorityIcon
+              className={cn(
+                "h-3 w-3",
+                pMeta.color,
+                task.priority === "urgent" && "animate-pulse",
+              )}
+            />
             {pMeta.label}
           </span>
 
@@ -901,14 +1306,26 @@ function TaskCardItem({
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36 bg-popover/95 border-border">
-                <DropdownMenuItem onClick={() => onView(task)} className="gap-2 text-xs cursor-pointer">
+              <DropdownMenuContent
+                align="end"
+                className="w-36 bg-popover/95 border-border"
+              >
+                <DropdownMenuItem
+                  onClick={() => onView(task)}
+                  className="gap-2 text-xs cursor-pointer"
+                >
                   <Sparkles className="h-3.5 w-3.5" /> View Details
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onEdit(task)} className="gap-2 text-xs cursor-pointer">
+                <DropdownMenuItem
+                  onClick={() => onEdit(task)}
+                  className="gap-2 text-xs cursor-pointer"
+                >
                   <Edit3 className="h-3.5 w-3.5" /> Edit Task
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onAdvance(task)} className="gap-2 text-xs cursor-pointer">
+                <DropdownMenuItem
+                  onClick={() => onAdvance(task)}
+                  className="gap-2 text-xs cursor-pointer"
+                >
                   <ChevronRight className="h-3.5 w-3.5" /> Advance Stage
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -928,7 +1345,7 @@ function TaskCardItem({
       <h4
         className={cn(
           "text-xs font-semibold leading-snug text-foreground line-clamp-2",
-          isDone && "line-through text-muted-foreground"
+          isDone && "line-through text-muted-foreground",
         )}
       >
         {task.title}
@@ -941,28 +1358,15 @@ function TaskCardItem({
         </p>
       )}
 
-      {/* Bottom Row: Assignee + Due Date + 1-Click Advance Button */}
+      {/* Bottom Row: Assignee User Token + Due Date + 1-Click Advance Button */}
       <div className="mt-3 flex items-center justify-between border-t border-white/5 pt-2 text-[11px]">
-        {/* Assignee */}
-        <div className="flex items-center gap-1.5 min-w-0">
-          {task.assignee ? (
-            <>
-              <Avatar className="h-4 w-4 shrink-0">
-                <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
-                <AvatarFallback className="text-[8px]">
-                  {getUserInitials(task.assignee)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="truncate text-muted-foreground max-w-[90px]">
-                {task.assignee}
-              </span>
-            </>
-          ) : (
-            <span className="text-muted-foreground/60 italic text-[10px]">
-              Unassigned
-            </span>
-          )}
-        </div>
+        {/* Interactive Assignee User Token */}
+        <AssigneeUserTokenMenu
+          task={task}
+          availableMembers={availableMembers}
+          onAssign={onAssignUser}
+          size="sm"
+        />
 
         {/* Due Date & Quick Advance */}
         <div className="flex items-center gap-1.5 shrink-0">
@@ -973,8 +1377,8 @@ function TaskCardItem({
                 isOverdue
                   ? "bg-rose-500/20 text-rose-300 font-bold border border-rose-500/40"
                   : isDueToday
-                  ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40"
-                  : "bg-muted/40 text-muted-foreground"
+                    ? "bg-amber-500/20 text-amber-300 font-bold border border-amber-500/40"
+                    : "bg-muted/40 text-muted-foreground",
               )}
             >
               <Calendar className="h-2.5 w-2.5" />
@@ -993,10 +1397,14 @@ function TaskCardItem({
               "rounded-md p-1 transition-colors cursor-pointer",
               isDone
                 ? "text-emerald-400 hover:bg-emerald-500/20"
-                : "text-muted-foreground hover:bg-indigo-500/20 hover:text-indigo-300"
+                : "text-muted-foreground hover:bg-indigo-500/20 hover:text-indigo-300",
             )}
           >
-            {isDone ? <Check className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+            {isDone ? (
+              <Check className="h-3.5 w-3.5" />
+            ) : (
+              <ChevronRight className="h-3.5 w-3.5" />
+            )}
           </button>
         </div>
       </div>
@@ -1010,6 +1418,18 @@ function TaskCardItem({
 
 interface ListViewProps {
   tasks: (TaskItem | ActionItem)[];
+  availableMembers: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    role: string;
+  }[];
+  onAssignUser: (
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) => void;
   onAdd: () => void;
   onEdit: (task: TaskItem | ActionItem) => void;
   onDelete: (task: TaskItem | ActionItem) => void;
@@ -1020,6 +1440,8 @@ interface ListViewProps {
 
 function ListView({
   tasks,
+  availableMembers,
+  onAssignUser,
   onAdd,
   onEdit,
   onDelete,
@@ -1039,19 +1461,23 @@ function ListView({
               <th className="py-3 px-3 w-28">Team</th>
               <th className="py-3 px-3 w-32">Priority</th>
               <th className="py-3 px-3 w-36">Status</th>
-              <th className="py-3 px-3 w-36">Assignee</th>
+              <th className="py-3 px-3 w-44">Assignee Token</th>
               <th className="py-3 px-3 w-32">Due Date</th>
               <th className="py-3 pl-3 pr-4 text-right w-24">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {tasks.map((task) => {
-              const isDone = task.status === "done" || task.status === "completed";
+              const isDone =
+                task.status === "done" || task.status === "completed";
               const isOverdue =
                 task.dueDate && task.dueDate < todayStr && !isDone;
-              const teamTheme = getTeamTheme(task.teamKey || task.teamId || "TASK");
+              const teamTheme = getTeamTheme(
+                task.teamKey || task.teamId || "TASK",
+              );
               const pMeta =
-                PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
+                PRIORITY_META[task.priority || "medium"] ||
+                PRIORITY_META.medium;
               const PriorityIcon = pMeta.icon;
 
               return (
@@ -1060,18 +1486,23 @@ function ListView({
                   onClick={() => onView(task)}
                   className={cn(
                     "group transition-colors hover:bg-muted/30 cursor-pointer",
-                    isDone && "opacity-60 bg-muted/10"
+                    isDone && "opacity-60 bg-muted/10",
                   )}
                 >
                   {/* Done Checkbox */}
-                  <td className="py-3 pl-4 pr-2" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="py-3 pl-4 pr-2"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <button
-                      onClick={() => onStatusChange(task.id, isDone ? "todo" : "done")}
+                      onClick={() =>
+                        onStatusChange(task.id, isDone ? "todo" : "done")
+                      }
                       className={cn(
                         "flex h-4 w-4 items-center justify-center rounded border transition-colors cursor-pointer",
                         isDone
                           ? "border-emerald-500 bg-emerald-500 text-white"
-                          : "border-border hover:border-indigo-500"
+                          : "border-border hover:border-indigo-500",
                       )}
                     >
                       {isDone && <Check className="h-3 w-3 stroke-[3]" />}
@@ -1080,13 +1511,18 @@ function ListView({
 
                   {/* Identifier */}
                   <td className="py-3 px-3 font-mono font-bold text-muted-foreground">
-                    {task.identifier || `TASK-${task.id.slice(-4).toUpperCase()}`}
+                    {task.identifier ||
+                      `TASK-${task.id.slice(-4).toUpperCase()}`}
                   </td>
 
                   {/* Title & Description */}
                   <td className="py-3 px-3">
                     <div className="font-semibold text-foreground truncate max-w-md">
-                      <span className={cn(isDone && "line-through text-muted-foreground")}>
+                      <span
+                        className={cn(
+                          isDone && "line-through text-muted-foreground",
+                        )}
+                      >
                         {task.title}
                       </span>
                     </div>
@@ -1102,7 +1538,12 @@ function ListView({
                     {task.teamName ? (
                       <Badge
                         variant="outline"
-                        className={cn("text-[10px] truncate max-w-[100px]", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}
+                        className={cn(
+                          "text-[10px] truncate max-w-[100px]",
+                          teamTheme.badgeText,
+                          teamTheme.badgeBorder,
+                          teamTheme.subtleBg,
+                        )}
                       >
                         {task.teamName}
                       </Badge>
@@ -1116,7 +1557,7 @@ function ListView({
                     <span
                       className={cn(
                         "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-semibold",
-                        pMeta.badge
+                        pMeta.badge,
                       )}
                     >
                       <PriorityIcon className={cn("h-3 w-3", pMeta.color)} />
@@ -1125,7 +1566,10 @@ function ListView({
                   </td>
 
                   {/* Status Dropdown */}
-                  <td className="py-3 px-3" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="py-3 px-3"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className="flex items-center gap-1.5 rounded-lg border border-border/40 bg-card/60 px-2 py-1 text-[11px] font-medium text-foreground hover:bg-muted cursor-pointer capitalize">
@@ -1135,10 +1579,10 @@ function ListView({
                               task.status === "backlog"
                                 ? "bg-slate-400"
                                 : task.status === "todo"
-                                ? "bg-sky-400"
-                                : task.status === "in_progress"
-                                ? "bg-amber-400"
-                                : "bg-emerald-400"
+                                  ? "bg-sky-400"
+                                  : task.status === "in_progress"
+                                    ? "bg-amber-400"
+                                    : "bg-emerald-400",
                             )}
                           />
                           {task.status?.replace("_", " ")}
@@ -1151,7 +1595,12 @@ function ListView({
                             onClick={() => onStatusChange(task.id, col.id)}
                             className="gap-2 text-xs cursor-pointer capitalize"
                           >
-                            <span className={cn("h-2 w-2 rounded-full", col.dotColor)} />
+                            <span
+                              className={cn(
+                                "h-2 w-2 rounded-full",
+                                col.dotColor,
+                              )}
+                            />
                             {col.label}
                           </DropdownMenuItem>
                         ))}
@@ -1159,23 +1608,14 @@ function ListView({
                     </DropdownMenu>
                   </td>
 
-                  {/* Assignee */}
+                  {/* Interactive Assignee User Token */}
                   <td className="py-3 px-3">
-                    {task.assignee ? (
-                      <div className="flex items-center gap-1.5">
-                        <Avatar className="h-4 w-4">
-                          <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
-                          <AvatarFallback className="text-[8px]">
-                            {getUserInitials(task.assignee)}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="truncate max-w-[100px] text-foreground font-medium">
-                          {task.assignee}
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground/60 italic text-[11px]">Unassigned</span>
-                    )}
+                    <AssigneeUserTokenMenu
+                      task={task}
+                      availableMembers={availableMembers}
+                      onAssign={onAssignUser}
+                      size="sm"
+                    />
                   </td>
 
                   {/* Due Date */}
@@ -1184,7 +1624,9 @@ function ListView({
                       <span
                         className={cn(
                           "font-mono text-[11px]",
-                          isOverdue ? "text-rose-400 font-bold" : "text-muted-foreground"
+                          isOverdue
+                            ? "text-rose-400 font-bold"
+                            : "text-muted-foreground",
                         )}
                       >
                         {task.dueDate}
@@ -1195,7 +1637,10 @@ function ListView({
                   </td>
 
                   {/* Actions */}
-                  <td className="py-3 pl-3 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
+                  <td
+                    className="py-3 pl-3 pr-4 text-right"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <div className="flex items-center justify-end gap-1">
                       <button
                         onClick={() => onEdit(task)}
@@ -1219,11 +1664,18 @@ function ListView({
 
             {tasks.length === 0 && (
               <tr>
-                <td colSpan={9} className="py-12 text-center text-xs text-muted-foreground">
+                <td
+                  colSpan={9}
+                  className="py-12 text-center text-xs text-muted-foreground"
+                >
                   <div className="flex flex-col items-center justify-center gap-2">
                     <CheckSquare className="h-8 w-8 text-muted-foreground/40" />
-                    <p className="font-semibold text-foreground">No tasks found</p>
-                    <p className="text-[11px]">Create your first team action item to get started</p>
+                    <p className="font-semibold text-foreground">
+                      No tasks found
+                    </p>
+                    <p className="text-[11px]">
+                      Create your first team action item to get started
+                    </p>
                     <Button
                       onClick={onAdd}
                       size="sm"

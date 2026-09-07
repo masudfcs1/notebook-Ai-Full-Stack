@@ -30,6 +30,18 @@ interface Props {
   open: boolean;
   onClose: () => void;
   task: TaskItem | ActionItem | null;
+  availableMembers?: {
+    id: string;
+    name: string;
+    email: string;
+    avatar?: string | null;
+    role: string;
+  }[];
+  onAssignUser?: (
+    task: TaskItem | ActionItem,
+    memberName: string | null,
+    memberAvatar?: string | null,
+  ) => void;
   onEdit: (task: TaskItem | ActionItem) => void;
   onDelete: (task: TaskItem | ActionItem) => void;
   onStatusChange: (id: string, status: TaskStatus) => void;
@@ -65,10 +77,22 @@ const PRIORITY_META: Record<
   },
 };
 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDown, Check, UserPlus } from "lucide-react";
+
 export function TaskDetailModal({
   open,
   onClose,
   task,
+  availableMembers = [],
+  onAssignUser,
   onEdit,
   onDelete,
   onStatusChange,
@@ -76,7 +100,8 @@ export function TaskDetailModal({
   if (!open || !task) return null;
 
   const teamTheme = getTeamTheme(task.teamKey || task.teamId || "TASK");
-  const pMeta = PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
+  const pMeta =
+    PRIORITY_META[task.priority || "medium"] || PRIORITY_META.medium;
   const PriorityIcon = pMeta.icon;
 
   const now = new Date().toISOString().split("T")[0];
@@ -114,7 +139,12 @@ export function TaskDetailModal({
               {task.teamName && (
                 <Badge
                   variant="outline"
-                  className={cn("gap-1 text-xs", teamTheme.badgeText, teamTheme.badgeBorder, teamTheme.subtleBg)}
+                  className={cn(
+                    "gap-1 text-xs",
+                    teamTheme.badgeText,
+                    teamTheme.badgeBorder,
+                    teamTheme.subtleBg,
+                  )}
                 >
                   <Layers className="h-3 w-3" />
                   {task.teamName}
@@ -133,7 +163,12 @@ export function TaskDetailModal({
           {/* Body */}
           <div className="py-4 space-y-4">
             <div>
-              <h3 className={cn("text-lg font-bold text-foreground", isDone && "line-through text-muted-foreground")}>
+              <h3
+                className={cn(
+                  "text-lg font-bold text-foreground",
+                  isDone && "line-through text-muted-foreground",
+                )}
+              >
                 {task.title}
               </h3>
               {task.description && (
@@ -147,10 +182,16 @@ export function TaskDetailModal({
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="rounded-xl border border-border/40 bg-card/40 p-3 space-y-1">
                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <PriorityIcon className={cn("h-3 w-3", pMeta.color)} /> Priority
+                  <PriorityIcon className={cn("h-3 w-3", pMeta.color)} />{" "}
+                  Priority
                 </span>
                 <p className="font-semibold text-foreground flex items-center gap-1.5">
-                  <span className={cn("inline-block h-2 w-2 rounded-full", pMeta.badge)} />
+                  <span
+                    className={cn(
+                      "inline-block h-2 w-2 rounded-full",
+                      pMeta.badge,
+                    )}
+                  />
                   {pMeta.label}
                 </p>
               </div>
@@ -159,16 +200,131 @@ export function TaskDetailModal({
                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                   <Clock className="h-3 w-3 text-sky-400" /> Status
                 </span>
-                <p className="font-semibold text-foreground capitalize">
-                  {task.status?.replace("_", " ")}
-                </p>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-1.5 font-semibold text-foreground capitalize hover:text-indigo-400 cursor-pointer">
+                      <span>{task.status?.replace("_", " ")}</span>
+                      <ChevronDown className="h-3 w-3 opacity-60" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="bg-popover border-border">
+                    {[
+                      { id: "backlog", label: "Backlog", dot: "bg-slate-400" },
+                      { id: "todo", label: "To Do", dot: "bg-sky-400" },
+                      {
+                        id: "in_progress",
+                        label: "In Progress",
+                        dot: "bg-amber-400",
+                      },
+                      { id: "done", label: "Done", dot: "bg-emerald-400" },
+                    ].map((s) => (
+                      <DropdownMenuItem
+                        key={s.id}
+                        onClick={() =>
+                          onStatusChange(task.id, s.id as TaskStatus)
+                        }
+                        className="gap-2 text-xs cursor-pointer"
+                      >
+                        <span className={cn("h-2 w-2 rounded-full", s.dot)} />
+                        {s.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
 
+              {/* Assignee User Token Box */}
               <div className="rounded-xl border border-border/40 bg-card/40 p-3 space-y-1">
                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <User className="h-3 w-3 text-emerald-400" /> Assignee
+                  <User className="h-3 w-3 text-emerald-400" /> Assignee Token
                 </span>
-                {task.assignee ? (
+                {onAssignUser && availableMembers.length > 0 ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center gap-1.5 font-semibold text-foreground hover:text-indigo-400 cursor-pointer w-full text-left">
+                        {task.assignee ? (
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <Avatar className="h-4 w-4 shrink-0">
+                              <AvatarImage
+                                src={getAvatarUrl(task.assigneeAvatar)}
+                              />
+                              <AvatarFallback className="text-[8px] bg-indigo-600 text-white">
+                                {getUserInitials(task.assignee)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="truncate">{task.assignee}</span>
+                            <ChevronDown className="h-3 w-3 opacity-60 shrink-0" />
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 text-muted-foreground italic">
+                            <UserPlus className="h-3.5 w-3.5 text-indigo-400" />
+                            <span>Assign member...</span>
+                          </div>
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="w-56 bg-popover border-border shadow-xl"
+                    >
+                      <DropdownMenuLabel className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                        Assign User Token
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <div className="max-h-48 overflow-y-auto space-y-0.5">
+                        {availableMembers.map((m) => {
+                          const isSelected =
+                            task.assignee?.toLowerCase() ===
+                              m.name.toLowerCase() ||
+                            task.assignee?.toLowerCase() ===
+                              m.email.toLowerCase();
+                          return (
+                            <DropdownMenuItem
+                              key={m.id}
+                              onClick={() =>
+                                onAssignUser(task, m.name, m.avatar)
+                              }
+                              className={cn(
+                                "flex items-center justify-between gap-2 px-2 py-1.5 rounded-lg text-xs cursor-pointer",
+                                isSelected &&
+                                  "bg-indigo-500/15 font-semibold text-indigo-400",
+                              )}
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                <Avatar className="h-5 w-5 shrink-0">
+                                  <AvatarImage src={getAvatarUrl(m.avatar)} />
+                                  <AvatarFallback className="text-[8px]">
+                                    {getUserInitials(m.name, m.email)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="truncate">
+                                  <p className="truncate text-xs">{m.name}</p>
+                                  <p className="truncate text-[10px] text-muted-foreground">
+                                    {m.email}
+                                  </p>
+                                </div>
+                              </div>
+                              {isSelected && (
+                                <Check className="h-3 w-3 text-indigo-400" />
+                              )}
+                            </DropdownMenuItem>
+                          );
+                        })}
+                      </div>
+                      {task.assignee && (
+                        <>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            onClick={() => onAssignUser(task, null, null)}
+                            className="gap-2 text-xs text-rose-400 cursor-pointer"
+                          >
+                            <X className="h-3.5 w-3.5" /> Unassign User
+                          </DropdownMenuItem>
+                        </>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : task.assignee ? (
                   <div className="flex items-center gap-1.5 font-semibold text-foreground">
                     <Avatar className="h-4 w-4">
                       <AvatarImage src={getAvatarUrl(task.assigneeAvatar)} />
@@ -185,10 +341,16 @@ export function TaskDetailModal({
 
               <div className="rounded-xl border border-border/40 bg-card/40 p-3 space-y-1">
                 <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                  <Calendar className="h-3 w-3 text-amber-400" /> Target Due Date
+                  <Calendar className="h-3 w-3 text-amber-400" /> Target Due
+                  Date
                 </span>
                 {task.dueDate ? (
-                  <p className={cn("font-semibold", isOverdue ? "text-rose-400 font-bold" : "text-foreground")}>
+                  <p
+                    className={cn(
+                      "font-semibold",
+                      isOverdue ? "text-rose-400 font-bold" : "text-foreground",
+                    )}
+                  >
                     {task.dueDate} {isOverdue && "(Overdue)"}
                   </p>
                 ) : (
@@ -238,7 +400,7 @@ export function TaskDetailModal({
                   "gap-1.5 rounded-xl text-white font-semibold cursor-pointer shadow-md",
                   isDone
                     ? "bg-slate-700 hover:bg-slate-600"
-                    : "bg-emerald-600 hover:bg-emerald-700"
+                    : "bg-emerald-600 hover:bg-emerald-700",
                 )}
               >
                 <CheckCircle2 className="h-4 w-4" />

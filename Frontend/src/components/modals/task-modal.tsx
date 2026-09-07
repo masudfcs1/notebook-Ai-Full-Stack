@@ -63,21 +63,24 @@ const PRIORITIES: {
     label: "High",
     icon: ArrowUp,
     color: "text-amber-400",
-    badge: "border-amber-500/40 bg-amber-500/15 text-amber-300 ring-amber-500/20",
+    badge:
+      "border-amber-500/40 bg-amber-500/15 text-amber-300 ring-amber-500/20",
   },
   {
     id: "medium",
     label: "Medium",
     icon: Minus,
     color: "text-indigo-400",
-    badge: "border-indigo-500/40 bg-indigo-500/15 text-indigo-300 ring-indigo-500/20",
+    badge:
+      "border-indigo-500/40 bg-indigo-500/15 text-indigo-300 ring-indigo-500/20",
   },
   {
     id: "low",
     label: "Low",
     icon: Circle,
     color: "text-slate-400",
-    badge: "border-slate-500/40 bg-slate-500/15 text-slate-300 ring-slate-500/20",
+    badge:
+      "border-slate-500/40 bg-slate-500/15 text-slate-300 ring-slate-500/20",
   },
 ];
 
@@ -106,6 +109,7 @@ export function TaskModal({
   defaultStatus = "todo",
 }: Props) {
   const dispatch = useAppDispatch();
+  const currentUser = useAppSelector((s) => s.auth.user);
   const workspaces = useAppSelector((s) => s.data.workspaces);
   const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
   const activeTeamId = useAppSelector((s) => s.data.activeTeamId);
@@ -129,14 +133,18 @@ export function TaskModal({
   // Selected Team Info
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
   const teamTheme = useMemo(
-    () => getTeamTheme(selectedTeam?.key || selectedTeam?.id || selectedTeam?.name),
-    [selectedTeam]
+    () =>
+      getTeamTheme(selectedTeam?.key || selectedTeam?.id || selectedTeam?.name),
+    [selectedTeam],
   );
 
   // Fetch Team Members for Assignee Dropdown
-  const { data: teamMembersRes } = useGetTeamMembersQuery(selectedTeamId || "", {
-    skip: !selectedTeamId,
-  });
+  const { data: teamMembersRes } = useGetTeamMembersQuery(
+    selectedTeamId || "",
+    {
+      skip: !selectedTeamId,
+    },
+  );
   const teamMembers = useMemo(() => {
     if (teamMembersRes?.success && teamMembersRes.data) {
       return teamMembersRes.data;
@@ -145,8 +153,10 @@ export function TaskModal({
   }, [teamMembersRes, selectedTeam]);
 
   // Mutations
-  const [createTaskMutation, { isLoading: isCreating }] = useCreateTaskMutation();
-  const [updateTaskMutation, { isLoading: isUpdating }] = useUpdateTaskMutation();
+  const [createTaskMutation, { isLoading: isCreating }] =
+    useCreateTaskMutation();
+  const [updateTaskMutation, { isLoading: isUpdating }] =
+    useUpdateTaskMutation();
   const isLoading = isCreating || isUpdating;
 
   // Initialize or Reset Form
@@ -174,7 +184,15 @@ export function TaskModal({
         setDueDate("");
       }
     }
-  }, [open, isEdit, taskToEdit, defaultTeamId, activeTeamId, defaultStatus, teams]);
+  }, [
+    open,
+    isEdit,
+    taskToEdit,
+    defaultTeamId,
+    activeTeamId,
+    defaultStatus,
+    teams,
+  ]);
 
   if (!open) return null;
 
@@ -226,7 +244,7 @@ export function TaskModal({
               title: "Task updated",
               description: `Updated task "${res.data.title}".`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
@@ -243,13 +261,15 @@ export function TaskModal({
         }).unwrap();
 
         if (res.success) {
-          toast.success(`Task "${res.data.title}" created in ${selectedTeam?.name}!`);
+          toast.success(
+            `Task "${res.data.title}" created in ${selectedTeam?.name}!`,
+          );
           dispatch(
             pushNotification({
               title: "Task created",
               description: `Created new task "${res.data.title}".`,
               type: "success",
-            })
+            }),
           );
           onClose();
         }
@@ -285,7 +305,7 @@ export function TaskModal({
                   "flex h-10 w-10 items-center justify-center rounded-xl border text-xl shadow-inner",
                   teamTheme.subtleBg,
                   teamTheme.badgeBorder,
-                  teamTheme.badgeText
+                  teamTheme.badgeText,
                 )}
               >
                 {selectedTeam?.icon || "⚡"}
@@ -295,7 +315,9 @@ export function TaskModal({
                   {isEdit ? "Edit Action Item" : "New Action Item"}
                 </h2>
                 <p className="text-xs text-muted-foreground">
-                  {selectedTeam ? `Assigned to ${selectedTeam.name} (${selectedTeam.key})` : "Configure task properties"}
+                  {selectedTeam
+                    ? `Assigned to ${selectedTeam.name} (${selectedTeam.key})`
+                    : "Configure task properties"}
                 </p>
               </div>
             </div>
@@ -308,7 +330,10 @@ export function TaskModal({
           </div>
 
           {/* Form Content */}
-          <form onSubmit={handleSubmit} className="overflow-y-auto py-4 space-y-4 pr-1">
+          <form
+            onSubmit={handleSubmit}
+            className="overflow-y-auto py-4 space-y-4 pr-1"
+          >
             {/* Team Selector */}
             {teams.length > 1 && (
               <div>
@@ -328,13 +353,18 @@ export function TaskModal({
                         className={cn(
                           "flex items-center gap-2 rounded-xl border px-3 py-1.5 text-xs font-medium transition-all cursor-pointer",
                           isSelected
-                            ? cn("border-indigo-500/60 bg-indigo-500/15 text-foreground shadow-sm ring-1 ring-indigo-500/30", theme.badgeText)
-                            : "border-border/60 bg-card/60 text-muted-foreground hover:border-border hover:bg-muted/50"
+                            ? cn(
+                                "border-indigo-500/60 bg-indigo-500/15 text-foreground shadow-sm ring-1 ring-indigo-500/30",
+                                theme.badgeText,
+                              )
+                            : "border-border/60 bg-card/60 text-muted-foreground hover:border-border hover:bg-muted/50",
                         )}
                       >
                         <span>{t.icon || "👥"}</span>
                         <span>{t.name}</span>
-                        <span className="text-[10px] font-mono opacity-60">({t.key})</span>
+                        <span className="text-[10px] font-mono opacity-60">
+                          ({t.key})
+                        </span>
                       </button>
                     );
                   })}
@@ -409,8 +439,11 @@ export function TaskModal({
                         className={cn(
                           "flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer",
                           isSelected
-                            ? cn("border-transparent font-semibold shadow-sm ring-1", p.badge)
-                            : "border-border/60 bg-card/40 text-muted-foreground hover:bg-muted/40"
+                            ? cn(
+                                "border-transparent font-semibold shadow-sm ring-1",
+                                p.badge,
+                              )
+                            : "border-border/60 bg-card/40 text-muted-foreground hover:bg-muted/40",
                         )}
                       >
                         <Icon className={cn("h-3.5 w-3.5", p.color)} />
@@ -438,10 +471,15 @@ export function TaskModal({
                           "flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs font-medium transition-all cursor-pointer",
                           isSelected
                             ? "border-sky-500/50 bg-sky-500/15 text-sky-200 font-semibold shadow-sm ring-1 ring-sky-500/30"
-                            : "border-border/60 bg-card/40 text-muted-foreground hover:bg-muted/40"
+                            : "border-border/60 bg-card/40 text-muted-foreground hover:bg-muted/40",
                         )}
                       >
-                        <span className={cn("h-2 w-2 rounded-full shrink-0", s.dotColor)} />
+                        <span
+                          className={cn(
+                            "h-2 w-2 rounded-full shrink-0",
+                            s.dotColor,
+                          )}
+                        />
                         <span>{s.label}</span>
                       </button>
                     );
@@ -454,46 +492,104 @@ export function TaskModal({
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Assignee */}
               <div>
-                <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
-                  <User className="h-3.5 w-3.5 text-emerald-400" /> Assignee
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <User className="h-3.5 w-3.5 text-emerald-400" /> Assignee
+                    User Token
+                  </label>
+                  {currentUser && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleSelectAssignee(
+                          currentUser.name || currentUser.email,
+                          currentUser.avatar,
+                        )
+                      }
+                      className="text-[10px] font-semibold text-indigo-400 hover:text-indigo-300 cursor-pointer"
+                    >
+                      Assign to Me
+                    </button>
+                  )}
+                </div>
+
                 <div className="space-y-2">
-                  <input
-                    type="text"
-                    value={assignee}
-                    onChange={(e) => {
-                      setAssignee(e.target.value);
-                      setAssigneeAvatar("");
-                    }}
-                    placeholder="Enter assignee name or pick member below"
-                    className="w-full rounded-xl border border-border/60 bg-card/60 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
-                  />
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={assignee}
+                      onChange={(e) => {
+                        setAssignee(e.target.value);
+                        setAssigneeAvatar("");
+                      }}
+                      placeholder="Enter assignee name or pick member below"
+                      className="w-full rounded-xl border border-border/60 bg-card/60 px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20"
+                    />
+                    {assignee && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAssignee("");
+                          setAssigneeAvatar("");
+                        }}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Selected Assignee Token Preview */}
+                  {assignee && (
+                    <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1 text-xs text-emerald-300">
+                      <Avatar className="h-4 w-4">
+                        <AvatarImage src={getAvatarUrl(assigneeAvatar)} />
+                        <AvatarFallback className="text-[8px] bg-emerald-600 text-white">
+                          {getUserInitials(assignee)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="font-semibold truncate">{assignee}</span>
+                      <span className="text-[10px] text-emerald-400/80 font-mono ml-auto">
+                        Selected
+                      </span>
+                    </div>
+                  )}
 
                   {/* Team Members Quick Picker */}
                   {teamMembers.length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto">
+                    <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto">
                       {teamMembers.map((m) => {
                         const mName = m.user?.name || m.name || m.email;
-                        const isChosen = assignee === mName;
+                        const isChosen =
+                          assignee.toLowerCase() === mName.toLowerCase();
                         return (
                           <button
                             key={m.id}
                             type="button"
-                            onClick={() => handleSelectAssignee(mName, m.avatar || m.user?.avatar)}
+                            onClick={() =>
+                              handleSelectAssignee(
+                                mName,
+                                m.avatar || m.user?.avatar,
+                              )
+                            }
                             className={cn(
                               "flex items-center gap-1.5 rounded-lg border px-2 py-1 text-[11px] transition-all cursor-pointer",
                               isChosen
-                                ? "border-emerald-500/50 bg-emerald-500/15 text-emerald-300 font-semibold"
-                                : "border-border/40 bg-card/40 text-muted-foreground hover:bg-muted/50"
+                                ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 font-semibold shadow-sm"
+                                : "border-border/40 bg-card/40 text-muted-foreground hover:bg-muted/50 hover:text-foreground",
                             )}
                           >
                             <Avatar className="h-3.5 w-3.5">
-                              <AvatarImage src={getAvatarUrl(m.avatar || m.user?.avatar)} />
-                              <AvatarFallback className="text-[8px]">
+                              <AvatarImage
+                                src={getAvatarUrl(m.avatar || m.user?.avatar)}
+                              />
+                              <AvatarFallback className="text-[8px] bg-indigo-600 text-white">
                                 {getUserInitials(mName, m.email)}
                               </AvatarFallback>
                             </Avatar>
-                            <span className="truncate max-w-[100px]">{mName}</span>
+                            <span className="truncate max-w-[110px]">
+                              {mName}
+                            </span>
                           </button>
                         );
                       })}
@@ -505,7 +601,8 @@ export function TaskModal({
               {/* Due Date */}
               <div>
                 <label className="block text-xs font-semibold text-foreground mb-1.5 flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 text-amber-400" /> Target Due Date
+                  <Calendar className="h-3.5 w-3.5 text-amber-400" /> Target Due
+                  Date
                 </label>
                 <div className="space-y-2">
                   <input
@@ -581,7 +678,11 @@ export function TaskModal({
                   </>
                 ) : (
                   <>
-                    {isEdit ? <Edit3 className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+                    {isEdit ? (
+                      <Edit3 className="h-4 w-4" />
+                    ) : (
+                      <Plus className="h-4 w-4" />
+                    )}
                     {isEdit ? "Update Action Item" : "Create Action Item"}
                   </>
                 )}
