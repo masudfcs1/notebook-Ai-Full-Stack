@@ -83,7 +83,7 @@ export function AiAssistantWidget() {
             className="fixed bottom-4 right-4 z-50 flex h-128 w-[min(92vw,24rem)] flex-col overflow-hidden rounded-2xl border border-white/30 bg-white/70 shadow-2xl shadow-indigo-500/20 backdrop-blur-2xl dark:border-white/10 dark:bg-slate-900/70"
           >
             {/* Header */}
-            <div className="flex items-center gap-3 border-b border-border/40  from-indigo-500/10 to-violet-500/10 px-4 py-3">
+            <div className="flex items-center gap-3 border-b border-border/40 bg-linear-to-r from-indigo-500/10 to-violet-500/10 px-4 py-3">
               <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/30">
                 <Sparkles className="h-4 w-4" />
                 <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border-2 border-background bg-emerald-500" />

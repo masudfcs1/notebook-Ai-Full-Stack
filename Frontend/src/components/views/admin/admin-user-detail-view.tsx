@@ -414,7 +414,7 @@ export function AdminUserDetailView({
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05 }}
       >
-        <Card className="relative overflow-hidden border-border/60 bg-gradient-r from-card via-card/80 to-muted/30 p-6 backdrop-blur-xl shadow-lg">
+        <Card className="relative overflow-hidden border-border/60 bg-linear-to-r from-card via-card/80 to-muted/30 p-6 backdrop-blur-xl shadow-lg">
           <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-rose-500/5 blur-3xl pointer-events-none" />
 
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
@@ -425,7 +425,7 @@ export function AdminUserDetailView({
                     <AvatarImage src={avatarSrc} alt={user.name || ""} />
                   )}
                   <AvatarFallback
-                    className={`bg-gradient-lr ${roleConfig.color} text-lg font-bold text-white`}
+                    className={`bg-linear-to-r ${roleConfig.color} text-lg font-bold text-white`}
                   >
                     {userInitials}
                   </AvatarFallback>
@@ -676,7 +676,7 @@ export function AdminUserDetailView({
                         className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/50 bg-muted/30 px-5 py-4 cursor-pointer hover:bg-muted/50 transition-colors"
                       >
                         <div className="flex items-center gap-3.5">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-lr from-rose-500/20 to-amber-500/20 text-xl font-bold border border-rose-500/20 shadow-inner">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-r from-rose-500/20 to-amber-500/20 text-xl font-bold border border-rose-500/20 shadow-inner">
                             {ws.icon || "⚡"}
                           </div>
                           <div>

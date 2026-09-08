@@ -474,7 +474,7 @@ export function AdminNotificationsView() {
                 >
                   {loadingMore ? (
                     <>
-                      <RefreshCw className="h-3.5 w-3.5 animate-spin text-white" />
+                      <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                       Loading Next Page...
                     </>
                   ) : (

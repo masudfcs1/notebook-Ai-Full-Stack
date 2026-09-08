@@ -233,7 +233,7 @@ export function SummaryView() {
           </Button>
           <Button
             size="sm"
-            className="gap-1.5 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
+            className="gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
             onClick={regenerate}
             disabled={generating || !note}
           >
@@ -413,7 +413,7 @@ export function SummaryView() {
                     <Button
                       onClick={regenerate}
                       size="sm"
-                      className="gap-1.5 rounded-xl  from-indigo-500 to-violet-500 text-white"
+                      className="gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white"
                     >
                       <Sparkles className="h-3.5 w-3.5" /> Generate now
                     </Button>
@@ -427,7 +427,7 @@ export function SummaryView() {
 
       {/* Smart suggestions */}
       {summary && (
-        <Card className="border-violet-500/20  from-violet-500/5 to-indigo-500/5 p-5 backdrop-blur-sm">
+        <Card className="border-violet-500/20 bg-linear-to-r from-violet-500/5 to-indigo-500/5 p-5 backdrop-blur-sm">
           <div className="mb-3 flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-violet-500" />
             <h3 className="text-sm font-semibold">Smart Suggestions</h3>
@@ -504,7 +504,7 @@ function Section({
       <div className="mb-2 flex items-center gap-2">
         <div
           className={cn(
-            "flex h-6 w-6 items-center justify-center rounded-md bg-gradient-lr text-white",
+            "flex h-6 w-6 items-center justify-center rounded-md bg-linear-to-r text-white",
             gradient,
           )}
         >

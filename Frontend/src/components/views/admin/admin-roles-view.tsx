@@ -41,12 +41,12 @@ export function AdminRolesView() {
               <Card className="relative overflow-hidden border-border/60 bg-card/70 p-0 backdrop-blur-sm transition-all hover:bg-muted/60">
                 <div className="flex items-stretch">
                   {/* Level bar */}
-                  <div className={`w-1.5 bg-gradient-to-lr ${role.color}`} />
+                  <div className={`w-1.5 bg-linear-to-b ${role.color}`} />
 
                   <div className="flex flex-1 items-center gap-4 p-5">
                     {/* Icon */}
                     <div
-                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-lr ${role.color} text-white shadow-lg`}
+                      className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-r ${role.color} text-white shadow-lg`}
                     >
                       <ShieldCheck className="h-5 w-5" />
                     </div>
@@ -89,7 +89,7 @@ export function AdminRolesView() {
 
                 {/* Decorative gradient */}
                 <div
-                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-lr ${role.color} opacity-[0.04] blur-2xl`}
+                  className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-linear-to-r ${role.color} opacity-[0.04] blur-2xl`}
                 />
               </Card>
 

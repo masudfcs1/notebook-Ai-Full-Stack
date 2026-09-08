@@ -248,7 +248,7 @@ export function LandingView() {
                     className="flex items-center gap-1.5 text-sm font-bold tracking-tight text-slate-400 transition-colors hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200"
                   >
                     <span
-                      className={`h-3.5 w-3.5 ${i % 2 ? "rotate-45 rounded-[3px]" : "rounded-full"} bg-gradient-lr from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-500`}
+                      className={`h-3.5 w-3.5 ${i % 2 ? "rotate-45 rounded-[3px]" : "rounded-full"} bg-linear-to-r from-slate-300 to-slate-400 dark:from-slate-600 dark:to-slate-500`}
                     />
                     {name}
                   </span>

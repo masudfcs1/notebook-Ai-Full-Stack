@@ -521,7 +521,7 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 gap-2 rounded-xl  from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] hover:opacity-95 mt-2 cursor-pointer"
+            className="mt-2 h-11 w-full gap-2 rounded-xl bg-linear-to-r from-indigo-600 via-indigo-500 to-violet-600 font-semibold text-white shadow-lg shadow-indigo-500/30 transition-all duration-300 hover:opacity-95 hover:shadow-[0_0_25px_rgba(99,102,241,0.5)] cursor-pointer"
           >
             {isLoading ? (
               <span className="flex items-center gap-2 text-xs">

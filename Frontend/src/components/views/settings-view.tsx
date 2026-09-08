@@ -268,7 +268,7 @@ export function SettingsView() {
             <div className="mb-5 flex items-center gap-4">
               <Avatar className="h-16 w-16 border-2 border-border shadow-md">
                 {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="bg-gradient-lr from-indigo-500 to-violet-500 text-lg font-semibold text-white">
+                <AvatarFallback className="bg-linear-to-r from-indigo-500 to-violet-500 text-lg font-semibold text-white">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -345,7 +345,7 @@ export function SettingsView() {
               <Button
                 onClick={save}
                 disabled={isUpdatingProfile}
-                className="gap-2 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
+                className="gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
               >
                 <Check className="h-4 w-4" />{" "}
                 {isUpdatingProfile ? "Saving..." : "Save changes"}
@@ -382,7 +382,7 @@ export function SettingsView() {
                     key: "system",
                     label: "System",
                     icon: Smartphone,
-                    bg: "bg-gradient-lr from-white to-slate-900",
+                    bg: "bg-linear-to-r from-white to-slate-900",
                     fg: "text-slate-700",
                   },
                 ] as const
@@ -410,7 +410,7 @@ export function SettingsView() {
                   {theme === opt.key && (
                     <motion.div
                       layoutId="theme-active"
-                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md"
+                      className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md"
                     >
                       <Check className="h-3 w-3" />
                     </motion.div>
@@ -433,7 +433,7 @@ export function SettingsView() {
                 <button
                   key={c.name}
                   className={cn(
-                    "group relative flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-lr shadow-md transition-transform hover:scale-105",
+                    "group relative flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-r shadow-md transition-transform hover:scale-105",
                     c.grad,
                     i === 0 &&
                       "ring-2 ring-offset-2 ring-offset-background ring-indigo-500",
@@ -496,9 +496,9 @@ export function SettingsView() {
 
         {/* AI */}
         <TabsContent value="ai" className="mt-5 space-y-5">
-          <Card className="border-indigo-500/20 bg-gradient-lr from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
+          <Card className="border-indigo-500/20 bg-linear-to-r from-indigo-500/5 to-violet-500/5 p-5 backdrop-blur-sm md:p-6">
             <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-md">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md">
                 <Sparkles className="h-5 w-5" />
               </div>
               <div>
@@ -615,7 +615,7 @@ export function SettingsView() {
               <Button
                 onClick={handleChangePassword}
                 disabled={isChangingPassword}
-                className="gap-2 rounded-xl bg-gradient-to-lr from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
+                className="gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md cursor-pointer hover:opacity-90"
               >
                 <Lock className="h-4 w-4" />
                 {isChangingPassword ? "Updating..." : "Update password"}
@@ -663,7 +663,7 @@ export function SettingsView() {
                   setWsModalMode("create");
                   setWsModalOpen(true);
                 }}
-                className="gap-2 rounded-xl bg-gradient-r from-indigo-500 to-cyan-500 text-white shadow-md cursor-pointer hover:opacity-90"
+                className="gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-cyan-500 text-white shadow-md cursor-pointer hover:opacity-90"
               >
                 <Plus className="h-4 w-4" /> Create Workspace
               </Button>

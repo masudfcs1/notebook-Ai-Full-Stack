@@ -239,8 +239,8 @@ export function HistoryView() {
                           className={cn(
                             "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white shadow-sm",
                             hasSummary
-                              ? "bg-gradient-lr from-emerald-500 to-teal-500"
-                              : "bg-gradient-lr from-amber-500 to-orange-500",
+                              ? "bg-linear-to-r from-emerald-500 to-teal-500"
+                              : "bg-linear-to-r from-amber-500 to-orange-500",
                           )}
                         >
                           {hasSummary ? (
@@ -365,7 +365,7 @@ export function HistoryView() {
                 className={cn(
                   "h-8 min-w-8 rounded-lg px-2 text-xs font-medium transition-colors",
                   currentPage === idx + 1
-                    ? " from-indigo-500 to-violet-500 text-white shadow-sm"
+                    ? "bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-sm"
                     : "text-muted-foreground hover:bg-muted",
                 )}
               >

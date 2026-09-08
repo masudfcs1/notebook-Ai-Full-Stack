@@ -170,7 +170,7 @@ export function AdminSettingsView() {
               <Switch defaultChecked />
             </div>
           </div>
-          <Button className="mt-5 rounded-xl  from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer">
+          <Button className="mt-5 rounded-xl bg-linear-to-r from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer">
             Save Settings
           </Button>
         </Card>

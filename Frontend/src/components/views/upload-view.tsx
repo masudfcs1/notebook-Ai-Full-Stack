@@ -301,7 +301,7 @@ export function UploadView() {
             />
             <motion.div
               animate={dragOver ? { scale: 1.05 } : { scale: 1 }}
-              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-lr from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30"
+              className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-lg shadow-indigo-500/30"
             >
               <UploadCloud className="h-8 w-8" />
             </motion.div>
@@ -313,7 +313,7 @@ export function UploadView() {
             </p>
             <Button
               onClick={() => inputRef.current?.click()}
-              className="mt-5 gap-2 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
+              className="mt-5 gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25"
             >
               <FileUp className="h-4 w-4" /> Browse files
             </Button>
@@ -351,10 +351,10 @@ export function UploadView() {
                       className={cn(
                         "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-sm",
                         f.status === "done"
-                          ? "bg-gradient-lr from-emerald-500 to-teal-500"
+                          ? "bg-linear-to-r from-emerald-500 to-teal-500"
                           : f.status === "error"
-                            ? "bg-gradient-lr from-rose-500 to-red-500"
-                            : "bg-gradient-lr from-indigo-500 to-violet-500",
+                            ? "bg-linear-to-r from-rose-500 to-red-500"
+                            : "bg-linear-to-r from-indigo-500 to-violet-500",
                       )}
                     >
                       {f.status === "done" ? (
@@ -381,7 +381,7 @@ export function UploadView() {
                       {f.status === "uploading" && (
                         <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-muted">
                           <motion.div
-                            className="h-full  from-indigo-500 to-violet-500"
+                            className="h-full bg-linear-to-r from-indigo-500 to-violet-500"
                             animate={{ width: `${f.progress}%` }}
                           />
                         </div>
@@ -397,7 +397,7 @@ export function UploadView() {
                         size="sm"
                         onClick={() => summarizeFile(f)}
                         disabled={summarizing}
-                        className="shrink-0 gap-1.5 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md"
+                        className="shrink-0 gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md"
                       >
                         {summarizing ? (
                           <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -456,7 +456,7 @@ export function UploadView() {
               <Button
                 onClick={summarizeManual}
                 disabled={summarizing || manualContent.trim().length < 20}
-                className="gap-2 rounded-xl  from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25 hover:opacity-95 disabled:opacity-50"
+                className="gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-violet-500 text-white shadow-md shadow-indigo-500/25 hover:opacity-95 disabled:opacity-50"
               >
                 {summarizing ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

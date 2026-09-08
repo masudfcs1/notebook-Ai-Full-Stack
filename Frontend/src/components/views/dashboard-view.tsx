@@ -176,14 +176,14 @@ export function DashboardView() {
               <Card className="dashboard-glass-card dashboard-stat-card group relative overflow-hidden rounded-2xl p-5">
                 <div
                   className={cn(
-                    "absolute -right-6 -top-6 h-20 w-20 rounded-full bg-gradient-lr opacity-20 blur-2xl transition-opacity group-hover:opacity-40",
+                    "absolute -right-6 -top-6 h-20 w-20 rounded-full bg-linear-to-r opacity-20 blur-2xl transition-opacity group-hover:opacity-40",
                     card.gradient,
                   )}
                 />
                 <div className="relative flex items-start justify-between">
                   <div
                     className={cn(
-                      "flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-lr text-white shadow-lg",
+                      "flex h-11 w-11 items-center justify-center rounded-xl bg-linear-to-r text-white shadow-lg",
                       card.gradient,
                       card.glow,
                     )}
@@ -276,8 +276,8 @@ export function DashboardView() {
                       className={cn(
                         "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-white shadow-sm",
                         note.status === "summarized"
-                          ? "bg-gradient-lr from-emerald-500 to-teal-500"
-                          : "bg-gradient-lr from-amber-500 to-orange-500",
+                          ? "bg-linear-to-r from-emerald-500 to-teal-500"
+                          : "bg-linear-to-r from-amber-500 to-orange-500",
                       )}
                     >
                       {note.status === "summarized" ? (
@@ -342,7 +342,7 @@ export function DashboardView() {
                 >
                   <div
                     className={cn(
-                      "flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-lr text-white shadow-sm",
+                      "flex h-8 w-8 items-center justify-center rounded-lg bg-linear-to-r text-white shadow-sm",
                       a.gradient,
                     )}
                   >
@@ -387,7 +387,7 @@ export function DashboardView() {
                       stiffness: 120,
                       damping: 18,
                     }}
-                    className="w-full rounded-t-md bg-gradient-to-lr from-indigo-500 to-violet-400"
+                    className="w-full rounded-t-md bg-linear-to-r from-indigo-500 to-violet-400"
                     style={{ minHeight: 6 }}
                   />
                   <span className="text-[10px] text-muted-foreground">

@@ -33,13 +33,13 @@ export function EmptyState({
       <div className="relative mb-5">
         <div
           className={cn(
-            "absolute inset-0 animate-pulse-glow rounded-2xl bg-gradient-lr opacity-40",
+            "absolute inset-0 animate-pulse-glow rounded-2xl bg-linear-to-r opacity-40",
             gradient,
           )}
         />
         <div
           className={cn(
-            "relative flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-lr text-white shadow-lg",
+            "relative flex h-16 w-16 items-center justify-center rounded-2xl bg-linear-to-r text-white shadow-lg",
             gradient,
           )}
         >

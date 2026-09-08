@@ -289,7 +289,7 @@ export function AdminUsersView() {
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 rounded-xl  from-rose-500 to-amber-500 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 hover:opacity-90 transition-opacity cursor-pointer">
+            <Button className="gap-2 rounded-xl bg-linear-to-r from-rose-500 to-amber-500 text-sm font-semibold text-white shadow-lg shadow-rose-500/25 hover:opacity-90 transition-opacity cursor-pointer">
               <Plus className="h-4 w-4" /> Create User
             </Button>
           </DialogTrigger>
@@ -375,7 +375,7 @@ export function AdminUsersView() {
               <Button
                 onClick={handleCreateUser}
                 disabled={!formEmail || !formPassword || isCreating}
-                className="w-full rounded-xl  from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer"
+                className="w-full rounded-xl bg-linear-to-r from-rose-500 to-amber-500 font-semibold text-white hover:opacity-90 cursor-pointer"
               >
                 {isCreating ? "Creating…" : "Create User"}
               </Button>
