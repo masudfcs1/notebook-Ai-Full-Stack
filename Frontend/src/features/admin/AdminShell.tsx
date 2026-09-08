@@ -2,6 +2,7 @@
 
 import { useAppSelector } from "@/lib/redux/hooks";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminMobileSidebar } from "./AdminMobileSidebar";
 import { AdminTopbar } from "./AdminTopbar";
 import { AdminDashboardView } from "@/components/views/admin/admin-dashboard-view";
 import { AdminUsersView } from "@/components/views/admin/admin-users-view";
@@ -33,6 +34,7 @@ export function AdminShell() {
       <div className="admin-ambient admin-ambient-one pointer-events-none fixed -right-48 top-4 h-140 w-130 rounded-full" />
       <div className="admin-ambient admin-ambient-two pointer-events-none fixed -bottom-56 left-[18%] h-140 w-130 rounded-full" />
       <AdminSidebar />
+      <AdminMobileSidebar />
 
       <div className="relative flex min-w-0 flex-1 flex-col">
         <AdminTopbar />

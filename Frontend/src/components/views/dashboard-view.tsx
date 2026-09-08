@@ -250,7 +250,7 @@ export function DashboardView() {
                 label: "Upload notes",
                 onClick: () => dispatch(setView("upload")),
               }}
-              className="py-10"
+              className="py-10 "
             />
           ) : (
             <div className="space-y-2">

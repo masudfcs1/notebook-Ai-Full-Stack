@@ -2,7 +2,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/router";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 
-import { setView, toggleSidebar } from "@/lib/redux/appSlice";
+import { setMobileNav, setView } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
@@ -73,7 +73,8 @@ export function AdminTopbar() {
         variant="ghost"
         size="icon"
         className="h-10 w-10 rounded-xl border border-border/60 bg-white/40 text-muted-foreground shadow-sm hover:bg-white/70 hover:text-foreground dark:bg-white/[0.035] lg:hidden cursor-pointer"
-        onClick={() => dispatch(toggleSidebar())}
+        onClick={() => dispatch(setMobileNav(true))}
+        aria-label="Open admin navigation"
       >
         <Menu className="h-5 w-5" />
       </Button>
@@ -82,7 +83,7 @@ export function AdminTopbar() {
       <div className="flex items-center gap-3">
         <div className="flex h-9 items-center gap-2 rounded-full border border-rose-500/15 bg-rose-500/8 px-3">
           <Shield className="h-3.5 w-3.5 text-rose-400" />
-          <span className="text-[9px] font-bold uppercase tracking-[0.16em] text-rose-500 dark:text-rose-300">
+          <span className="text-[9px] hidden md:block font-bold uppercase tracking-[0.16em] text-rose-500 dark:text-rose-300">
             Administration
           </span>
         </div>
