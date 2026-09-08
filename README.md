@@ -43,7 +43,7 @@ A high-performance, enterprise-grade meeting intelligence and note-taking platfo
 ### Frontend Architecture
 | Layer | Technologies |
 | :--- | :--- |
-| **Framework** | Next.js 16 (React 19, Turbopack, App Router) |
+| **Framework** | Next.js 16 (React 19, Turbopack, Pages Router) |
 | **Language** | TypeScript (Strict Mode) |
 | **State Management** | Redux Toolkit (appSlice, dataSlice, authSlice) + RTK Query |
 | **Styling & UI** | Tailwind CSS, Shadcn UI, Radix UI Primitives, Lucide Icons |
@@ -374,11 +374,12 @@ erDiagram
 
 ## 🎨 Frontend Architecture & State Management
 
-The frontend is built on **Next.js 16 (App Router)** and architected as an **Interactive View-Driven SPA**:
+The frontend is built on **Next.js 16 (Pages Router)** and architected as an **Interactive View-Driven SPA**. File-based pages own the public URLs, while Redux coordinates in-app view transitions:
 
 ```
 src/
-├── app/                    # Next.js App Router (Layout & Global Providers)
+├── pages/                  # Next.js Pages Router (_app, _document, static and dynamic routes)
+├── components/routing/     # Page metadata and URL-to-Redux synchronization
 ├── components/
 │   ├── views/              # View screens (Dashboard, Upload, Ongoing, ActionItems, Summary, etc.)
 │   ├── layout/             # Header, Sidebar, AI Assistant Drawer, Notification Center
@@ -473,7 +474,7 @@ NoteMeet-Ai/
 ├── Frontend/                           # Next.js 16 Web Application
 │   ├── public/                         # Static assets and icons
 │   ├── src/
-│   │   ├── app/                        # Next.js App Router (layout, page, providers)
+│   │   ├── pages/                      # Next.js Pages Router (_app, _document, route pages)
 │   │   ├── components/                 # UI components, layout, modals, and views
 │   │   │   ├── views/                  # SPA views (dashboard, upload, summary, action-items, etc.)
 │   │   │   ├── layout/                 # Header, Sidebar, AI Assistant Drawer

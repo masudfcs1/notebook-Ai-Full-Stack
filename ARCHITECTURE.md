@@ -59,7 +59,7 @@ The platform is designed around strict software engineering best practices:
 ```mermaid
 flowchart TB
     subgraph Client_Layer ["Client Layer (Frontend)"]
-        SPA["Next.js 16 (App Router + SPA View Router)"]
+        SPA["Next.js 16 (Pages Router + Redux View State)"]
         Redux["Redux Store (appSlice, dataSlice, adminSlice)"]
         ReactQuery["TanStack React Query (Server State Cache)"]
         WSClient["Socket.IO Client (Real-time Listeners)"]
@@ -149,14 +149,16 @@ flowchart TB
 
 ### 4.1 Hybrid SPA-in-Next.js Architecture
 
-The frontend leverages Next.js 16's App Router (`src/app`) for optimal server initialization, SEO routing, and asset bundlers, while the core interactive dashboard operates as an ultra-fast SPA via dynamic Redux view dispatching:
+The frontend uses Next.js 16's Pages Router (`src/pages`) for explicit, file-based URLs and page metadata. The interactive dashboard keeps Redux view state synchronized with those URLs so browser history, deep links, and in-app transitions stay aligned:
 
 ```
 src/
-├── app/
-│   ├── layout.tsx         # Global Providers (Redux, Theme, Toast, Auth)
-│   ├── page.tsx           # Dynamic View Switcher
-│   └── api/               # Next.js BFF (Backend for Frontend) Endpoints
+├── pages/
+│   ├── _app.tsx           # Global providers, fonts, auth watcher, and route sync
+│   ├── _document.tsx      # Root HTML document
+│   ├── dashboard/         # Dashboard route pages
+│   ├── admin/             # Admin route pages
+│   └── [workspaceSlug]/   # Dynamic workspace and team routes
 ├── components/
 │   ├── layout/            # AppSidebar, Header, TopNav, MobileNav, Breadcrumbs
 │   ├── views/             # Full Screen Views (Dashboard, Upload, Summary, Teams, History, Settings)

@@ -59,7 +59,6 @@ export function Topbar() {
   const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const updateClock = () => {
       const now = new Date();

@@ -8,7 +8,12 @@ interface TeamPageProps {
 
 export default function TeamPage({ workspaceSlug, teamSlug }: TeamPageProps) {
   return (
-    <AppPage title='Team' workspaceSlug={workspaceSlug} teamSlug={teamSlug} />
+    <AppPage
+      title='Team'
+      initialView='team'
+      workspaceSlug={workspaceSlug}
+      teamSlug={teamSlug}
+    />
   )
 }
 
@@ -24,4 +29,3 @@ export const getServerSideProps: GetServerSideProps<TeamPageProps> = async ({
 
   return { props: { workspaceSlug, teamSlug } }
 }
-

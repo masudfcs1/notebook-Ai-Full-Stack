@@ -59,12 +59,10 @@ export function AuthView({ initialMode = "login" }: AuthViewProps) {
   const isLoading = isLoginLoading || isRegisterLoading;
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(initialMode);
   }, [initialMode]);
 

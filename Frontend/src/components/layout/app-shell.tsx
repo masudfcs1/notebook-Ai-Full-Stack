@@ -1,6 +1,4 @@
-"use client";
-
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
   setView,
@@ -44,7 +42,7 @@ const VIEW_COMPONENT_REGISTRY = {
   settings: SettingsView,
 } as const;
 
-interface AppShellProps {
+export interface AppShellProps {
   initialView?: ViewKey;
   workspaceSlug?: string;
   teamSlug?: string;
@@ -61,7 +59,8 @@ export function AppShell({
   const view = useAppSelector((s) => s.app.view);
   const user = useAppSelector((s) => s.auth.user);
   const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
-  const initialized = useRef(false);
+  const workspaces = useAppSelector((s) => s.data.workspaces);
+  const activeView = initialView ?? view;
 
   // Fetch current user details if authenticated
   const { data: meResponse } = useGetMeQuery(undefined, {
@@ -76,29 +75,31 @@ export function AppShell({
 
   // Sync workspace and team from URL slugs
   useEffect(() => {
-    if (workspaceSlug) {
-      dispatch(setActiveWorkspaceBySlug(workspaceSlug));
-    }
-    if (teamSlug !== undefined) {
-      dispatch(setActiveTeamBySlug(teamSlug || null));
-      if (teamSlug) {
-        dispatch(setView("team"));
-      }
-    }
-  }, [dispatch, workspaceSlug, teamSlug]);
+    if (!workspaceSlug) return;
+
+    // Workspace data is loaded asynchronously. Re-run this synchronization
+    // when that data arrives so a directly opened slug resolves correctly.
+    const workspaceExists = workspaces.some(
+      (workspace) =>
+        workspace.slug === workspaceSlug || workspace.id === workspaceSlug,
+    );
+
+    if (!workspaceExists) return;
+
+    dispatch(setActiveWorkspaceBySlug(workspaceSlug));
+    dispatch(setActiveTeamBySlug(teamSlug ?? null));
+  }, [dispatch, teamSlug, workspaceSlug, workspaces]);
 
   // Sync view, auth state, and admin user ID on initial mount
   useEffect(() => {
     dispatch(initializeAuth());
-    if (adminUserId) {
-      dispatch(setSelectedAdminUserId(adminUserId));
-    }
+    dispatch(setSelectedAdminUserId(adminUserId ?? null));
     if (initialView) {
       dispatch(setView(initialView));
     }
   }, [adminUserId, dispatch, initialView]);
 
-  if (view === "landing" && !workspaceSlug) {
+  if (activeView === "landing" && !workspaceSlug) {
     return (
       <>
         <LandingView />
@@ -107,10 +108,10 @@ export function AppShell({
     );
   }
 
-  if (view === "login" || view === "signup") {
+  if (activeView === "login" || activeView === "signup") {
     return (
       <>
-        <AuthView initialMode={view} />
+        <AuthView initialMode={activeView} />
         <AiAssistantWidget />
       </>
     );
@@ -127,7 +128,7 @@ export function AppShell({
   }
 
   // Admin Panel: render completely separate admin shell for admin views
-  if (view.startsWith("admin-")) {
+  if (activeView.startsWith("admin-")) {
     const isAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
     if (!isAdmin) {
       // Non-admin users trying to access admin panel → redirect to user dashboard
@@ -137,7 +138,8 @@ export function AppShell({
     return <AdminShell />;
   }
 
-  const ActiveViewComponent = VIEW_COMPONENT_REGISTRY[view] ?? DashboardView;
+  const ActiveViewComponent =
+    VIEW_COMPONENT_REGISTRY[activeView] ?? DashboardView;
 
   return (
     <div className="app-dashboard-shell relative flex min-h-screen overflow-x-hidden">
@@ -151,7 +153,7 @@ export function AppShell({
         <main className="relative flex-1 px-4 pb-28 pt-6 md:px-7 md:pt-8 lg:pb-12">
           <AnimatePresence mode="wait">
             <motion.div
-              key={view}
+              key={activeView}
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}

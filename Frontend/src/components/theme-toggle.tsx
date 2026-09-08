@@ -17,7 +17,6 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
 
   useEffect(() => {
     // Avoid rendering the persisted client theme during SSR.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true)
   }, [])
 

@@ -1,14 +1,9 @@
 import Head from 'next/head'
-import { AppShell } from '@/components/layout'
-import type { ViewKey } from '@/types'
+import { AppShell, type AppShellProps } from '@/components/layout'
 import { SITE_CONFIG } from '@/config/site'
 
-interface AppPageProps {
+interface AppPageProps extends AppShellProps {
   title?: string
-  initialView?: ViewKey
-  workspaceSlug?: string
-  teamSlug?: string
-  adminUserId?: number
 }
 
 export function AppPage({ title, ...shellProps }: AppPageProps) {
@@ -24,4 +19,3 @@ export function AppPage({ title, ...shellProps }: AppPageProps) {
     </>
   )
 }
-
