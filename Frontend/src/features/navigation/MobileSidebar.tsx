@@ -31,10 +31,13 @@ export function MobileSidebar() {
 
   return (
     <Sheet open={open} onOpenChange={(v) => dispatch(setMobileNav(v))}>
-      <SheetContent side="left" className="dashboard-sidebar w-72 border-r p-0">
-        <SheetHeader className="border-b border-border/60 p-4 text-left">
+      <SheetContent
+        side="left"
+        className="dashboard-sidebar w-[min(19rem,88vw)] border-r border-border/70 !bg-background/90 p-0 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+      >
+        <SheetHeader className="border-b border-border/60 bg-background/70 p-4 text-left backdrop-blur-xl">
           <SheetTitle className="flex items-center gap-3">
-            <Logo size={32} className="shrink-0" />
+            <Logo size={32} className="shrink-0 bg-indigo-500" />
             <div className="min-w-0 flex-1">
               <Wordmark className="text-sm block leading-tight" />
               <p className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground truncate">
@@ -44,10 +47,10 @@ export function MobileSidebar() {
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="space-y-6 p-4">
+        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4 pb-28">
           {NAVIGATION_GROUPS.map((group) => (
             <div key={group.section} className="space-y-1">
-              <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
                 {group.section}
               </p>
               {group.items.map((item) => {
@@ -56,18 +59,23 @@ export function MobileSidebar() {
                 return (
                   <button
                     key={item.key}
-                    onClick={() => dispatch(setView(item.key))}
-                    className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all cursor-pointer ${
+                    type="button"
+                    onClick={() => {
+                      dispatch(setView(item.key));
+                      dispatch(setMobileNav(false));
+                    }}
+                    aria-current={active ? "page" : undefined}
+                    className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                       active
-                        ? "bg-linear-to-r from-indigo-500/14 to-violet-500/8 text-foreground ring-1 ring-indigo-500/10"
-                        : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/2"
+                        ? "bg-linear-to-r from-indigo-500/18 to-violet-500/12 text-foreground shadow-sm ring-1 ring-indigo-500/20"
+                        : "text-muted-foreground hover:bg-muted/75 hover:text-foreground"
                     }`}
                   >
                     <span
                       className={`flex h-7 w-7 items-center justify-center rounded-lg ${
                         active
                           ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-indigo-500/6 text-muted-foreground ring-1 ring-indigo-500/10 dark:bg-white/3 dark:ring-white/5"
+                          : "bg-muted/75 text-muted-foreground ring-1 ring-border/60 group-hover:text-foreground"
                       }`}
                     >
                       <Icon className="h-4.5 w-4.5" strokeWidth={2} />
@@ -88,7 +96,7 @@ export function MobileSidebar() {
           ))}
         </nav>
 
-        <div className="absolute bottom-0 inset-x-0 border-t border-border/60 p-4">
+        <div className="absolute inset-x-0 bottom-0 border-t border-border/70 bg-background/90 p-4 shadow-[0_-12px_30px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl">
           <div className="flex items-center gap-3">
             <Avatar className="h-9 w-9 border border-border">
               {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
@@ -109,6 +117,7 @@ export function MobileSidebar() {
               title="Sign out"
               aria-label="Sign out"
               onClick={() => {
+                dispatch(setMobileNav(false));
                 dispatch(logout());
                 dispatch(setView("login"));
                 toast.success("Logged out successfully", {

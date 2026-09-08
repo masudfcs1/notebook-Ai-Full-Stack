@@ -48,6 +48,7 @@ import {
   Circle,
   Edit3,
   Flame,
+  Globe2,
   Layers,
   LayoutGrid,
   List,
@@ -498,17 +499,17 @@ export function ActionItemsView() {
   }, [activeDragId, tasks]);
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-[1600px] space-y-5">
       {/* Header & Stats Bar */}
-      <Card className="dashboard-glass-card border-white/10 bg-card/60 p-5 shadow-xl backdrop-blur-xl">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
+      <Card className="dashboard-glass-card rounded-2xl border-border/50 bg-card/70 p-4 shadow-lg backdrop-blur-xl">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
                 <CheckSquare className="h-4 w-4" />
               </span>
-              <h2 className="text-xl font-bold tracking-tight text-foreground">
-                Action Items Matrix
+              <h2 className="truncate text-lg font-bold tracking-tight text-foreground">
+                Action Items
               </h2>
               {currentTeam && (
                 <Badge
@@ -525,47 +526,50 @@ export function ActionItemsView() {
                 </Badge>
               )}
             </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Track tasks, assign member tokens, and monitor workspace action
-              items across pipeline stages.
+            <p className="mt-0.5 max-w-xl text-xs text-muted-foreground">
+              Assign ownership and move work through every delivery stage.
             </p>
           </div>
 
           {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:min-w-[430px]">
+            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Total Tasks
               </span>
-              <p className="text-lg font-bold text-foreground">{stats.total}</p>
+              <p className="text-base font-bold leading-5 text-foreground">
+                {stats.total}
+              </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 In Progress
               </span>
-              <p className="text-lg font-bold text-amber-400">
+              <p className="text-base font-bold leading-5 text-amber-600 dark:text-amber-400">
                 {stats.inProgress}
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Done Rate
               </span>
-              <p className="text-lg font-bold text-emerald-400">
+              <p className="text-base font-bold leading-5 text-emerald-600 dark:text-emerald-400">
                 {stats.completionRate}%
               </p>
             </div>
 
-            <div className="rounded-xl border border-white/10 bg-card/40 p-2.5 text-center">
+            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Overdue
               </span>
               <p
                 className={cn(
-                  "text-lg font-bold",
-                  stats.overdue > 0 ? "text-rose-400" : "text-muted-foreground",
+                  "text-base font-bold leading-5",
+                  stats.overdue > 0
+                    ? "text-rose-600 dark:text-rose-400"
+                    : "text-muted-foreground",
                 )}
               >
                 {stats.overdue}
@@ -576,20 +580,22 @@ export function ActionItemsView() {
 
         {/* Team Filter Pills (Linear Style) */}
         {teams.length > 0 && (
-          <div className="mt-4 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-3">
-            <span className="text-xs text-muted-foreground font-semibold mr-1 flex items-center gap-1">
-              <Layers className="h-3.5 w-3.5" /> Scope:
+          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border/45 pt-2.5">
+            <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <Layers className="h-3.5 w-3.5" /> Teams
             </span>
             <button
+              type="button"
               onClick={() => setSelectedTeamId(null)}
+              aria-pressed={selectedTeamId === null}
               className={cn(
-                "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
+                "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
                 selectedTeamId === null
-                  ? "border-indigo-500/50 bg-indigo-500 text-white shadow-sm font-bold"
-                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "border-indigo-500 bg-indigo-600 font-semibold text-white shadow-sm"
+                  : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
-              <span>🌐</span>
+              <Globe2 className="h-3.5 w-3.5" />
               <span>All Teams</span>
               <span className="text-[10px] opacity-80">
                 ({reduxTasks.length})
@@ -604,21 +610,27 @@ export function ActionItemsView() {
               return (
                 <button
                   key={t.id}
+                  type="button"
                   onClick={() => setSelectedTeamId(t.id)}
+                  aria-pressed={isSelected}
                   className={cn(
-                    "flex items-center gap-1.5 rounded-xl border px-3 py-1 text-xs font-medium transition-all cursor-pointer",
+                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
                     isSelected
                       ? cn(
-                          "border-transparent font-bold text-white shadow-sm bg-gradient-to-r",
+                          "border-transparent bg-gradient-to-r font-semibold text-white shadow-sm",
                           theme.gradient,
                         )
-                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
-                  <span>{t.icon || "👥"}</span>
+                  {t.icon ? (
+                    <span aria-hidden="true">{t.icon}</span>
+                  ) : (
+                    <Users className="h-3.5 w-3.5" />
+                  )}
                   <span>{t.name}</span>
-                  <span className="text-[10px] font-mono opacity-80">
-                    ({t.key})
+                  <span className="font-mono text-[10px] opacity-75">
+                    ({count})
                   </span>
                 </button>
               );
@@ -628,17 +640,19 @@ export function ActionItemsView() {
 
         {/* User / Member Token Filter Row */}
         {availableMembers.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/5 pt-3">
-            <span className="text-xs text-muted-foreground font-semibold mr-1 flex items-center gap-1">
-              <User className="h-3.5 w-3.5 text-emerald-400" /> Member Tokens:
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-border/45 pt-2.5">
+            <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <User className="h-3.5 w-3.5 text-emerald-500" /> Owners
             </span>
             <button
+              type="button"
               onClick={() => setSelectedUserFilter(null)}
+              aria-pressed={selectedUserFilter === null}
               className={cn(
-                "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
                 selectedUserFilter === null
-                  ? "border-emerald-500/50 bg-emerald-500/20 text-emerald-300 font-bold shadow-sm"
-                  : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                  ? "border-emerald-500/50 bg-emerald-500/12 font-semibold text-emerald-700 shadow-sm dark:text-emerald-300"
+                  : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
               <span>All Assignees</span>
@@ -665,10 +679,10 @@ export function ActionItemsView() {
                     setSelectedUserFilter(isSelected ? null : m.name)
                   }
                   className={cn(
-                    "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
                     isSelected
                       ? "border-emerald-500 bg-emerald-500 text-white font-bold shadow-sm"
-                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <Avatar className="h-3.5 w-3.5">
@@ -693,10 +707,10 @@ export function ActionItemsView() {
                     setSelectedUserFilter(isSelected ? null : "__unassigned__")
                   }
                   className={cn(
-                    "flex items-center gap-1.5 rounded-xl border px-2.5 py-0.5 text-xs font-medium transition-all cursor-pointer",
+                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
                     isSelected
                       ? "border-amber-500 bg-amber-500 text-white font-bold shadow-sm"
-                      : "border-border/60 bg-card/60 text-muted-foreground hover:bg-muted hover:text-foreground",
+                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <span>Unassigned</span>
@@ -711,18 +725,18 @@ export function ActionItemsView() {
       </Card>
 
       {/* Filter Toolbar & Actions */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="dashboard-glass-card flex flex-col gap-2.5 rounded-2xl border-border/50 bg-card/70 p-2.5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
         {/* Left: Quick Filters & Search */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
           {/* Search Input */}
-          <div className="relative">
+          <div className="relative w-full shrink-0 sm:w-64">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search tasks, identifier, assignee..."
-              className="h-9 w-44 sm:w-60 rounded-xl border border-border/60 bg-card/60 pl-8 pr-3 text-xs text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="h-9 w-full rounded-xl border border-border/60 bg-background/60 pl-8 pr-8 text-xs text-foreground outline-none transition placeholder:text-muted-foreground/60 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/15"
             />
             {search && (
               <button
@@ -735,7 +749,7 @@ export function ActionItemsView() {
           </div>
 
           {/* Quick Filter Pills */}
-          <div className="flex items-center rounded-xl border border-border/60 bg-card/40 p-0.5">
+          <div className="flex max-w-full items-center overflow-x-auto rounded-xl border border-border/60 bg-muted/35 p-0.5">
             {[
               { id: "all", label: "All" },
               { id: "my_tasks", label: "My Tasks" },
@@ -747,7 +761,7 @@ export function ActionItemsView() {
                 key={f.id}
                 onClick={() => setQuickFilter(f.id as any)}
                 className={cn(
-                  "rounded-lg px-2.5 py-1 text-xs font-medium transition-all cursor-pointer",
+                  "shrink-0 cursor-pointer rounded-lg px-2.5 py-1 text-xs font-medium transition-all",
                   quickFilter === f.id
                     ? "bg-indigo-600 text-white font-semibold shadow-sm"
                     : "text-muted-foreground hover:text-foreground",
@@ -760,9 +774,9 @@ export function ActionItemsView() {
         </div>
 
         {/* Right: View Toggle & Create Action Item */}
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center justify-between gap-2 sm:justify-end">
           {/* View Toggle */}
-          <div className="flex items-center rounded-xl border border-border/60 bg-card/40 p-0.5">
+          <div className="flex items-center rounded-xl border border-border/60 bg-muted/35 p-0.5">
             <button
               onClick={() => setViewMode("board")}
               className={cn(
@@ -795,7 +809,7 @@ export function ActionItemsView() {
             <Plus className="h-4 w-4" /> New Action Item
           </Button>
         </div>
-      </div>
+      </Card>
 
       {/* Main Kanban Board View or List View */}
       {viewMode === "board" ? (
