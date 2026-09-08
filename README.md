@@ -72,51 +72,48 @@ A high-performance, enterprise-grade meeting intelligence and note-taking platfo
 The system is designed as a decoupled, multi-tier full-stack architecture that balances high-concurrency client state, robust REST API services, real-time WebSocket communication, and resilient AI stream processing.
 
 ```mermaid
-graph TD
-    subgraph Client ["Frontend Layer (Next.js 16 / React 19 - Port 3015)"]
-        UI["Tailwind CSS + Shadcn UI + Framer Motion"]
-        SPA["View-Driven SPA Orchestrator"]
-        Redux["Redux Toolkit (appSlice, dataSlice, authSlice)"]
-        RTK["RTK Query (adminApi, authApi, workspaceApi)"]
-        SocketClient["Socket.io Client (Real-time Events)"]
-        GeminiClient["Gemini SDK (@google/genai)"]
+flowchart LR
+    subgraph Frontend["Frontend - Next.js 16"]
+        FE_UI["React UI and Tailwind CSS"]
+        FE_Router["Pages Router"]
+        FE_State["Redux Toolkit and RTK Query"]
+        FE_Socket["Socket.IO Client"]
+        FE_UI --> FE_Router
+        FE_Router --> FE_State
     end
 
-    subgraph Gateway ["API Gateway & Security Layer"]
-        Helmet["Helmet (Security Headers)"]
-        Cors["CORS Policy (Origin Verification)"]
-        RateLimit["Express Rate Limiter"]
-        Sanitize["Input Sanitizer & Zod Validation"]
-        AuthMid["JWT Auth & RBAC Authorization Middleware"]
+    subgraph Security["Ingress and Security"]
+        EDGE_Proxy["Caddy Reverse Proxy"]
+        EDGE_Guards["Helmet, CORS and Rate Limiting"]
+        EDGE_Auth["JWT, RBAC and Zod Validation"]
+        EDGE_Proxy --> EDGE_Guards
+        EDGE_Guards --> EDGE_Auth
     end
 
-    subgraph Backend ["Backend Layer (Express.js / TypeScript - Port 5015)"]
-        Router["Express Modular Routers (/api/v1/*)"]
-        Controller["Controllers (HTTP & DTO Handlers)"]
-        Service["Services (Business Logic & Orchestration)"]
-        Repo["Repositories (Prisma ORM Access Layer)"]
-        SocketEngine["Socket.io Real-Time Engine"]
+    subgraph API["Backend - Express and TypeScript"]
+        API_Routes["Versioned API Routes"]
+        API_Controllers["Controllers"]
+        API_Services["Domain Services"]
+        API_Repositories["Prisma Repositories"]
+        API_Socket["Socket.IO Server"]
+        API_Routes --> API_Controllers
+        API_Controllers --> API_Services
+        API_Services --> API_Repositories
+        API_Services --> API_Socket
     end
 
-    subgraph Persistence ["Persistence & External Cloud Services"]
-        NeonDB[("PostgreSQL Database (Neon / Supabase)")]
-        GeminiAPI["Google Gemini 3.6 Flash AI Cloud"]
+    subgraph Platform["Data and External Services"]
+        DATA_Postgres["PostgreSQL Database"]
+        EXT_Gemini["Google Gemini AI"]
     end
 
-    UI --> SPA
-    SPA --> Redux
-    Redux --> RTK
-    RTK -->|REST Requests (JSON)| Gateway
-    Gateway --> AuthMid
-    AuthMid --> Router
-    Router --> Controller
-    Controller --> Service
-    Service --> Repo
-    Service --> SocketEngine
-    Repo -->|Prisma Client Queries| NeonDB
-    SocketEngine -.->|WebSocket Notifications| SocketClient
-    GeminiClient -->|Summaries, Action Items & Chat| GeminiAPI
-    Service -.->|AI Background Processing| GeminiAPI
+    FE_State -->|HTTPS REST| EDGE_Proxy
+    EDGE_Auth --> API_Routes
+    API_Repositories --> DATA_Postgres
+    FE_UI -->|AI analysis| EXT_Gemini
+    API_Services -.->|Background AI work| EXT_Gemini
+    API_Socket -->|WebSocket events| FE_Socket
+    FE_Socket --> FE_State
 ```
 
 ---
@@ -162,6 +159,31 @@ src/modules/<module-name>/
 - **Access Token**: Short-lived (15 minutes), signed with `JWT_ACCESS_SECRET`, transmitted via HTTP `Authorization: Bearer <token>` header.
 - **Refresh Token**: Long-lived (7 days), signed with `JWT_REFRESH_SECRET`, stored securely in database table (`RefreshToken`) and sent via `HttpOnly`, `SameSite=Strict`, `Secure` cookies.
 - **Token Invalidation & Rotation**: Logging out or rotating refresh tokens automatically revokes database token records.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor User
+    participant Browser
+    participant AuthAPI as Auth API
+    participant TokenService as JWT Service
+    participant Database as PostgreSQL
+
+    User->>Browser: Submit credentials
+    Browser->>AuthAPI: POST /api/v1/auth/login
+    AuthAPI->>Database: Verify user and password
+    Database-->>AuthAPI: Active user
+    AuthAPI->>TokenService: Issue access and refresh tokens
+    TokenService-->>AuthAPI: Signed token pair
+    AuthAPI->>Database: Store refresh token record
+    AuthAPI-->>Browser: Access token and refresh cookie
+
+    Note over Browser,AuthAPI: Access token expires
+    Browser->>AuthAPI: POST /api/v1/auth/refresh-token
+    AuthAPI->>Database: Validate and rotate refresh token
+    AuthAPI->>TokenService: Issue replacement token pair
+    AuthAPI-->>Browser: New access token and refresh cookie
+```
 
 ### 2. Role-Based Access Control (RBAC) Matrix
 The application implements strict hierarchical permissions enforced through `authorizeRole` middleware:
@@ -394,6 +416,22 @@ src/
 └── services/               # Gemini AI service, Socket.io client, Axios/Fetch API client
 ```
 
+### URL, State, and Data Flow
+
+```mermaid
+flowchart LR
+    Browser["Browser URL"] --> Page["Pages Router Page"]
+    Page --> Shell["Application Shell"]
+    Shell --> Store["Redux Store"]
+    Store --> Screen["Active View"]
+    Store --> Sync["Route State Sync"]
+    Sync --> Browser
+    Store --> Query["RTK Query"]
+    Query --> API["Express REST API"]
+    API --> Query
+    Socket["Socket.IO Events"] --> Store
+```
+
 ### State Management Strategy
 - **`appSlice`**: Manages view routing transitions (`dashboard`, `ongoing`, `upload`, `summary`, `action-items`, `history`, `team`, `settings`), UI overlays, notifications, and AI drawer states.
 - **`dataSlice`**: Manages optimistic CRUD operations for notes and Kanban boards with local fallback synchronization.
@@ -549,6 +587,18 @@ npm run dev
 ## 🐳 Docker Installation & Deployment
 
 Run the entire full-stack application inside isolated multi-stage containers without needing local Node.js or database installations.
+
+### Runtime Topology
+
+```mermaid
+flowchart LR
+    User["Browser"] --> Proxy["Caddy Reverse Proxy"]
+    Proxy --> Frontend["Next.js Container - Port 3015"]
+    Proxy --> Backend["Express Container - Port 5015"]
+    Frontend --> Backend
+    Backend --> Database["PostgreSQL"]
+    Backend --> Gemini["Google Gemini AI"]
+```
 
 ### Quick Start with Docker Compose
 ```bash

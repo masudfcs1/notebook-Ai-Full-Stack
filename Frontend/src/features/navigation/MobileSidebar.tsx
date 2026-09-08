@@ -70,7 +70,7 @@ export function MobileSidebar() {
                           : "bg-indigo-500/6 text-muted-foreground ring-1 ring-indigo-500/10 dark:bg-white/3 dark:ring-white/5"
                       }`}
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-4.5 w-4.5" strokeWidth={2} />
                     </span>
                     <span className="flex-1 text-left">{item.label}</span>
                     {item.badge && (

@@ -7,7 +7,6 @@ import {
   PanelLeft,
   LogOut,
   ArrowLeftRight,
-  Shield,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -22,7 +21,6 @@ import {
   getAvatarUrl,
 } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -51,10 +49,26 @@ export function AdminSidebar() {
     }
   };
 
+  const handleLogout = () => {
+    dispatch(logout());
+    dispatch(setView("login"));
+    toast.success("Logged out successfully", {
+      position: "bottom-right",
+    });
+  };
+
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
   const displayEmail = user?.email || "admin@noteflow.ai";
   const initials = getUserInitials(user?.name, user?.email);
+  const adminAvatar = (
+    <Avatar className="h-9 w-9 border border-rose-500/20 shadow-sm">
+      {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+      <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
+        {initials}
+      </AvatarFallback>
+    </Avatar>
+  );
 
   return (
     <motion.aside
@@ -65,52 +79,72 @@ export function AdminSidebar() {
         "dashboard-sidebar admin-dashboard-sidebar sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r text-sidebar-foreground lg:flex",
       )}
     >
+      {/* Persistent edge control keeps the rail uncluttered at both widths. */}
+      <Tooltip delayDuration={150}>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="absolute -right-3.5 top-5 z-40 h-7 w-7 rounded-full border-rose-500/20 bg-background/95 text-muted-foreground shadow-md backdrop-blur-md hover:border-rose-500/40 hover:bg-background hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
+            onClick={() => dispatch(toggleSidebar())}
+            aria-label={
+              collapsed ? "Expand admin sidebar" : "Collapse admin sidebar"
+            }
+            aria-expanded={!collapsed}
+          >
+            {collapsed ? (
+              <PanelLeft className="h-3.5 w-3.5" />
+            ) : (
+              <PanelLeftClose className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="text-xs font-medium">
+          {collapsed ? "Expand sidebar" : "Collapse sidebar"}
+        </TooltipContent>
+      </Tooltip>
+
       {/* Header / Logo */}
-      <div className="flex h-18 shrink-0 items-center gap-3 px-4">
+      <div
+        className={cn(
+          "flex h-18 shrink-0 items-center",
+          collapsed ? "justify-center px-2" : "px-4",
+        )}
+      >
         <button
           onClick={() => dispatch(setView("admin-dashboard"))}
-          className="flex items-center gap-3 overflow-hidden text-left cursor-pointer"
+          className={cn(
+            "flex min-w-0 items-center overflow-hidden rounded-xl text-left transition-colors hover:bg-rose-500/5 cursor-pointer",
+            collapsed ? "h-11 w-11 justify-center" : "gap-3 px-1 py-1.5",
+          )}
           aria-label="Go to admin dashboard"
         >
           <Logo size={36} className="shrink-0" />
           {!collapsed && (
             <div className="min-w-0 flex-1 flex items-center gap-2">
               <Wordmark className="text-base text-foreground" />
-              {/* <Badge className="h-5 rounded-md border border-rose-500/30 bg-rose-500/15 px-1.5 text-[9px] font-bold text-rose-400 shrink-0">
-                <Shield className="mr-0.5 h-2.5 w-2.5" />
-                ADMIN
-              </Badge> */}
             </div>
           )}
         </button>
-
-        <div className="ml-auto">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
-                onClick={() => dispatch(toggleSidebar())}
-              >
-                {collapsed ? (
-                  <PanelLeft className="h-3.5 w-3.5" />
-                ) : (
-                  <PanelLeftClose className="h-3.5 w-3.5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs">
-              {collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            </TooltipContent>
-          </Tooltip>
-        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-4 scrollbar-thin">
+      <nav
+        className={cn(
+          "flex-1 overflow-y-auto py-4 scrollbar-thin",
+          collapsed ? "px-2.5" : "px-3",
+        )}
+        aria-label="Admin navigation"
+      >
         {ADMIN_NAVIGATION_GROUPS.map((group) => (
-          <div key={group.section} className="mb-5">
+          <div
+            key={group.section}
+            className={cn(
+              "mb-5 space-y-1",
+              collapsed &&
+                "mb-3 border-b border-sidebar-border/50 pb-3 last:mb-0 last:border-b-0 last:pb-0",
+            )}
+          >
             {!collapsed && (
               <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground">
                 {group.section}
@@ -141,11 +175,14 @@ export function AdminSidebar() {
                 <button
                   key={item.key}
                   onClick={handleNavClick}
+                  aria-current={isActive ? "page" : undefined}
+                  aria-label={collapsed ? item.label : undefined}
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
                       ? "bg-linear-to-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
                       : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/5",
+                    collapsed && "h-11 justify-center px-0 py-0",
                   )}
                 >
                   {/* Active indicator bar */}
@@ -163,12 +200,13 @@ export function AdminSidebar() {
                   <div
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
+                      collapsed && "h-8 w-8",
                       isActive
                         ? `bg-linear-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
                         : "bg-rose-500/5 text-muted-foreground ring-1 ring-rose-500/10 group-hover:text-rose-600 dark:bg-white/5 dark:ring-white/5 dark:group-hover:text-rose-300",
                     )}
                   >
-                    <Icon className="h-3.5 w-3.5" />
+                    <Icon className="h-4.5 w-4.5" strokeWidth={2} />
                   </div>
                   {!collapsed && <span className="truncate">{item.label}</span>}
                 </button>
@@ -176,11 +214,11 @@ export function AdminSidebar() {
 
               if (collapsed) {
                 return (
-                  <Tooltip key={item.key}>
+                  <Tooltip key={item.key} delayDuration={100}>
                     <TooltipTrigger asChild>{btn}</TooltipTrigger>
                     <TooltipContent
                       side="right"
-                      className="text-xs font-medium"
+                      className="ml-1 text-xs font-medium"
                     >
                       {item.label}
                     </TooltipContent>
@@ -195,7 +233,12 @@ export function AdminSidebar() {
       </nav>
 
       {/* Footer — User profile + actions */}
-      <div className="border-t border-border/50 bg-white/20 p-3 dark:bg-white/[0.012]">
+      <div
+        className={cn(
+          "shrink-0 border-t border-border/50 bg-white/20 dark:bg-white/[0.012]",
+          collapsed ? "flex flex-col items-center gap-2 p-2.5" : "p-3",
+        )}
+      >
         {/* Switch to User Panel */}
         {!collapsed ? (
           <button
@@ -206,31 +249,55 @@ export function AdminSidebar() {
             Switch to User Panel
           </button>
         ) : (
-          <Tooltip>
+          <Tooltip delayDuration={100}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="icon"
-                className="mb-2 h-8 w-full text-muted-foreground hover:bg-muted hover:text-foreground cursor-pointer"
+                className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
                 onClick={handleSwitchToUserPanel}
+                aria-label="Switch to user panel"
               >
                 <ArrowLeftRight className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="text-xs">
+            <TooltipContent side="right" className="ml-1 text-xs font-medium">
               Switch to User Panel
             </TooltipContent>
           </Tooltip>
         )}
 
+        {collapsed && <div className="h-px w-8 bg-border/70" />}
+
         {/* User info */}
-        <div className="flex items-center gap-3">
-          <Avatar className="h-9 w-9 border border-rose-500/20">
-            {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-            <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
+        <div
+          className={cn(
+            "flex items-center gap-3",
+            collapsed && "w-full flex-col gap-2",
+          )}
+        >
+          {collapsed ? (
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <div
+                  tabIndex={0}
+                  role="img"
+                  className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-rose-500/40 focus-visible:ring-offset-2"
+                  aria-label={`${displayName}, ${displayEmail}`}
+                >
+                  {adminAvatar}
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="right" className="ml-1 max-w-56">
+                <p className="text-xs font-semibold">{displayName}</p>
+                <p className="text-[10px] text-muted-foreground">
+                  {displayEmail}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            adminAvatar
+          )}
           {!collapsed && (
             <div className="min-w-0 flex-1 text-left">
               <p className="truncate text-xs font-semibold text-foreground">
@@ -245,37 +312,29 @@ export function AdminSidebar() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
               title="Sign out"
-              onClick={() => {
-                dispatch(logout());
-                dispatch(setView("login"));
-                toast.success("Logged out successfully", {
-                  position: "bottom-right",
-                });
-              }}
+              onClick={handleLogout}
             >
               <LogOut className="h-3.5 w-3.5" />
             </Button>
           ) : (
-            <Tooltip>
+            <Tooltip delayDuration={100}>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition-colors cursor-pointer"
-                  onClick={() => {
-                    dispatch(logout());
-                    dispatch(setView("login"));
-                    toast.success("Logged out successfully", {
-                      position: "bottom-right",
-                    });
-                  }}
+                  className="h-9 w-9 rounded-xl text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
+                  onClick={handleLogout}
+                  aria-label="Sign out"
                 >
                   <LogOut className="h-3.5 w-3.5" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent side="right" className="text-xs">
+              <TooltipContent
+                side="right"
+                className="ml-1 text-xs font-medium text-rose-500"
+              >
                 Sign out
               </TooltipContent>
             </Tooltip>
