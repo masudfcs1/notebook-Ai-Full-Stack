@@ -127,6 +127,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Keep every Lucide icon white in day/light mode. */
+  :root:not(.dark) .lucide {
+    color: #fff;
+  }
   html {
     scroll-behavior: smooth;
   }
@@ -734,4 +738,3 @@
     animation-iteration-count: 1 !important;
   }
 }
-
