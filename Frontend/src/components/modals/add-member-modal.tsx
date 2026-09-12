@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { cn, getAvatarUrl, getUserInitials } from "@/lib/utils";
 import { getTeamTheme, ROLE_CONFIG } from "@/lib/team-theme";
@@ -351,7 +352,14 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
             )}
           >
             <Users className="h-3.5 w-3.5" />
-            <span>Workspace Directory ({availableUsers.length})</span>
+            <span>
+              Workspace Directory{" "}
+              {isLoadingUsers ? (
+                <span className="inline-block h-3.5 w-6 rounded bg-muted/60 animate-pulse align-middle ml-0.5" />
+              ) : (
+                `(${availableUsers.length})`
+              )}
+            </span>
           </button>
 
           <button
@@ -381,9 +389,12 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
                   placeholder="Search by name, email, or other teams..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-9 w-full rounded-xl border border-border/60 bg-muted/40 pl-9 pr-3 text-xs outline-none focus:border-indigo-500 focus:bg-background transition-colors"
+                  className="h-9 w-full rounded-xl border border-border/60 bg-muted/40 pl-9 pr-9 text-xs outline-none focus:border-indigo-500 focus:bg-background transition-colors"
                   autoFocus
                 />
+                {isLoadingUsers && (
+                  <Loader2 className="absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 animate-spin text-indigo-400" />
+                )}
               </div>
 
               {/* Default Role & Select All */}
@@ -420,9 +431,45 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
             {/* Users List Container */}
             <div className="flex-1 overflow-y-auto max-h-[340px] rounded-xl border border-white/5 bg-muted/10 p-2 scrollbar-thin space-y-2">
               {isLoadingUsers ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center text-xs text-muted-foreground gap-2">
-                  <Loader2 className="h-6 w-6 animate-spin text-indigo-400" />
-                  <span>Searching workspace directory...</span>
+                <div
+                  className="grid gap-2 sm:grid-cols-2"
+                  role="status"
+                  aria-label="Loading available members"
+                >
+                  {Array.from({ length: 6 }).map((_, idx) => (
+                    <div
+                      key={`skeleton-member-${idx}`}
+                      className="flex flex-col justify-between rounded-xl border border-white/5 bg-card/50 p-3 space-y-3 animate-pulse"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <Skeleton className="h-8.5 w-8.5 rounded-full shrink-0 bg-muted/60" />
+                          <div className="min-w-0 flex-1 space-y-1.5">
+                            <Skeleton
+                              className="h-3.5 rounded bg-muted/70"
+                              style={{ width: `${60 + (idx % 3) * 15}%` }}
+                            />
+                            <Skeleton
+                              className="h-2.5 rounded bg-muted/40"
+                              style={{ width: `${45 + (idx % 2) * 25}%` }}
+                            />
+                          </div>
+                        </div>
+                        <Skeleton className="h-5 w-5 rounded-md shrink-0 bg-muted/50 mt-0.5" />
+                      </div>
+
+                      <div className="pt-2 border-t border-white/5 flex items-center gap-1.5">
+                        <Skeleton className="h-3.5 w-5 rounded bg-muted/30" />
+                        <Skeleton
+                          className="h-4.5 rounded-md bg-muted/40"
+                          style={{ width: `${55 + (idx % 3) * 20}px` }}
+                        />
+                        {idx % 2 === 0 && (
+                          <Skeleton className="h-4.5 w-14 rounded-md bg-muted/30" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : availableUsers.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-center text-xs text-muted-foreground gap-2">
@@ -529,11 +576,17 @@ export function AddMemberModal({ open, onClose, team }: AddMemberModalProps) {
 
             {/* Footer Actions */}
             <div className="flex items-center justify-between border-t border-border/40 pt-4 mt-4">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <strong className="text-foreground">
                   {selectedUserIds.size}
                 </strong>{" "}
-                of {availableUsers.length} users selected
+                of{" "}
+                {isLoadingUsers ? (
+                  <Skeleton className="inline-block h-3.5 w-6 rounded bg-muted/60" />
+                ) : (
+                  availableUsers.length
+                )}{" "}
+                users selected
               </span>
 
               <div className="flex items-center gap-2">
