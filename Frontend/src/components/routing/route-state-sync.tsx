@@ -15,12 +15,15 @@ export function RouteStateSync() {
 
   const targetPath = useMemo(() => {
     const workspace = workspaces.find((item) => item.id === activeWorkspaceId)
-    const team = workspace?.teams.find((item) => item.id === activeTeamId)
+    const team = workspace?.teams?.find((item) => item.id === activeTeamId)
+
+    const wsSlug = workspace ? (workspace.slug || workspace.id) : undefined
+    const teamSlug = team ? (team.slug || (team.key ? team.key.toLowerCase() : team.id)) : undefined
 
     return resolveViewPath(view, {
       adminUserId,
-      workspaceSlug: workspace?.slug,
-      teamSlug: team?.slug || team?.key.toLowerCase(),
+      workspaceSlug: wsSlug,
+      teamSlug: teamSlug,
     })
   }, [activeTeamId, activeWorkspaceId, adminUserId, view, workspaces])
 

@@ -8,9 +8,11 @@ import {
 import {
   setActiveWorkspaceBySlug,
   setActiveTeamBySlug,
+  setWorkspaces,
 } from "@/lib/redux/dataSlice";
 import { setUser, initializeAuth } from "@/lib/redux/authSlice";
 import { useGetMeQuery } from "@/lib/redux/api/authApiSlice";
+import { useGetAllWorkspacesQuery } from "@/lib/redux/api/workspaceApiSlice";
 import {
   Sidebar,
   Topbar,
@@ -67,11 +69,22 @@ export function AppShell({
     skip: !isAuthenticated,
   });
 
+  // Fetch all workspaces for authenticated user
+  const { data: wsRes } = useGetAllWorkspacesQuery(undefined, {
+    skip: !isAuthenticated,
+  });
+
   useEffect(() => {
     if (meResponse?.success && meResponse?.data) {
       dispatch(setUser(meResponse.data));
     }
   }, [meResponse, dispatch]);
+
+  useEffect(() => {
+    if (wsRes?.success && wsRes.data) {
+      dispatch(setWorkspaces(wsRes.data));
+    }
+  }, [wsRes, dispatch]);
 
   // Sync workspace and team from URL slugs
   useEffect(() => {
@@ -79,15 +92,27 @@ export function AppShell({
 
     // Workspace data is loaded asynchronously. Re-run this synchronization
     // when that data arrives so a directly opened slug resolves correctly.
-    const workspaceExists = workspaces.some(
-      (workspace) =>
-        workspace.slug === workspaceSlug || workspace.id === workspaceSlug,
+    const normalizedWsSlug = workspaceSlug.toLowerCase().trim();
+    const workspace = workspaces.find(
+      (w) =>
+        (w.slug && w.slug.toLowerCase() === normalizedWsSlug) ||
+        (w.id && w.id.toLowerCase() === normalizedWsSlug) ||
+        w.id === workspaceSlug ||
+        (w.name &&
+          w.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "") === normalizedWsSlug),
     );
 
-    if (!workspaceExists) return;
-
-    dispatch(setActiveWorkspaceBySlug(workspaceSlug));
-    dispatch(setActiveTeamBySlug(teamSlug ?? null));
+    if (workspace) {
+      dispatch(setActiveWorkspaceBySlug(workspaceSlug));
+      if (teamSlug) {
+        dispatch(setActiveTeamBySlug(teamSlug));
+      } else {
+        dispatch(setActiveTeamBySlug(null));
+      }
+    }
   }, [dispatch, teamSlug, workspaceSlug, workspaces]);
 
   // Sync view, auth state, and admin user ID on initial mount

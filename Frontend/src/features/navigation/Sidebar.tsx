@@ -197,14 +197,21 @@ export function Sidebar() {
                     key={ws.id}
                     onClick={() => {
                       dispatch(setActiveWorkspace(ws.id));
-                      if (view === "team" && ws.teams && ws.teams.length > 0) {
-                        const firstTeam = ws.teams[0];
-                        dispatch(setActiveTeam(firstTeam.id));
-                        void router.push(
-                          `/${ws.slug}/${firstTeam.slug || firstTeam.key.toLowerCase()}`
-                        );
+                      const wsSlug = ws.slug || ws.id;
+                      if (view === "team") {
+                        if (ws.teams && ws.teams.length > 0) {
+                          const firstTeam = ws.teams[0];
+                          dispatch(setActiveTeam(firstTeam.id));
+                          const teamSlug =
+                            firstTeam.slug ||
+                            (firstTeam.key ? firstTeam.key.toLowerCase() : firstTeam.id);
+                          void router.push(`/${wsSlug}/${teamSlug}`);
+                        } else {
+                          dispatch(setActiveTeam(null));
+                          void router.push(`/${wsSlug}`);
+                        }
                       } else {
-                        void router.push(`/${ws.slug}`);
+                        void router.push(`/${wsSlug}`);
                       }
                     }}
                     className="flex items-center justify-between py-2 cursor-pointer group"
@@ -326,8 +333,10 @@ export function Sidebar() {
                     <button
                       onClick={() => {
                         dispatch(setActiveTeam(null));
+                        dispatch(setView("team"));
                         if (activeWorkspace) {
-                          void router.push(`/${activeWorkspace.slug}`);
+                          const wsSlug = activeWorkspace.slug || activeWorkspace.id;
+                          void router.push(`/${wsSlug}`);
                         }
                       }}
                       className={cn(
@@ -376,9 +385,10 @@ export function Sidebar() {
                               dispatch(setActiveTeam(t.id));
                               dispatch(setView("team"));
                               if (activeWorkspace) {
-                                void router.push(
-                                  `/${activeWorkspace.slug}/${t.slug || t.key.toLowerCase()}`,
-                                );
+                                const wsSlug = activeWorkspace.slug || activeWorkspace.id;
+                                const teamSlug =
+                                  t.slug || (t.key ? t.key.toLowerCase() : t.id);
+                                void router.push(`/${wsSlug}/${teamSlug}`);
                               }
                             }}
                             className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"

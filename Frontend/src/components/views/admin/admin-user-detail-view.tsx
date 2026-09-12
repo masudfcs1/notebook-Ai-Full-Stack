@@ -269,14 +269,14 @@ export function AdminUserDetailView({
     if (!searchFilter.trim()) return true;
     const query = searchFilter.toLowerCase();
     const matchesWs =
-      ws.name.toLowerCase().includes(query) ||
-      ws.slug.toLowerCase().includes(query);
+      ws.name?.toLowerCase().includes(query) ||
+      ws.slug?.toLowerCase().includes(query);
     const matchesTeams = ws.teams?.some(
       (t) =>
-        t.name.toLowerCase().includes(query) ||
-        t.key.toLowerCase().includes(query),
+        t.name?.toLowerCase().includes(query) ||
+        t.key?.toLowerCase().includes(query),
     );
-    return matchesWs || matchesTeams;
+    return Boolean(matchesWs || matchesTeams);
   });
 
   const getDeviceIcon = (device?: string | null) => {

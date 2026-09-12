@@ -410,10 +410,10 @@ export function TeamView() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="start" className="w-56">
                         <DropdownMenuLabel className="text-[10px] font-bold uppercase text-muted-foreground">
-                          Workspace Teams ({activeWs.teams.length})
+                          Workspace Teams ({activeWs?.teams?.length || 0})
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        {activeWs.teams.map((t) => {
+                        {activeWs?.teams?.map((t) => {
                           const isSelected = t.id === currentTeam.id;
                           const tTheme = getTeamTheme(t.key || t.id || t.name);
                           return (
@@ -422,9 +422,10 @@ export function TeamView() {
                               onClick={() => {
                                 dispatch(setActiveTeam(t.id));
                                 if (activeWs) {
-                                  void router.push(
-                                    `/${activeWs.slug}/${t.slug || t.key.toLowerCase()}`,
-                                  );
+                                  const wsSlug = activeWs.slug || activeWs.id;
+                                  const teamSlug =
+                                    t.slug || (t.key ? t.key.toLowerCase() : t.id);
+                                  void router.push(`/${wsSlug}/${teamSlug}`);
                                 }
                               }}
                               className={cn(
@@ -471,7 +472,7 @@ export function TeamView() {
                 <p className="truncate text-xs text-muted-foreground mt-0.5">
                   Workspace:{" "}
                   <span className="font-semibold text-foreground">
-                    {activeWs.name}
+                    {activeWs?.name || "Workspace"}
                   </span>
                   <span className="mx-2 text-muted-foreground/50">•</span>
                   <span>{totalCount} Active Members</span>

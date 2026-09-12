@@ -67,8 +67,17 @@ const dataSlice = createSlice({
       state.activeTeamId = null;
     },
     setActiveWorkspaceBySlug(state, action: PayloadAction<string>) {
+      const searchSlug = (action.payload || "").toLowerCase().trim();
       const ws = state.workspaces.find(
-        (w) => w.slug === action.payload || w.id === action.payload,
+        (w) =>
+          (w.slug && w.slug.toLowerCase() === searchSlug) ||
+          (w.id && w.id.toLowerCase() === searchSlug) ||
+          w.id === action.payload ||
+          (w.name &&
+            w.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "") === searchSlug),
       );
       if (ws && state.activeWorkspaceId !== ws.id) {
         state.activeWorkspaceId = ws.id;
@@ -142,12 +151,17 @@ const dataSlice = createSlice({
       const activeWs = state.workspaces.find(
         (w) => w.id === state.activeWorkspaceId,
       );
-      const searchSlug = action.payload.toLowerCase();
+      const searchSlug = (action.payload || "").toLowerCase().trim();
       const team = activeWs?.teams?.find(
         (t) =>
           (t.slug && t.slug.toLowerCase() === searchSlug) ||
           (t.key && t.key.toLowerCase() === searchSlug) ||
           (t.name && t.name.toLowerCase() === searchSlug) ||
+          (t.name &&
+            t.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/^-|-$/g, "") === searchSlug) ||
           t.id === action.payload,
       );
       if (team) {
