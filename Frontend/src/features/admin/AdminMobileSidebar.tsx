@@ -70,7 +70,7 @@ export function AdminMobileSidebar() {
   function handleSwitchToUserPanel() {
     dispatch(setView("dashboard"));
     closeSidebar();
-    void router.push(activeWorkspace?.slug ? `/${activeWorkspace.slug}` : "/");
+    void router.push("/dashboard");
   }
 
   function handleLogout() {

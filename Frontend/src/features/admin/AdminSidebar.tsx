@@ -42,11 +42,7 @@ export function AdminSidebar() {
 
   const handleSwitchToUserPanel = () => {
     dispatch(setView("dashboard"));
-    if (activeWorkspace?.slug) {
-      void router.push(`/${activeWorkspace.slug}`);
-    } else {
-      void router.push("/");
-    }
+    void router.push("/dashboard");
   };
 
   const handleLogout = () => {

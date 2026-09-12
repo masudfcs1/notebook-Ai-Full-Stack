@@ -51,11 +51,7 @@ export function AdminTopbar() {
 
   const handleGoToUserDashboard = () => {
     dispatch(setView("dashboard"));
-    if (activeWorkspace?.slug) {
-      void router.push(`/${activeWorkspace.slug}`);
-    } else {
-      void router.push("/");
-    }
+    void router.push("/dashboard");
   };
 
   const avatarSrc = getAvatarUrl(user?.avatar);
