@@ -47,7 +47,7 @@ export function SidebarNav() {
       {filteredGroups.map((group) => (
         <div key={group.section} className="space-y-1">
           {!collapsed && (
-            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+            <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
               {group.section}
             </p>
           )}
@@ -59,10 +59,10 @@ export function SidebarNav() {
                   <button
                     onClick={() => dispatch(setView(item.key as any))}
                     className={cn(
-                      "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors",
+                      "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors cursor-pointer",
                       active
-                        ? "bg-sidebar-accent/80 text-sidebar-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-sidebar-accent/40 hover:text-sidebar-foreground",
+                        ? "bg-indigo-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-indigo-500/20"
+                        : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                       collapsed && "justify-center",
                     )}
                   >

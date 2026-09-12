@@ -127,9 +127,15 @@
   * {
     @apply border-border outline-ring/50;
   }
-  /* Keep every Lucide icon white in day/light mode. */
-  :root:not(.dark) .lucide {
-    color: #fff;
+  input,
+  textarea,
+  select {
+    @apply text-foreground;
+  }
+  .dark input,
+  .dark textarea,
+  .dark select {
+    color: #ffffff;
   }
   html {
     scroll-behavior: smooth;

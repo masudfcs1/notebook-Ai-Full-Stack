@@ -135,8 +135,8 @@ export function Sidebar() {
             <Logo size={36} className="shrink-0" />
             {!collapsed && (
               <div className="min-w-0 flex-1">
-                <Wordmark className="text-[15px] text-sidebar-foreground block leading-tight" />
-                <p className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground truncate">
+                <Wordmark className="text-[15px] text-zinc-900 dark:text-white block leading-tight" />
+                <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400 font-medium truncate">
                   Meeting Intelligence
                 </p>
               </div>
@@ -154,22 +154,22 @@ export function Sidebar() {
                   collapsed && "justify-center p-2",
                 )}
               >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-500 ring-1 ring-indigo-500/10">
-                  <Building2 className="h-3.5 w-3.5" />
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/15">
+                  <Building2 className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 {!collapsed && (
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-sidebar-foreground">
+                    <p className="truncate text-xs font-bold text-zinc-900 dark:text-white">
                       {activeWorkspace?.name || "Select Workspace"}
                     </p>
-                    <p className="truncate text-[10px] text-muted-foreground">
+                    <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
                       {teams.length} {teams.length === 1 ? "team" : "teams"}{" "}
                       active
                     </p>
                   </div>
                 )}
                 {!collapsed && (
-                  <ChevronDown className="h-3 w-3 text-muted-foreground" />
+                  <ChevronDown className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -283,19 +283,19 @@ export function Sidebar() {
           {/* Teams Selector Pill list in Sidebar (Collapsible) */}
           {!collapsed && (
             <div className="mt-2.5 space-y-1">
-              <div className="flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+              <div className="flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
                 <button
                   onClick={() => setTeamsCollapsed(!teamsCollapsed)}
-                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                  className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition-colors"
                   title={teamsCollapsed ? "Expand Teams" : "Collapse Teams"}
                 >
                   {teamsCollapsed ? (
-                    <ChevronRight className="h-3 w-3 text-indigo-400" />
+                    <ChevronRight className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                   ) : (
-                    <ChevronDown className="h-3 w-3 text-indigo-400" />
+                    <ChevronDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                   )}
                   <span>Teams</span>
-                  <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.2 text-muted-foreground ml-0.5">
+                  <span className="font-mono text-[9px] rounded bg-zinc-200/70 dark:bg-white/5 px-1 py-0.2 text-zinc-600 dark:text-zinc-400 ml-0.5">
                     {teams.length}
                   </span>
                 </button>
@@ -306,7 +306,7 @@ export function Sidebar() {
                       setTeamModalMode("create");
                       setTeamModalOpen(true);
                     }}
-                    className="text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
+                    className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors cursor-pointer"
                     title="Create Team"
                   >
                     <Plus className="h-3 w-3" />
@@ -333,11 +333,11 @@ export function Sidebar() {
                       className={cn(
                         "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors cursor-pointer",
                         activeTeamId === null
-                          ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                          : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
+                          ? "bg-indigo-500/12 font-semibold text-indigo-700 dark:text-indigo-300"
+                          : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                       )}
                     >
-                      <Globe2 className="h-3 w-3 text-indigo-500" />
+                      <Globe2 className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                       <span className="truncate">All Teams</span>
                     </button>
 
@@ -367,8 +367,8 @@ export function Sidebar() {
                           className={cn(
                             "group/team flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
                             activeTeamId === t.id
-                              ? "bg-indigo-500/15 font-semibold text-indigo-400"
-                              : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground",
+                              ? "bg-indigo-500/12 font-semibold text-indigo-700 dark:text-indigo-300"
+                              : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                           )}
                         >
                           <button
@@ -383,16 +383,16 @@ export function Sidebar() {
                             }}
                             className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
                           >
-                            <UsersRound className="h-3 w-3 text-indigo-500/80 shrink-0" />
+                            <UsersRound className="h-3 w-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
                             <span className="truncate">{t.name}</span>
                           </button>
                           <div className="flex items-center gap-1 shrink-0">
                             {roleBadge && (
-                              <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-400 font-medium font-mono">
+                              <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium font-mono">
                                 {roleBadge}
                               </span>
                             )}
-                            <span className="font-mono text-[9px] rounded bg-white/5 px-1 py-0.5 text-muted-foreground">
+                            <span className="font-mono text-[9px] rounded bg-zinc-200/70 dark:bg-white/5 px-1 py-0.5 text-zinc-600 dark:text-zinc-400">
                               {t.key}
                             </span>
                             {isTeamOwnerOrLead && (
@@ -406,7 +406,7 @@ export function Sidebar() {
                                     setTeamModalOpen(true);
                                   }}
                                   title="Edit team"
-                                  className="p-0.5 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                  className="p-0.5 text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
                                 >
                                   <Edit3 className="h-3 w-3" />
                                 </button>
@@ -418,7 +418,7 @@ export function Sidebar() {
                                     setDeleteTeamModalOpen(true);
                                   }}
                                   title="Delete team"
-                                  className="p-0.5 text-muted-foreground hover:text-rose-500 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                  className="p-0.5 text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -440,7 +440,7 @@ export function Sidebar() {
           {NAVIGATION_GROUPS.map((group) => (
             <div key={group.section} className="space-y-1">
               {!collapsed && (
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/70">
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
                   {group.section}
                 </p>
               )}
@@ -453,10 +453,10 @@ export function Sidebar() {
                       <button
                         onClick={() => dispatch(setView(item.key))}
                         className={cn(
-                          "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all",
+                          "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all cursor-pointer",
                           active
-                            ? "bg-linear-to-r from-indigo-500/14 to-violet-500/8 text-sidebar-foreground shadow-sm ring-1 ring-indigo-500/10"
-                            : "text-muted-foreground hover:bg-white/50 hover:text-sidebar-foreground dark:hover:bg-white/4.5",
+                            ? "bg-indigo-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-indigo-500/20"
+                            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                           collapsed && "justify-center",
                         )}
                       >
@@ -476,13 +476,13 @@ export function Sidebar() {
                             "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
                             active
                               ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-indigo-500/6 text-muted-foreground ring-1 ring-indigo-500/10 group-hover:text-indigo-600 dark:bg-white/3 dark:ring-white/5 dark:group-hover:text-indigo-300",
+                              : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-indigo-500/10 group-hover:text-indigo-600 group-hover:ring-indigo-500/20 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-indigo-300",
                           )}
                         >
                           <Icon className="h-4.5 w-4.5" strokeWidth={2} />
                         </span>
                         {!collapsed && (
-                          <span className="flex-1 text-left">{item.label}</span>
+                          <span className="flex-1 text-left font-medium">{item.label}</span>
                         )}
                         {!collapsed && item.badge && (
                           <Badge
@@ -588,16 +588,16 @@ export function Sidebar() {
               </Avatar>
               {!collapsed && (
                 <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-xs font-semibold text-sidebar-foreground">
+                  <p className="truncate text-xs font-semibold text-zinc-900 dark:text-white">
                     {displayName}
                   </p>
-                  <p className="truncate text-[10px] text-muted-foreground">
+                  <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
                     {displayEmail}
                   </p>
                 </div>
               )}
               {!collapsed && (
-                <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                <ChevronRight className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
               )}
             </button>
           </div>
@@ -612,13 +612,13 @@ export function Sidebar() {
               variant="ghost"
               size="sm"
               onClick={() => dispatch(toggleSidebar())}
-              className="h-8 gap-1.5 px-2 text-xs text-muted-foreground hover:text-sidebar-foreground cursor-pointer"
+              className="h-8 gap-1.5 px-2 text-xs text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
             >
               {collapsed ? (
-                <PanelLeft className="h-3.5 w-3.5" />
+                <PanelLeft className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
               ) : (
                 <>
-                  <PanelLeftClose className="h-3.5 w-3.5" /> Collapse
+                  <PanelLeftClose className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" /> Collapse
                 </>
               )}
             </Button>
@@ -636,7 +636,7 @@ export function Sidebar() {
                     });
                   }}
                   className={cn(
-                    "h-8 gap-1.5 px-2 text-xs text-rose-500/80 hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer",
+                    "h-8 gap-1.5 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300 transition-colors cursor-pointer",
                     collapsed && "w-8 p-0",
                   )}
                 >

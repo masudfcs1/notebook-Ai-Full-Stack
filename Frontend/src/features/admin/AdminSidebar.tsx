@@ -146,7 +146,7 @@ export function AdminSidebar() {
             )}
           >
             {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-muted-foreground">
+              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-zinc-500 dark:text-zinc-400">
                 {group.section}
               </p>
             )}
@@ -180,8 +180,8 @@ export function AdminSidebar() {
                   className={cn(
                     "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
                     isActive
-                      ? "bg-linear-to-r from-rose-500/14 to-amber-500/8 text-foreground shadow-sm ring-1 ring-rose-500/10"
-                      : "text-muted-foreground hover:bg-white/50 hover:text-foreground dark:hover:bg-white/5",
+                      ? "bg-rose-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-rose-500/20"
+                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                     collapsed && "h-11 justify-center px-0 py-0",
                   )}
                 >
@@ -203,12 +203,12 @@ export function AdminSidebar() {
                       collapsed && "h-8 w-8",
                       isActive
                         ? `bg-linear-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
-                        : "bg-rose-500/5 text-muted-foreground ring-1 ring-rose-500/10 group-hover:text-rose-600 dark:bg-white/5 dark:ring-white/5 dark:group-hover:text-rose-300",
+                        : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-rose-500/10 group-hover:text-rose-600 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-rose-300",
                     )}
                   >
                     <Icon className="h-4.5 w-4.5" strokeWidth={2} />
                   </div>
-                  {!collapsed && <span className="truncate">{item.label}</span>}
+                  {!collapsed && <span className="truncate font-medium">{item.label}</span>}
                 </button>
               );
 
@@ -243,7 +243,7 @@ export function AdminSidebar() {
         {!collapsed ? (
           <button
             onClick={handleSwitchToUserPanel}
-            className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-muted-foreground shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-foreground dark:bg-white/5 dark:hover:bg-white/5 cursor-pointer"
+            className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-zinc-950 dark:text-zinc-400 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer"
           >
             <ArrowLeftRight className="h-3 w-3" />
             Switch to User Panel

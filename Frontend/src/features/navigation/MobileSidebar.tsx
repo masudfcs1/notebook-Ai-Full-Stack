@@ -50,7 +50,7 @@ export function MobileSidebar() {
         <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4 pb-28">
           {NAVIGATION_GROUPS.map((group) => (
             <div key={group.section} className="space-y-1">
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-muted-foreground/80">
+              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
                 {group.section}
               </p>
               {group.items.map((item) => {
@@ -67,20 +67,20 @@ export function MobileSidebar() {
                     aria-current={active ? "page" : undefined}
                     className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
                       active
-                        ? "bg-linear-to-r from-indigo-500/18 to-violet-500/12 text-foreground shadow-sm ring-1 ring-indigo-500/20"
-                        : "text-muted-foreground hover:bg-muted/75 hover:text-foreground"
+                        ? "bg-indigo-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-indigo-500/20"
+                        : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
                     }`}
                   >
                     <span
                       className={`flex h-7 w-7 items-center justify-center rounded-lg ${
                         active
                           ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-muted/75 text-muted-foreground ring-1 ring-border/60 group-hover:text-foreground"
+                          : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-indigo-500/10 group-hover:text-indigo-600 group-hover:ring-indigo-500/20 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-indigo-300"
                       }`}
                     >
                       <Icon className="h-4.5 w-4.5" strokeWidth={2} />
                     </span>
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className="flex-1 text-left font-medium">{item.label}</span>
                     {item.badge && (
                       <Badge
                         variant="secondary"
