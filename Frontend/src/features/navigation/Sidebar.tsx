@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -26,9 +26,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import {
   setActiveWorkspace,
   setActiveTeam,
-  setWorkspaces,
 } from "@/lib/redux/dataSlice";
-import { useGetAllWorkspacesQuery } from "@/lib/redux/api/workspaceApiSlice";
 import { Logo, Wordmark } from "./Logo";
 import {
   cn,
@@ -62,22 +60,10 @@ export function Sidebar() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const user = useAppSelector((s) => s.auth.user);
-  const isAuthenticated = useAppSelector((s) => s.auth.isAuthenticated);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
   const { notifications, unreadCount, markAllAsRead, markAsRead } =
     useNotifications();
-
-  // Sync user workspaces from API
-  const { data: wsRes } = useGetAllWorkspacesQuery(undefined, {
-    skip: !isAuthenticated,
-  });
-
-  useEffect(() => {
-    if (wsRes?.success && wsRes.data) {
-      dispatch(setWorkspaces(wsRes.data));
-    }
-  }, [wsRes, dispatch]);
 
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "User Account");

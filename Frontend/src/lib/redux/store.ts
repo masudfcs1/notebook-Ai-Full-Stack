@@ -1,6 +1,11 @@
-import { configureStore, combineReducers, AnyAction } from "@reduxjs/toolkit";
+import {
+  configureStore,
+  combineReducers,
+  type AnyAction,
+  type Middleware,
+} from "@reduxjs/toolkit";
 import appReducer from "./appSlice";
-import dataReducer from "./dataSlice";
+import dataReducer, { setWorkspaces } from "./dataSlice";
 import authReducer, { logout } from "./authSlice";
 import { authApi } from "./api/authApiSlice";
 import { adminApi } from "./api/adminApiSlice";
@@ -16,6 +21,91 @@ const combinedReducer = combineReducers({
   [workspaceApi.reducerPath]: workspaceApi.reducer,
   [taskApi.reducerPath]: taskApi.reducer,
 });
+
+const WORKSPACE_CACHE_KEY = "noteflow:workspaces:v1";
+const WORKSPACE_CACHE_TTL = 5 * 60 * 1000;
+
+// Restore navigation data before the authenticated dashboard renders. The
+// normal query still refreshes it, and mutations keep the snapshot current.
+const workspaceCacheMiddleware: Middleware<
+  Record<never, never>,
+  ReturnType<typeof combinedReducer>
+> =
+  (store) => {
+    let restoringCache = false;
+    return (next) => (action) => {
+      const previous = store.getState();
+      const result = next(action);
+      const current = store.getState();
+
+      if (typeof window === "undefined") return result;
+
+      try {
+        if (!current.auth.isAuthenticated) {
+          if (logout.match(action) || previous.auth.isAuthenticated) {
+            sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
+          }
+          return result;
+        }
+
+        const userId = current.auth.user?.id;
+        if (!userId) return result;
+
+        if (!previous.auth.isAuthenticated) {
+          const saved = sessionStorage.getItem(WORKSPACE_CACHE_KEY);
+          if (saved) {
+            const cached = JSON.parse(saved);
+            if (
+              cached.userId === userId &&
+              typeof cached.savedAt === "number" &&
+              cached.savedAt <= Date.now() &&
+              Date.now() - cached.savedAt < WORKSPACE_CACHE_TTL &&
+              Array.isArray(cached.workspaces) &&
+              cached.workspaces.every(
+                (workspace: any) =>
+                  workspace &&
+                  typeof workspace.id === "string" &&
+                  typeof workspace.name === "string" &&
+                  Array.isArray(workspace.teams) &&
+                  workspace.teams.every(
+                    (team: any) =>
+                      team &&
+                      typeof team.id === "string" &&
+                      typeof team.name === "string" &&
+                      Array.isArray(team.members),
+                  ),
+              )
+            ) {
+              restoringCache = true;
+              try {
+                store.dispatch(setWorkspaces(cached.workspaces));
+              } finally {
+                restoringCache = false;
+              }
+            } else {
+              sessionStorage.removeItem(WORKSPACE_CACHE_KEY);
+            }
+          }
+        } else if (
+          !restoringCache &&
+          current.data.workspaces !== previous.data.workspaces
+        ) {
+          sessionStorage.setItem(
+            WORKSPACE_CACHE_KEY,
+            JSON.stringify({
+              userId,
+              savedAt: Date.now(),
+              workspaces: current.data.workspaces,
+            }),
+          );
+        }
+      } catch {
+        // Storage can be unavailable or full; fetching must continue normally.
+      }
+
+      return result;
+    };
+  };
 
 const rootReducer = (
   state: ReturnType<typeof combinedReducer> | undefined,
@@ -33,6 +123,7 @@ export function makeStore() {
     reducer: rootReducer,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware()
+        .concat(workspaceCacheMiddleware)
         .concat(authApi.middleware)
         .concat(adminApi.middleware)
         .concat(workspaceApi.middleware)
