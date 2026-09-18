@@ -62,7 +62,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 // Kanban Columns Definition
@@ -195,7 +195,9 @@ export function ActionItemsView() {
   }, [tasksRes, reduxTasks, activeWorkspace?.id, selectedTeamId]);
 
   // Mutations
-  const [updateStatusMutation] = useUpdateTaskStatusMutation();
+  const [updateStatusMutation] = useUpdateTaskStatusMutation({
+    selectFromResult: () => ({}),
+  });
   const [updateTaskMutation] = useUpdateTaskMutation();
 
   // Available members across the current scope / workspace
@@ -380,11 +382,11 @@ export function ActionItemsView() {
   }, [tasks, todayStr]);
 
   // Handlers
-  async function handleAssignUser(
+  const handleAssignUser = useCallback(async (
     task: TaskItem | ActionItem,
     memberName: string | null,
     memberAvatar?: string | null,
-  ) {
+  ) => {
     try {
       dispatch(
         updateTask({
@@ -411,38 +413,36 @@ export function ActionItemsView() {
         err?.data?.message || err?.message || "Failed to update task assignee",
       );
     }
-  }
+  }, [dispatch, updateTaskMutation, teams]);
 
-  function handleOpenCreate(columnStatus: TaskStatus = "todo") {
+  const handleOpenCreate = useCallback((columnStatus: TaskStatus = "todo") => {
     setDefaultModalStatus(columnStatus);
     setTaskModalMode("create");
     setTaskToEdit(null);
     setTaskModalOpen(true);
-  }
+  }, []);
 
-  function handleOpenEdit(task: TaskItem | ActionItem) {
+  const handleOpenEdit = useCallback((task: TaskItem | ActionItem) => {
     setTaskToEdit(task);
     setTaskModalMode("edit");
     setTaskModalOpen(true);
-  }
+  }, []);
 
-  function handleOpenDelete(task: TaskItem | ActionItem) {
+  const handleOpenDelete = useCallback((task: TaskItem | ActionItem) => {
     setTaskToDelete(task);
     setDeleteModalOpen(true);
-  }
+  }, []);
 
-  function handleOpenDetail(task: TaskItem | ActionItem) {
+  const handleOpenDetail = useCallback((task: TaskItem | ActionItem) => {
     setTaskToView(task);
     setDetailModalOpen(true);
-  }
+  }, []);
 
-  async function handleQuickStatusChange(id: string, targetStatus: TaskStatus) {
+  const handleQuickStatusChange = useCallback(async (id: string, targetStatus: TaskStatus) => {
     try {
-      const task = tasks.find((t) => t.id === id);
       await updateStatusMutation({
         id,
         status: targetStatus,
-        teamId: task?.teamId || undefined,
       }).unwrap();
 
       toast.success(`Moved to ${targetStatus.replace("_", " ").toUpperCase()}`);
@@ -451,10 +451,10 @@ export function ActionItemsView() {
         err?.data?.message || err?.message || "Failed to update status",
       );
     }
-  }
+  }, [updateStatusMutation]);
 
   // Advance Status (e.g. todo -> in_progress -> done)
-  function handleAdvanceStatus(task: TaskItem | ActionItem) {
+  const handleAdvanceStatus = useCallback((task: TaskItem | ActionItem) => {
     const current = task.status || "todo";
     let next: TaskStatus = "todo";
     if (current === "backlog") next = "todo";
@@ -463,7 +463,7 @@ export function ActionItemsView() {
     else if (current === "done" || current === "completed") next = "todo";
 
     void handleQuickStatusChange(task.id, next);
-  }
+  }, [handleQuickStatusChange]);
 
   // Drag & Drop Handlers
   function handleDragStart(e: DragStartEvent) {

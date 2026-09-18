@@ -55,9 +55,43 @@ export class TaskRepository {
     });
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(
+    id: string,
+    status: string,
+    userId: number,
+    isAdmin = false,
+    userEmail?: string
+  ) {
     return prisma.actionItem.update({
-      where: { id },
+      // Check access in the write itself instead of loading the task and team
+      // first. This also prevents permission changes racing with the update.
+      where: {
+        id,
+        ...(!isAdmin && {
+          OR: [
+            { teamId: null },
+            {
+              team: {
+                OR: [
+                  { workspace: { userId } },
+                  {
+                    members: {
+                      some: {
+                        OR: [
+                          { userId },
+                          ...(userEmail
+                            ? [{ email: { equals: userEmail, mode: 'insensitive' as const } }]
+                            : []),
+                        ],
+                      },
+                    },
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      },
       data: { status },
       include: {
         team: {
@@ -77,6 +111,10 @@ export class TaskRepository {
     return prisma.actionItem.delete({
       where: { id },
     });
+  }
+
+  async exists(id: string) {
+    return prisma.actionItem.findUnique({ where: { id }, select: { id: true } });
   }
 
   async findById(id: string) {

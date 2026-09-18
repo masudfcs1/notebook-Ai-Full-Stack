@@ -1,6 +1,6 @@
 import { taskRepository } from './repository';
 import { notificationService } from '../notification/service';
-import { NotificationType } from '@prisma/client';
+import { NotificationType, Prisma } from '@prisma/client';
 import { AppError } from '@/helpers/error.helper';
 import { toTaskResponse, toTaskListResponse } from './dto';
 import { CreateTaskData, UpdateTaskData, TaskFilterQuery, TaskStatsResponse } from './types';
@@ -128,18 +128,24 @@ export class TaskService {
     isAdmin?: boolean,
     userEmail?: string
   ) {
-    const existing = await taskRepository.findById(id);
-    if (!existing) {
-      throw AppError.notFound('Task not found');
+    if (!userId) {
+      throw AppError.unauthorized('Authentication required to update task status');
     }
 
-    if (existing.teamId) {
-      await this.checkTeamAccess(existing.teamId, userId, isAdmin, userEmail);
+    try {
+      const updated = await taskRepository.updateStatus(id, status, userId, isAdmin, userEmail);
+      return toTaskResponse(updated);
+    } catch (error) {
+      if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2025') {
+        throw error;
+      }
+      // Only failed writes need a lookup to distinguish missing tasks from
+      // tasks the caller cannot access.
+      if (!(await taskRepository.exists(id))) {
+        throw AppError.notFound('Task not found');
+      }
+      throw AppError.forbidden('You do not have access to this team');
     }
-
-    const updated = await taskRepository.updateStatus(id, status);
-
-    return toTaskResponse(updated);
   }
 
   async delete(id: string, userId?: number, isAdmin?: boolean, userEmail?: string) {

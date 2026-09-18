@@ -119,6 +119,12 @@ const statusEdits = new WeakMap<
 
 /* ---------- API Slice ---------- */
 
+function statusDependentTags(params?: GetTasksParams) {
+  return params?.status || params?.sortBy === "status" || params?.sortBy === "updatedAt"
+    ? [{ type: "Tasks" as const, id: "STATUS_DEPENDENT" }]
+    : [];
+}
+
 export const taskApi = createApi({
   reducerPath: "taskApi",
   baseQuery: baseQueryWithAuthHandling,
@@ -139,9 +145,10 @@ export const taskApi = createApi({
         const queryStr = searchParams.toString();
         return `/tasks/team/${teamId}${queryStr ? `?${queryStr}` : ""}`;
       },
-      providesTags: (_result, _error, { teamId }) => [
+      providesTags: (_result, _error, { teamId, params }) => [
         { type: "Tasks", id: teamId },
         "Tasks",
+        ...statusDependentTags(params),
       ],
     }),
 
@@ -161,7 +168,10 @@ export const taskApi = createApi({
         if (params?.sortOrder) searchParams.set("sortOrder", params.sortOrder);
         return `/tasks?${searchParams.toString()}`;
       },
-      providesTags: ["Tasks"],
+      providesTags: (_result, _error, { params }) => [
+        "Tasks",
+        ...statusDependentTags(params),
+      ],
     }),
 
     getTaskStats: builder.query<
@@ -327,7 +337,11 @@ export const taskApi = createApi({
           if (queues.get(id) === request) queues.delete(id);
         }
       },
-      invalidatesTags: ["Tasks", "TaskStats"],
+      // The mutation response confirms normal board caches directly. Only
+      // status-dependent lists and server statistics need a fresh query.
+      invalidatesTags: (_result, error) => error
+        ? ["Tasks", "TaskStats"]
+        : ["TaskStats", { type: "Tasks", id: "STATUS_DEPENDENT" }],
       async onQueryStarted(
         { id, status },
         { dispatch, getState, queryFulfilled, requestId },
@@ -357,20 +371,29 @@ export const taskApi = createApi({
         edit.latestRequestId = requestId;
         edits.set(id, edit);
 
-        const applyStatus = (nextStatus: TaskStatus) => {
+        const applyStatus = (nextStatus: TaskStatus, updatedAt?: string) => {
           if ((getState() as RootState).auth.token !== state.auth.token) return;
-          dispatch(updateTaskStatus({ id, status: nextStatus }));
+          const localTask = (getState() as RootState).data.tasks.find((task) => task.id === id);
+          if (localTask && localTask.status !== nextStatus) {
+            dispatch(updateTaskStatus({ id, status: nextStatus }));
+          }
           // Patch exact cache arguments, including workspace and team filters.
           for (const args of taskApi.util.selectCachedArgsForQuery(getState(), "getTasksByWorkspace")) {
             dispatch(taskApi.util.updateQueryData("getTasksByWorkspace", args, (draft) => {
               const task = draft.data.find((item) => item.id === id);
-              if (task) task.status = nextStatus;
+              if (task) {
+                task.status = nextStatus;
+                if (updatedAt) task.updatedAt = updatedAt;
+              }
             }));
           }
           for (const args of taskApi.util.selectCachedArgsForQuery(getState(), "getTasksByTeam")) {
             dispatch(taskApi.util.updateQueryData("getTasksByTeam", args, (draft) => {
               const task = draft.data.find((item) => item.id === id);
-              if (task) task.status = nextStatus;
+              if (task) {
+                task.status = nextStatus;
+                if (updatedAt) task.updatedAt = updatedAt;
+              }
             }));
           }
         };
@@ -379,7 +402,9 @@ export const taskApi = createApi({
         try {
           const { data } = await queryFulfilled;
           edit.confirmedStatus = data.data.status;
-          if (edit.latestRequestId === requestId) applyStatus(data.data.status);
+          if (edit.latestRequestId === requestId) {
+            applyStatus(data.data.status, data.data.updatedAt);
+          }
         } catch {
           // Never let an older failed save undo a newer drag.
           if (edit.latestRequestId === requestId && edit.confirmedStatus) {
