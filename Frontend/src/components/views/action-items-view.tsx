@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   useGetTasksByWorkspaceQuery,
-  useGetTaskStatsQuery,
   useUpdateTaskMutation,
   useUpdateTaskStatusMutation,
   type TaskItem,
@@ -63,7 +62,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 // Kanban Columns Definition
@@ -182,14 +181,6 @@ export function ActionItemsView() {
       },
       { skip: !activeWorkspace?.id },
     );
-
-  const { data: statsRes } = useGetTaskStatsQuery(
-    {
-      teamId: selectedTeamId || undefined,
-      workspaceId: !selectedTeamId ? activeWorkspace?.id : undefined,
-    },
-    { skip: !activeWorkspace?.id },
-  );
 
   // Combine tasks from API with local fallback
   const tasks: (TaskItem | ActionItem)[] = useMemo(() => {
@@ -351,9 +342,6 @@ export function ActionItemsView() {
 
   // Statistics
   const stats = useMemo(() => {
-    if (statsRes?.success && statsRes.data) {
-      return statsRes.data;
-    }
     let total = tasks.length;
     let backlog = 0;
     let todo = 0;
@@ -389,7 +377,7 @@ export function ActionItemsView() {
       completionRate,
       byPriority: { urgent: 0, high: 0, medium: 0, low: 0 },
     };
-  }, [statsRes, tasks, todayStr]);
+  }, [tasks, todayStr]);
 
   // Handlers
   async function handleAssignUser(
@@ -486,7 +474,8 @@ export function ActionItemsView() {
     setActiveDragId(null);
     const over = e.over;
     if (!over) return;
-    const targetStatus = over.id as TaskStatus;
+    const targetStatus = KANBAN_COLUMNS.find((column) => column.id === over.id)?.id;
+    if (!targetStatus) return;
     const task = tasks.find((t) => t.id === e.active.id);
     if (task && task.status !== targetStatus) {
       void handleQuickStatusChange(task.id, targetStatus);
@@ -817,6 +806,7 @@ export function ActionItemsView() {
           sensors={sensors}
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
+          onDragCancel={() => setActiveDragId(null)}
         >
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
             {KANBAN_COLUMNS.map((col) => {
@@ -843,7 +833,7 @@ export function ActionItemsView() {
           </div>
 
           {/* Drag Overlay Preview */}
-          <DragOverlay>
+          <DragOverlay dropAnimation={null}>
             {activeDragTask && (
               <div className="rotate-2 scale-105 opacity-90 shadow-2xl">
                 <TaskCardItem
@@ -1246,7 +1236,7 @@ function DraggableTaskCard(props: DraggableCardProps) {
   );
 }
 
-function TaskCardItem({
+const TaskCardItem = memo(function TaskCardItem({
   task,
   availableMembers,
   onAssignUser,
@@ -1269,7 +1259,7 @@ function TaskCardItem({
     <div
       onClick={() => onView(task)}
       className={cn(
-        "group relative rounded-xl border bg-card/85 p-3.5 shadow-sm transition-all hover:border-indigo-500/40 hover:shadow-md cursor-pointer border-white/10",
+        "group relative rounded-xl border bg-card/85 p-3.5 shadow-sm transition-[border-color,box-shadow,background-color] duration-100 hover:border-indigo-500/40 hover:shadow-md cursor-pointer border-white/10",
         isDone && "opacity-75 bg-card/40",
       )}
     >
@@ -1424,7 +1414,7 @@ function TaskCardItem({
       </div>
     </div>
   );
-}
+});
 
 /* ========================================================================= */
 /* LIST / DATA TABLE VIEW                                                    */

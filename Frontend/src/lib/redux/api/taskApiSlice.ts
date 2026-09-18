@@ -7,6 +7,7 @@ import {
   deleteTask,
 } from "../dataSlice";
 import type { PriorityLevel, TaskStatus } from "@/types";
+import type { RootState } from "../store";
 
 /* ---------- Types ---------- */
 
@@ -104,6 +105,17 @@ export interface UpdateTaskStatusRequest {
   status: TaskStatus;
   teamId?: string;
 }
+
+// Save rapid moves in order per task without blocking other cards or stores.
+const statusQueues = new WeakMap<object, Map<string, Promise<unknown>>>();
+const statusEdits = new WeakMap<
+  object,
+  Map<string, {
+    pending: number;
+    latestRequestId: string;
+    confirmedStatus?: TaskStatus;
+  }>
+>();
 
 /* ---------- API Slice ---------- */
 
@@ -282,39 +294,100 @@ export const taskApi = createApi({
       SingleTaskResponse,
       UpdateTaskStatusRequest
     >({
-      query: ({ id, status }) => ({
-        url: `/tasks/${id}/status`,
-        method: "PATCH",
-        body: { status },
-      }),
-      invalidatesTags: ["Tasks", "TaskStats"],
-      async onQueryStarted({ id, status, teamId }, { dispatch, queryFulfilled }) {
-        // Instant optimistic update in Redux dataSlice
-        dispatch(updateTaskStatus({ id, status }));
-
-        // Instant optimistic update in RTK Query team tasks cache
-        const patchResultTeam = teamId
-          ? dispatch(
-              taskApi.util.updateQueryData(
-                "getTasksByTeam",
-                { teamId },
-                (draft) => {
-                  if (draft?.data) {
-                    const t = draft.data.find((item) => item.id === id);
-                    if (t) {
-                      t.status = status;
-                      t.updatedAt = new Date().toISOString();
-                    }
-                  }
-                }
-              )
-            )
-          : null;
-
+      async queryFn({ id, status }, api, _extraOptions, baseQuery) {
+        const token = (api.getState() as RootState).auth.token;
+        let queues = statusQueues.get(api.getState);
+        if (!queues) {
+          queues = new Map();
+          statusQueues.set(api.getState, queues);
+        }
+        const previous = queues.get(id);
+        const request = (async () => {
+          if (previous) await previous.catch(() => undefined);
+          if (
+            api.signal.aborted ||
+            (api.getState() as RootState).auth.token !== token
+          ) {
+            return {
+              error: { status: "FETCH_ERROR" as const, error: "Status update cancelled" },
+            };
+          }
+          const result = await baseQuery({
+            url: `/tasks/${id}/status`,
+            method: "PATCH",
+            body: { status },
+          });
+          if (result.error) return { error: result.error };
+          return { data: result.data as SingleTaskResponse };
+        })();
+        queues.set(id, request);
         try {
-          await queryFulfilled;
+          return await request;
+        } finally {
+          if (queues.get(id) === request) queues.delete(id);
+        }
+      },
+      invalidatesTags: ["Tasks", "TaskStats"],
+      async onQueryStarted(
+        { id, status },
+        { dispatch, getState, queryFulfilled, requestId },
+      ) {
+        let edits = statusEdits.get(getState);
+        if (!edits) {
+          edits = new Map();
+          statusEdits.set(getState, edits);
+        }
+        const state = getState() as RootState;
+        let previousStatus: TaskStatus | undefined;
+        for (const args of taskApi.util.selectCachedArgsForQuery(state, "getTasksByWorkspace")) {
+          previousStatus ??= taskApi.endpoints.getTasksByWorkspace.select(args)(state)
+            .data?.data.find((task) => task.id === id)?.status;
+        }
+        for (const args of taskApi.util.selectCachedArgsForQuery(state, "getTasksByTeam")) {
+          previousStatus ??= taskApi.endpoints.getTasksByTeam.select(args)(state)
+            .data?.data.find((task) => task.id === id)?.status;
+        }
+        previousStatus ??= state.data.tasks.find((task) => task.id === id)?.status;
+        const edit = edits.get(id) || {
+          pending: 0,
+          latestRequestId: requestId,
+          confirmedStatus: previousStatus,
+        };
+        edit.pending++;
+        edit.latestRequestId = requestId;
+        edits.set(id, edit);
+
+        const applyStatus = (nextStatus: TaskStatus) => {
+          if ((getState() as RootState).auth.token !== state.auth.token) return;
+          dispatch(updateTaskStatus({ id, status: nextStatus }));
+          // Patch exact cache arguments, including workspace and team filters.
+          for (const args of taskApi.util.selectCachedArgsForQuery(getState(), "getTasksByWorkspace")) {
+            dispatch(taskApi.util.updateQueryData("getTasksByWorkspace", args, (draft) => {
+              const task = draft.data.find((item) => item.id === id);
+              if (task) task.status = nextStatus;
+            }));
+          }
+          for (const args of taskApi.util.selectCachedArgsForQuery(getState(), "getTasksByTeam")) {
+            dispatch(taskApi.util.updateQueryData("getTasksByTeam", args, (draft) => {
+              const task = draft.data.find((item) => item.id === id);
+              if (task) task.status = nextStatus;
+            }));
+          }
+        };
+
+        applyStatus(status);
+        try {
+          const { data } = await queryFulfilled;
+          edit.confirmedStatus = data.data.status;
+          if (edit.latestRequestId === requestId) applyStatus(data.data.status);
         } catch {
-          patchResultTeam?.undo();
+          // Never let an older failed save undo a newer drag.
+          if (edit.latestRequestId === requestId && edit.confirmedStatus) {
+            applyStatus(edit.confirmedStatus);
+          }
+        } finally {
+          edit.pending--;
+          if (edit.pending === 0) edits.delete(id);
         }
       },
     }),
