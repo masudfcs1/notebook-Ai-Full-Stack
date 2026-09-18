@@ -489,226 +489,210 @@ export function ActionItemsView() {
 
   return (
     <div className="mx-auto max-w-[1600px] space-y-5">
-      {/* Header & Stats Bar */}
-      <Card className="dashboard-glass-card rounded-2xl border-border/50 bg-card/70 p-4 shadow-lg backdrop-blur-xl">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-md shadow-emerald-500/20">
-                <CheckSquare className="h-4 w-4" />
-              </span>
-              <h2 className="truncate text-lg font-bold tracking-tight text-foreground">
-                Action Items
-              </h2>
-              {currentTeam && (
-                <Badge
-                  variant="outline"
-                  className={cn(
-                    "gap-1 text-xs",
-                    teamTheme.badgeText,
-                    teamTheme.badgeBorder,
-                    teamTheme.subtleBg,
-                  )}
-                >
-                  <Layers className="h-3 w-3" />
-                  {currentTeam.name}
-                </Badge>
-              )}
-            </div>
-            <p className="mt-0.5 max-w-xl text-xs text-muted-foreground">
-              Assign ownership and move work through every delivery stage.
-            </p>
-          </div>
-
-          {/* Quick Stats Grid */}
-          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4 lg:min-w-[430px]">
-            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Total Tasks
-              </span>
-              <p className="text-base font-bold leading-5 text-foreground">
-                {stats.total}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                In Progress
-              </span>
-              <p className="text-base font-bold leading-5 text-amber-600 dark:text-amber-400">
-                {stats.inProgress}
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Done Rate
-              </span>
-              <p className="text-base font-bold leading-5 text-emerald-600 dark:text-emerald-400">
-                {stats.completionRate}%
-              </p>
-            </div>
-
-            <div className="rounded-lg border border-border/50 bg-background/45 px-2.5 py-1.5 text-center">
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Overdue
-              </span>
-              <p
-                className={cn(
-                  "text-base font-bold leading-5",
-                  stats.overdue > 0
-                    ? "text-rose-600 dark:text-rose-400"
-                    : "text-muted-foreground",
+      {/* Compact overview */}
+      <Card className="dashboard-glass-card gap-0 overflow-hidden rounded-xl border-border/60 bg-card/80 p-0 shadow-sm">
+        <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600 ring-1 ring-inset ring-emerald-500/15 dark:text-emerald-400">
+              <CheckSquare className="h-4 w-4" />
+            </span>
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <h2 className="shrink-0 text-sm font-semibold tracking-tight text-foreground">
+                  Action Items
+                </h2>
+                {currentTeam && (
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "min-w-0 max-w-32 shrink gap-1 rounded-md px-1.5 py-0 text-[10px] font-medium",
+                      teamTheme.badgeText,
+                      teamTheme.badgeBorder,
+                      teamTheme.subtleBg,
+                    )}
+                  >
+                    <Layers className="h-2.5 w-2.5 shrink-0" />
+                    <span className="truncate">{currentTeam.name}</span>
+                  </Badge>
                 )}
-              >
-                {stats.overdue}
+              </div>
+              <p className="mt-0.5 text-[11px] leading-4 text-muted-foreground">
+                Track ownership and progress.
               </p>
             </div>
           </div>
+
+          <dl className="grid grid-cols-4 divide-x divide-border/60 sm:min-w-[300px]">
+            {[
+              { label: "Tasks", value: stats.total, color: "text-foreground" },
+              { label: "In progress", value: stats.inProgress, color: "text-amber-600 dark:text-amber-400" },
+              { label: "Done rate", value: `${stats.completionRate}%`, color: "text-emerald-600 dark:text-emerald-400" },
+              { label: "Overdue", value: stats.overdue, color: stats.overdue > 0 ? "text-rose-600 dark:text-rose-400" : "text-muted-foreground" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="px-2 text-center sm:px-3">
+                <dt className="whitespace-nowrap text-[10px] font-medium leading-4 text-muted-foreground">
+                  {label}
+                </dt>
+                <dd className={cn("text-base font-semibold leading-5 tabular-nums", color)}>
+                  {value}
+                </dd>
+              </div>
+            ))}
+          </dl>
         </div>
 
-        {/* Team Filter Pills (Linear Style) */}
+        {/* Compact, horizontally scrollable team filters */}
         {teams.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border/45 pt-2.5">
-            <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center gap-2.5 border-t border-border/45 px-4 py-1.5">
+            <span className="flex w-14 shrink-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
               <Layers className="h-3.5 w-3.5" /> Teams
             </span>
-            <button
-              type="button"
-              onClick={() => setSelectedTeamId(null)}
-              aria-pressed={selectedTeamId === null}
-              className={cn(
-                "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
-                selectedTeamId === null
-                  ? "border-indigo-500 bg-indigo-600 font-semibold text-white shadow-sm"
-                  : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <Globe2 className="h-3.5 w-3.5" />
-              <span>All Teams</span>
-              <span className="text-[10px] opacity-80">
-                ({reduxTasks.length})
-              </span>
-            </button>
+            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-0.5">
+              <button
+                type="button"
+                onClick={() => setSelectedTeamId(null)}
+                aria-pressed={selectedTeamId === null}
+                className={cn(
+                  "flex h-7 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40",
+                  selectedTeamId === null
+                    ? "border-indigo-500/25 bg-indigo-500/10 text-indigo-700 dark:text-indigo-300"
+                    : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <Globe2 className="h-3.5 w-3.5" />
+                <span>All Teams</span>
+                <span className="text-[10px] opacity-80">
+                  ({reduxTasks.length})
+                </span>
+              </button>
 
-            {teams.map((t) => {
-              const isSelected = selectedTeamId === t.id;
-              const count = tasks.filter((x) => x.teamId === t.id).length;
-              const theme = getTeamTheme(t.key || t.id || t.name);
+              {teams.map((t) => {
+                const isSelected = selectedTeamId === t.id;
+                const count = tasks.filter((x) => x.teamId === t.id).length;
+                const theme = getTeamTheme(t.key || t.id || t.name);
 
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  onClick={() => setSelectedTeamId(t.id)}
-                  aria-pressed={isSelected}
-                  className={cn(
-                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
-                    isSelected
-                      ? cn(
-                          "border-transparent bg-gradient-to-r font-semibold text-white shadow-sm",
-                          theme.gradient,
-                        )
-                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  {t.icon ? (
-                    <span aria-hidden="true">{t.icon}</span>
-                  ) : (
-                    <Users className="h-3.5 w-3.5" />
-                  )}
-                  <span>{t.name}</span>
-                  <span className="font-mono text-[10px] opacity-75">
-                    ({count})
-                  </span>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setSelectedTeamId(t.id)}
+                    aria-pressed={isSelected}
+                    className={cn(
+                      "flex h-7 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40",
+                      isSelected
+                        ? cn(
+                            "font-semibold",
+                            theme.badgeText,
+                            theme.badgeBorder,
+                            theme.subtleBg,
+                          )
+                        : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    {t.icon ? (
+                      <span aria-hidden="true">{t.icon}</span>
+                    ) : (
+                      <Users className="h-3.5 w-3.5" />
+                    )}
+                    <span>{t.name}</span>
+                    <span className="font-mono text-[10px] opacity-75">
+                      ({count})
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
 
         {/* User / Member Token Filter Row */}
         {availableMembers.length > 0 && (
-          <div className="mt-2.5 flex flex-wrap items-center gap-1.5 border-t border-border/45 pt-2.5">
-            <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <div className="flex items-center gap-2.5 border-t border-border/45 px-4 py-1.5">
+            <span className="flex w-14 shrink-0 items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
               <User className="h-3.5 w-3.5 text-emerald-500" /> Owners
             </span>
-            <button
-              type="button"
-              onClick={() => setSelectedUserFilter(null)}
-              aria-pressed={selectedUserFilter === null}
-              className={cn(
-                "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
-                selectedUserFilter === null
-                  ? "border-emerald-500/50 bg-emerald-500/12 font-semibold text-emerald-700 shadow-sm dark:text-emerald-300"
-                  : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
-              )}
-            >
-              <span>All Assignees</span>
-            </button>
+            <div className="flex min-w-0 flex-1 items-center gap-1 overflow-x-auto py-0.5">
+              <button
+                type="button"
+                onClick={() => setSelectedUserFilter(null)}
+                aria-pressed={selectedUserFilter === null}
+                className={cn(
+                  "flex h-7 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40",
+                  selectedUserFilter === null
+                    ? "border-emerald-500/25 bg-emerald-500/10 font-semibold text-emerald-700 dark:text-emerald-300"
+                    : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                )}
+              >
+                <span>All Assignees</span>
+              </button>
 
-            {availableMembers.map((m) => {
-              const isSelected =
-                selectedUserFilter?.toLowerCase() === m.name.toLowerCase() ||
-                selectedUserFilter?.toLowerCase() === m.email.toLowerCase();
-              const count = tasks.filter(
-                (x) =>
-                  (x.assignee || "")
-                    .toLowerCase()
-                    .includes(m.name.toLowerCase()) ||
-                  (x.assignee || "")
-                    .toLowerCase()
-                    .includes(m.email.toLowerCase()),
-              ).length;
+              {availableMembers.map((m) => {
+                const isSelected =
+                  selectedUserFilter?.toLowerCase() === m.name.toLowerCase() ||
+                  selectedUserFilter?.toLowerCase() === m.email.toLowerCase();
+                const count = tasks.filter(
+                  (x) =>
+                    (x.assignee || "")
+                      .toLowerCase()
+                      .includes(m.name.toLowerCase()) ||
+                    (x.assignee || "")
+                      .toLowerCase()
+                      .includes(m.email.toLowerCase()),
+                ).length;
 
-              return (
-                <button
-                  key={m.id}
-                  onClick={() =>
-                    setSelectedUserFilter(isSelected ? null : m.name)
-                  }
-                  className={cn(
-                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
-                    isSelected
-                      ? "border-emerald-500 bg-emerald-500 text-white font-bold shadow-sm"
-                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <Avatar className="h-3.5 w-3.5">
-                    <AvatarImage src={getAvatarUrl(m.avatar)} />
-                    <AvatarFallback className="text-[7px]">
-                      {getUserInitials(m.name, m.email)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{m.name}</span>
-                  <span className="text-[10px] opacity-70">({count})</span>
-                </button>
-              );
-            })}
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() =>
+                      setSelectedUserFilter(isSelected ? null : m.name)
+                    }
+                    className={cn(
+                      "flex h-7 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40",
+                      isSelected
+                        ? "border-emerald-500/25 bg-emerald-500/10 font-semibold text-emerald-700 dark:text-emerald-300"
+                        : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    <Avatar className="h-3.5 w-3.5">
+                      <AvatarImage src={getAvatarUrl(m.avatar)} />
+                      <AvatarFallback className="text-[7px]">
+                        {getUserInitials(m.name, m.email)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{m.name}</span>
+                    <span className="text-[10px] opacity-70">({count})</span>
+                  </button>
+                );
+              })}
 
-            {/* Unassigned Filter Token */}
-            {(() => {
-              const unassignedCount = tasks.filter((x) => !x.assignee).length;
-              const isSelected = selectedUserFilter === "__unassigned__";
-              return (
-                <button
-                  onClick={() =>
-                    setSelectedUserFilter(isSelected ? null : "__unassigned__")
-                  }
-                  className={cn(
-                    "flex h-7 cursor-pointer items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium transition-all",
-                    isSelected
-                      ? "border-amber-500 bg-amber-500 text-white font-bold shadow-sm"
-                      : "border-border/60 bg-background/55 text-muted-foreground hover:bg-muted hover:text-foreground",
-                  )}
-                >
-                  <span>Unassigned</span>
-                  <span className="text-[10px] opacity-70">
-                    ({unassignedCount})
-                  </span>
-                </button>
-              );
-            })()}
+              {/* Unassigned Filter Token */}
+              {(() => {
+                const unassignedCount = tasks.filter((x) => !x.assignee).length;
+                const isSelected = selectedUserFilter === "__unassigned__";
+                return (
+                  <button
+                    type="button"
+                    aria-pressed={isSelected}
+                    onClick={() =>
+                      setSelectedUserFilter(isSelected ? null : "__unassigned__")
+                    }
+                    className={cn(
+                      "flex h-7 shrink-0 cursor-pointer items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40",
+                      isSelected
+                        ? "border-amber-500/25 bg-amber-500/10 font-semibold text-amber-700 dark:text-amber-300"
+                        : "border-transparent bg-transparent text-muted-foreground hover:border-border/60 hover:bg-muted/60 hover:text-foreground",
+                    )}
+                  >
+                    <span>Unassigned</span>
+                    <span className="text-[10px] opacity-70">
+                      ({unassignedCount})
+                    </span>
+                  </button>
+                );
+              })()}
+            </div>
           </div>
         )}
       </Card>
