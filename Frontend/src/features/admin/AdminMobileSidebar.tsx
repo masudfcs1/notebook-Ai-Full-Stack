@@ -4,8 +4,6 @@ import { useRouter } from "next/router";
 import { ArrowLeftRight, LogOut, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -15,11 +13,11 @@ import {
 } from "@/components/ui/sheet";
 import { ADMIN_NAVIGATION_GROUPS } from "@/constants/admin";
 import { Logo, Wordmark } from "@/features/navigation";
+import { SidebarProfile } from "@/features/navigation/SidebarChrome";
 import { setMobileNav, setView } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import {
-  cn,
   getAvatarUrl,
   getUserDisplayName,
   getUserInitials,
@@ -40,14 +38,6 @@ export function AdminMobileSidebar() {
   const open = useAppSelector((state) => state.app.mobileNavOpen);
   const view = useAppSelector((state) => state.app.view);
   const user = useAppSelector((state) => state.auth.user);
-  const workspaces = useAppSelector((state) => state.data.workspaces);
-  const activeWorkspaceId = useAppSelector(
-    (state) => state.data.activeWorkspaceId,
-  );
-
-  const activeWorkspace =
-    workspaces.find((workspace) => workspace.id === activeWorkspaceId) ||
-    workspaces[0];
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
   const displayEmail = user?.email || "admin@noteflow.ai";
@@ -85,38 +75,46 @@ export function AdminMobileSidebar() {
     <Sheet open={open} onOpenChange={(value) => dispatch(setMobileNav(value))}>
       <SheetContent
         side="left"
-        className="dashboard-sidebar admin-dashboard-sidebar w-[min(19rem,88vw)] border-r border-rose-500/15 !bg-background/95 p-0 shadow-2xl shadow-black/25 backdrop-blur-2xl"
+        data-variant="admin"
+        className="dashboard-sidebar app-sidebar w-[min(19rem,88vw)] gap-0 border-r p-0"
       >
-        <SheetHeader className="border-b border-border/60 bg-background/75 p-4 text-left backdrop-blur-xl">
-          <SheetTitle className="flex items-center gap-3">
-            <Logo size={34} className="shrink-0 bg-indigo-500" />
+        <SheetHeader className="shrink-0 px-5 py-6 text-left">
+          <SheetTitle className="flex items-center gap-2.5">
+            <Logo size={32} className="shrink-0" />
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-2">
-                <Wordmark className="block text-sm leading-tight" />
-                <Badge className="h-5 gap-1 border border-rose-500/20 bg-rose-500/10 px-1.5 text-[9px] font-bold uppercase tracking-wide text-rose-600 hover:bg-rose-500/10 dark:text-rose-300">
-                  <ShieldCheck className="h-2.5 w-2.5" />
-                  Admin
-                </Badge>
-              </div>
-              <p className="truncate text-[10px] font-normal uppercase tracking-[0.16em] text-muted-foreground">
-                Administration panel
+              <Wordmark className="block text-[15px] leading-5" />
+              <p className="mt-0.5 truncate text-[10px] font-medium tracking-wide text-muted-foreground">
+                Administration
               </p>
             </div>
           </SheetTitle>
         </SheetHeader>
+        <div className="shrink-0 border-b border-sidebar-border/60 px-3 pb-4">
+          <div className="sidebar-context">
+            <span className="sidebar-accent-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+              <ShieldCheck className="h-4 w-4" />
+            </span>
+            <div>
+              <p className="text-xs font-semibold text-foreground">Admin console</p>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                {user?.role === "SUPER_ADMIN" ? "Super administrator" : "Administrator"}
+              </p>
+            </div>
+          </div>
+        </div>
 
         <nav
-          className="flex-1 space-y-5 overflow-y-auto px-3 py-4 pb-40"
+          className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4"
           aria-label="Admin mobile navigation"
         >
           {ADMIN_NAVIGATION_GROUPS.map((group) => (
-            <div key={group.section} className="space-y-1">
-              <p className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-muted-foreground/80">
+            <div key={group.section} className="sidebar-nav-section space-y-1">
+              <p className="sidebar-section-label">
                 {group.section}
               </p>
 
               {group.items.map((item) => {
-                const active = view === item.key;
+                const active = view === item.key || (item.key === "admin-users" && view === "admin-user-detail");
                 const Icon = item.icon;
 
                 return (
@@ -125,26 +123,9 @@ export function AdminMobileSidebar() {
                     type="button"
                     onClick={() => handleNavigate(item.key)}
                     aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "group relative flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200",
-                      active
-                        ? "bg-linear-to-r from-rose-500/18 to-amber-500/10 text-foreground shadow-sm ring-1 ring-rose-500/20"
-                        : "text-muted-foreground hover:bg-muted/75 hover:text-foreground",
-                    )}
+                    className="app-sidebar-link"
                   >
-                    {active && (
-                      <span className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-linear-to-b from-rose-500 to-amber-500" />
-                    )}
-                    <span
-                      className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-all",
-                        active
-                          ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-rose-500/25`
-                          : "bg-muted/75 text-muted-foreground ring-1 ring-border/60 group-hover:text-foreground",
-                      )}
-                    >
-                      <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                    </span>
+                    <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
                     <span className="flex-1 text-left">{item.label}</span>
                   </button>
                 );
@@ -153,40 +134,31 @@ export function AdminMobileSidebar() {
           ))}
         </nav>
 
-        <div className="absolute inset-x-0 bottom-0 border-t border-border/70 bg-background/92 p-3.5 shadow-[0_-12px_30px_-24px_rgba(15,23,42,0.55)] backdrop-blur-xl">
-          <button
-            type="button"
+        <div className="sidebar-footer shrink-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={handleSwitchToUserPanel}
-            className="mb-3 flex h-9 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border/60 bg-muted/45 text-xs font-medium text-muted-foreground transition hover:border-rose-500/25 hover:bg-rose-500/5 hover:text-foreground"
+            aria-label="Switch to user panel"
+            className="mb-3 h-10 w-full cursor-pointer gap-2 rounded-lg border-primary/20 bg-primary/5 px-2 text-xs font-medium text-primary hover:bg-primary/10 hover:text-primary dark:border-primary/20 dark:bg-primary/5 dark:hover:bg-primary/10"
           >
-            <ArrowLeftRight className="h-3.5 w-3.5" />
-            Switch to user panel
-          </button>
-
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 border border-rose-500/20 shadow-sm">
-              {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-              <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-xs font-semibold text-foreground">
-                {displayName}
-              </p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {displayEmail}
-              </p>
-            </div>
+            <ArrowLeftRight className="h-3.5 w-3.5" /> User Panel
+          </Button>
+          <SidebarProfile
+            name={displayName}
+            email={displayEmail}
+            avatarSrc={avatarSrc}
+            initials={initials}
+            onClick={() => handleNavigate("admin-settings")}
+          />
+          <div className="mt-2 flex items-center justify-end">
             <Button
               variant="ghost"
-              size="icon"
-              className="h-8 w-8 cursor-pointer rounded-lg text-muted-foreground transition hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300"
+              size="sm"
               onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
+              className="sidebar-utility h-9 gap-2 rounded-lg px-2 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-3.5 w-3.5" /> Sign out
             </Button>
           </div>
         </div>

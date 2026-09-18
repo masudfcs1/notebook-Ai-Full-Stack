@@ -11,7 +11,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Logo, Wordmark } from "./Logo";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SidebarProfile } from "./SidebarChrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -33,24 +33,24 @@ export function MobileSidebar() {
     <Sheet open={open} onOpenChange={(v) => dispatch(setMobileNav(v))}>
       <SheetContent
         side="left"
-        className="dashboard-sidebar w-[min(19rem,88vw)] border-r border-border/70 !bg-background/90 p-0 shadow-2xl shadow-black/20 backdrop-blur-2xl"
+        className="dashboard-sidebar app-sidebar w-[min(19rem,88vw)] gap-0 border-r p-0"
       >
-        <SheetHeader className="border-b border-border/60 bg-background/70 p-4 text-left backdrop-blur-xl">
-          <SheetTitle className="flex items-center gap-3">
+        <SheetHeader className="shrink-0 border-b border-sidebar-border/60 px-5 py-6 text-left">
+          <SheetTitle className="flex items-center gap-2.5">
             <Logo size={32} className="shrink-0 bg-indigo-500" />
             <div className="min-w-0 flex-1">
-              <Wordmark className="text-sm block leading-tight" />
-              <p className="text-[10px] font-normal uppercase tracking-widest text-muted-foreground truncate">
+              <Wordmark className="block text-[15px] leading-5" />
+              <p className="mt-0.5 truncate text-[10px] font-medium tracking-wide text-muted-foreground">
                 Meeting Intelligence
               </p>
             </div>
           </SheetTitle>
         </SheetHeader>
 
-        <nav className="flex-1 space-y-5 overflow-y-auto px-3 py-4 pb-28">
+        <nav aria-label="Main navigation" className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4">
           {NAVIGATION_GROUPS.map((group) => (
-            <div key={group.section} className="space-y-1">
-              <p className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
+            <div key={group.section} className="sidebar-nav-section space-y-1">
+              <p className="sidebar-section-label">
                 {group.section}
               </p>
               {group.items.map((item) => {
@@ -65,26 +65,14 @@ export function MobileSidebar() {
                       dispatch(setMobileNav(false));
                     }}
                     aria-current={active ? "page" : undefined}
-                    className={`group flex w-full cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 ${
-                      active
-                        ? "bg-indigo-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-indigo-500/20"
-                        : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white"
-                    }`}
+                    className="app-sidebar-link"
                   >
-                    <span
-                      className={`flex h-7 w-7 items-center justify-center rounded-lg ${
-                        active
-                          ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                          : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-indigo-500/10 group-hover:text-indigo-600 group-hover:ring-indigo-500/20 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-indigo-300"
-                      }`}
-                    >
-                      <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                    </span>
-                    <span className="flex-1 text-left font-medium">{item.label}</span>
+                    <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+                    <span className="flex-1 text-left">{item.label}</span>
                     {item.badge && (
                       <Badge
                         variant="secondary"
-                        className="h-5 bg-rose-500/15 text-[10px] text-rose-500"
+                        className="h-4 rounded-md border-0 bg-rose-500/10 px-1.5 text-[9px] font-medium text-rose-600 dark:text-rose-400"
                       >
                         {item.badge}
                       </Badge>
@@ -96,24 +84,22 @@ export function MobileSidebar() {
           ))}
         </nav>
 
-        <div className="absolute inset-x-0 bottom-0 border-t border-border/70 bg-background/90 p-4 shadow-[0_-12px_30px_-24px_rgba(15,23,42,0.45)] backdrop-blur-xl">
-          <div className="flex items-center gap-3">
-            <Avatar className="h-9 w-9 border border-border">
-              {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-              <AvatarFallback className="bg-linear-to-br from-indigo-500 to-violet-500 text-xs font-semibold text-white">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-xs font-semibold">{displayName}</p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {displayEmail}
-              </p>
-            </div>
+        <div className="sidebar-footer shrink-0 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+          <SidebarProfile
+            name={displayName}
+            email={displayEmail}
+            avatarSrc={avatarSrc}
+            initials={initials}
+            onClick={() => {
+              dispatch(setMobileNav(false));
+              dispatch(setView("settings"));
+            }}
+          />
+          <div className="mt-2 flex justify-end">
             <Button
               variant="ghost"
-              size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 transition-colors cursor-pointer"
+              size="sm"
+              className="sidebar-utility h-9 gap-2 rounded-lg px-2 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400"
               title="Sign out"
               aria-label="Sign out"
               onClick={() => {
@@ -125,7 +111,7 @@ export function MobileSidebar() {
                 });
               }}
             >
-              <LogOut className="h-3.5 w-3.5" />
+              <LogOut className="h-3.5 w-3.5" /> Sign out
             </Button>
           </div>
         </div>

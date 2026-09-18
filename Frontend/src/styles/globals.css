@@ -417,6 +417,141 @@
   }
   .dark .admin-dashboard-sidebar { background: rgba(14, 11, 17, 0.78); }
 
+  /* Shared workspace and administration navigation. */
+  .dashboard-sidebar.app-sidebar {
+    --navigation-accent: var(--primary);
+    background: var(--sidebar);
+    border-color: var(--sidebar-border);
+    box-shadow: inset -1px 0 0 color-mix(in oklab, var(--foreground) 2%, transparent);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .app-sidebar[data-variant="admin"] {
+    --navigation-accent: oklch(0.52 0.17 15);
+  }
+  .dark .app-sidebar[data-variant="admin"] {
+    --navigation-accent: oklch(0.76 0.12 15);
+  }
+  .app-sidebar button:focus-visible {
+    outline: 2px solid var(--navigation-accent);
+    outline-offset: 2px;
+  }
+  .sidebar-collapse-control {
+    border-color: var(--sidebar-border);
+    background: var(--sidebar);
+    color: var(--muted-foreground);
+    box-shadow: 0 2px 5px rgb(0 0 0 / 4%);
+  }
+  .sidebar-collapse-control:hover {
+    color: var(--navigation-accent);
+    background: var(--background);
+  }
+  .sidebar-context {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 0.625rem;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.75rem;
+    background: var(--background);
+    box-shadow: 0 1px 2px rgb(0 0 0 / 3%);
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  button.sidebar-context:hover {
+    border-color: color-mix(in oklab, var(--navigation-accent) 35%, var(--sidebar-border));
+    background: color-mix(in oklab, var(--navigation-accent) 3%, var(--background));
+  }
+  .sidebar-accent-surface {
+    color: var(--navigation-accent);
+    background: color-mix(in oklab, var(--navigation-accent) 9%, var(--background));
+  }
+  .sidebar-section-label {
+    padding: 0 0.75rem 0.5rem;
+    color: var(--muted-foreground);
+    font-size: 0.625rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .sidebar-nav-section + .sidebar-nav-section {
+    padding-top: 1rem;
+    border-top: 1px solid color-mix(in oklab, var(--sidebar-border) 65%, transparent);
+  }
+  .app-sidebar-link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 2.625rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.625rem;
+    color: var(--muted-foreground);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  }
+  .app-sidebar-link:hover {
+    color: var(--foreground);
+    background: var(--sidebar-accent);
+  }
+  .app-sidebar-link[aria-current="page"] {
+    color: var(--navigation-accent);
+    background: color-mix(in oklab, var(--navigation-accent) 9%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--navigation-accent) 13%, transparent);
+    font-weight: 600;
+  }
+  .app-sidebar-link[aria-current="page"]::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 3px;
+    height: 16px;
+    border-radius: 0 3px 3px 0;
+    background: var(--navigation-accent);
+    transform: translateY(-50%);
+  }
+  .sidebar-footer {
+    border-top: 1px solid var(--sidebar-border);
+    background: color-mix(in oklab, var(--background) 50%, var(--sidebar));
+  }
+  .sidebar-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 0.625rem;
+    border: 1px solid var(--sidebar-border);
+    border-radius: 0.75rem;
+    background: var(--background);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+  .sidebar-profile:hover {
+    border-color: color-mix(in oklab, var(--navigation-accent) 25%, var(--sidebar-border));
+    background: var(--sidebar-accent);
+  }
+  .app-sidebar-link.is-collapsed,
+  .sidebar-context.is-collapsed,
+  .sidebar-profile.is-collapsed {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .sidebar-utility {
+    color: var(--muted-foreground);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+
   .dashboard-topbar {
     background: rgba(248, 250, 252, 0.68);
     border-color: rgba(148, 163, 184, 0.15);

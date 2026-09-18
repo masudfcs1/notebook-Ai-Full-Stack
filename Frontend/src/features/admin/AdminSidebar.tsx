@@ -2,32 +2,26 @@
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import {
-  PanelLeftClose,
-  PanelLeft,
-  LogOut,
-  ArrowLeftRight,
-} from "lucide-react";
-
+import { ArrowLeftRight, LogOut, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/hooks";
 import { setView, toggleSidebar } from "@/lib/redux/appSlice";
 import { logout } from "@/lib/redux/authSlice";
-import { Logo, Wordmark } from "@/features/navigation";
-import {
-  cn,
-  getUserDisplayName,
-  getUserInitials,
-  getAvatarUrl,
-} from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { SidebarHeader, SidebarProfile } from "@/features/navigation/SidebarChrome";
+import { cn, getUserDisplayName, getUserInitials, getAvatarUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ADMIN_NAVIGATION_GROUPS } from "@/constants/admin";
+import type { ViewKey } from "@/lib/redux/appSlice";
+
+const ADMIN_ROUTE_MAP: Partial<Record<ViewKey, string>> = {
+  "admin-dashboard": "/admin",
+  "admin-users": "/admin/users",
+  "admin-roles": "/admin/roles",
+  "admin-activity": "/admin/activity",
+  "admin-notifications": "/admin/notifications",
+  "admin-settings": "/admin/settings",
+};
 
 export function AdminSidebar() {
   const router = useRouter();
@@ -35,306 +29,128 @@ export function AdminSidebar() {
   const user = useAppSelector((s) => s.auth.user);
   const view = useAppSelector((s) => s.app.view);
   const collapsed = useAppSelector((s) => s.app.sidebarCollapsed);
-  const workspaces = useAppSelector((s) => s.data.workspaces);
-  const activeWorkspaceId = useAppSelector((s) => s.data.activeWorkspaceId);
-  const activeWorkspace =
-    workspaces.find((w) => w.id === activeWorkspaceId) || workspaces[0];
 
-  const handleSwitchToUserPanel = () => {
-    dispatch(setView("dashboard"));
-    void router.push("/dashboard");
-  };
-
-  const handleLogout = () => {
-    dispatch(logout());
-    dispatch(setView("login"));
-    toast.success("Logged out successfully", {
-      position: "bottom-right",
-    });
-  };
-
-  const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "Admin");
   const displayEmail = user?.email || "admin@noteflow.ai";
   const initials = getUserInitials(user?.name, user?.email);
-  const adminAvatar = (
-    <Avatar className="h-9 w-9 border border-rose-500/20 shadow-sm">
-      {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-      <AvatarFallback className="bg-linear-to-br from-rose-500 to-amber-500 text-xs font-semibold text-white">
-        {initials}
-      </AvatarFallback>
-    </Avatar>
-  );
+
+  function handleNavigate(nextView: ViewKey) {
+    dispatch(setView(nextView));
+    const path = ADMIN_ROUTE_MAP[nextView];
+    if (path && router.asPath !== path) void router.push(path);
+  }
 
   return (
     <motion.aside
       initial={false}
-      animate={{ width: collapsed ? 80 : 272 }}
+      animate={{ width: collapsed ? 72 : 256 }}
       transition={{ type: "spring", stiffness: 280, damping: 30 }}
-      className={cn(
-        "dashboard-sidebar admin-dashboard-sidebar sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r text-sidebar-foreground lg:flex",
-      )}
+      data-variant="admin"
+      className="dashboard-sidebar app-sidebar sticky top-0 z-30 hidden h-dvh shrink-0 flex-col border-r lg:flex"
     >
-      {/* Persistent edge control keeps the rail uncluttered at both widths. */}
-      <Tooltip delayDuration={150}>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute -right-3.5 top-5 z-40 h-7 w-7 rounded-full border-rose-500/20 bg-background/95 text-muted-foreground shadow-md backdrop-blur-md hover:border-rose-500/40 hover:bg-background hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
-            onClick={() => dispatch(toggleSidebar())}
-            aria-label={
-              collapsed ? "Expand admin sidebar" : "Collapse admin sidebar"
-            }
-            aria-expanded={!collapsed}
-          >
-            {collapsed ? (
-              <PanelLeft className="h-3.5 w-3.5" />
-            ) : (
-              <PanelLeftClose className="h-3.5 w-3.5" />
-            )}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right" className="text-xs font-medium">
-          {collapsed ? "Expand sidebar" : "Collapse sidebar"}
-        </TooltipContent>
-      </Tooltip>
+      <SidebarHeader
+        collapsed={collapsed}
+        admin
+        onHome={() => handleNavigate("admin-dashboard")}
+        onToggle={() => dispatch(toggleSidebar())}
+      />
 
-      {/* Header / Logo */}
-      <div
-        className={cn(
-          "flex h-18 shrink-0 items-center",
-          collapsed ? "justify-center px-2" : "px-4",
-        )}
-      >
-        <button
-          onClick={() => dispatch(setView("admin-dashboard"))}
-          className={cn(
-            "flex min-w-0 items-center overflow-hidden rounded-xl text-left transition-colors hover:bg-rose-500/5 cursor-pointer",
-            collapsed ? "h-11 w-11 justify-center" : "gap-3 px-1 py-1.5",
-          )}
-          aria-label="Go to admin dashboard"
+      <div className="shrink-0 border-b border-sidebar-border/60 px-3 pb-4">
+        <div
+          className={cn("sidebar-context", collapsed && "is-collapsed")}
+          title={collapsed ? "Admin console" : undefined}
         >
-          <Logo size={36} className="shrink-0" />
+          <span className="sidebar-accent-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+            <ShieldCheck className="h-4 w-4" />
+          </span>
           {!collapsed && (
-            <div className="min-w-0 flex-1 flex items-center gap-2">
-              <Wordmark className="text-base text-foreground" />
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-foreground">Admin console</p>
+              <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                {user?.role === "SUPER_ADMIN" ? "Super administrator" : "Administrator"}
+              </p>
             </div>
           )}
-        </button>
+          {collapsed && <span className="sr-only">Admin console</span>}
+        </div>
       </div>
 
-      {/* Navigation */}
-      <nav
-        className={cn(
-          "flex-1 overflow-y-auto py-4 scrollbar-thin",
-          collapsed ? "px-2.5" : "px-3",
-        )}
-        aria-label="Admin navigation"
-      >
+      <nav aria-label="Admin navigation" className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 py-4 scrollbar-thin">
         {ADMIN_NAVIGATION_GROUPS.map((group) => (
-          <div
-            key={group.section}
-            className={cn(
-              "mb-5 space-y-1",
-              collapsed &&
-                "mb-3 border-b border-sidebar-border/50 pb-3 last:mb-0 last:border-b-0 last:pb-0",
-            )}
-          >
-            {!collapsed && (
-              <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-[.18em] text-zinc-500 dark:text-zinc-400">
-                {group.section}
-              </p>
-            )}
+          <div key={group.section} className="sidebar-nav-section space-y-1">
+            {!collapsed && <p className="sidebar-section-label">{group.section}</p>}
             {group.items.map((item) => {
-              const isActive = view === item.key;
+              const active = view === item.key || (item.key === "admin-users" && view === "admin-user-detail");
               const Icon = item.icon;
-
-              const handleNavClick = () => {
-                dispatch(setView(item.key));
-                // Sync Next.js route if desired
-                const routeMap: Record<string, string> = {
-                  "admin-dashboard": "/admin",
-                  "admin-users": "/admin/users",
-                  "admin-roles": "/admin/roles",
-                  "admin-activity": "/admin/activity",
-                  "admin-notifications": "/admin/notifications",
-                  "admin-settings": "/admin/settings",
-                };
-                const targetPath = routeMap[item.key];
-                if (targetPath && router.pathname !== targetPath) {
-                  void router.push(targetPath);
-                }
-              };
-
-              const btn = (
-                <button
-                  key={item.key}
-                  onClick={handleNavClick}
-                  aria-current={isActive ? "page" : undefined}
-                  aria-label={collapsed ? item.label : undefined}
-                  className={cn(
-                    "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 cursor-pointer",
-                    isActive
-                      ? "bg-rose-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-rose-500/20"
-                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
-                    collapsed && "h-11 justify-center px-0 py-0",
-                  )}
-                >
-                  {/* Active indicator bar */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="admin-sidebar-active"
-                      className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-linear-to-b from-rose-500 to-amber-500"
-                      transition={{
-                        type: "spring",
-                        stiffness: 300,
-                        damping: 30,
-                      }}
-                    />
-                  )}
-                  <div
-                    className={cn(
-                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
-                      collapsed && "h-8 w-8",
-                      isActive
-                        ? `bg-linear-to-br ${item.gradient} text-white shadow-lg shadow-rose-500/20`
-                        : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-rose-500/10 group-hover:text-rose-600 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-rose-300",
-                    )}
-                  >
-                    <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                  </div>
-                  {!collapsed && <span className="truncate font-medium">{item.label}</span>}
-                </button>
-              );
-
-              if (collapsed) {
-                return (
-                  <Tooltip key={item.key} delayDuration={100}>
-                    <TooltipTrigger asChild>{btn}</TooltipTrigger>
-                    <TooltipContent
-                      side="right"
-                      className="ml-1 text-xs font-medium"
+              return (
+                <Tooltip key={item.key} delayDuration={150}>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate(item.key)}
+                      aria-label={item.label}
+                      aria-current={active ? "page" : undefined}
+                      className={cn("app-sidebar-link", collapsed && "is-collapsed")}
                     >
-                      {item.label}
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              }
-
-              return btn;
+                      <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
+                      {!collapsed && <span className="min-w-0 flex-1 truncate text-left">{item.label}</span>}
+                    </button>
+                  </TooltipTrigger>
+                  {collapsed && <TooltipContent side="right" className="text-xs">{item.label}</TooltipContent>}
+                </Tooltip>
+              );
             })}
           </div>
         ))}
       </nav>
 
-      {/* Footer — User profile + actions */}
-      <div
-        className={cn(
-          "shrink-0 border-t border-border/50 bg-white/20 dark:bg-white/[0.012]",
-          collapsed ? "flex flex-col items-center gap-2 p-2.5" : "p-3",
-        )}
-      >
-        {/* Switch to User Panel */}
-        {!collapsed ? (
-          <button
-            onClick={handleSwitchToUserPanel}
-            className="mb-3 flex w-full items-center gap-2 rounded-xl border border-border/50 bg-white/40 px-3 py-2.5 text-xs font-medium text-zinc-700 shadow-sm transition-all hover:border-rose-500/20 hover:bg-white/70 hover:text-zinc-950 dark:text-zinc-400 dark:bg-white/5 dark:hover:bg-white/10 dark:hover:text-white cursor-pointer"
-          >
-            <ArrowLeftRight className="h-3 w-3" />
-            Switch to User Panel
-          </button>
-        ) : (
-          <Tooltip delayDuration={100}>
+      <div className="sidebar-footer shrink-0 p-3">
+        <Tooltip delayDuration={150}>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size={collapsed ? "icon" : "sm"}
+              className="mb-3 h-10 w-full cursor-pointer gap-2 rounded-lg border-primary/20 bg-primary/5 px-2 text-xs font-medium text-primary hover:bg-primary/10 hover:text-primary dark:border-primary/20 dark:bg-primary/5 dark:hover:bg-primary/10"
+              aria-label="Switch to user panel"
+              onClick={() => {
+                dispatch(setView("dashboard"));
+                void router.push("/dashboard");
+              }}
+            >
+              <ArrowLeftRight className="h-3.5 w-3.5" />
+              {!collapsed && <span>User Panel</span>}
+            </Button>
+          </TooltipTrigger>
+          {collapsed && <TooltipContent side="right" className="text-xs">User Panel</TooltipContent>}
+        </Tooltip>
+        <SidebarProfile
+          collapsed={collapsed}
+          name={displayName}
+          email={displayEmail}
+          avatarSrc={getAvatarUrl(user?.avatar)}
+          initials={initials}
+          onClick={() => handleNavigate("admin-settings")}
+        />
+        <div className={cn("mt-2 flex items-center justify-end", collapsed && "justify-center")}>
+          <Tooltip delayDuration={150}>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-xl text-muted-foreground hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
-                onClick={handleSwitchToUserPanel}
-                aria-label="Switch to user panel"
+                size={collapsed ? "icon" : "sm"}
+                className={cn("sidebar-utility h-9 gap-2 rounded-lg px-2 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400", collapsed && "w-9 px-0")}
+                aria-label="Sign out"
+                onClick={() => {
+                  dispatch(logout());
+                  dispatch(setView("login"));
+                  toast.success("Logged out successfully", { position: "bottom-right" });
+                }}
               >
-                <ArrowLeftRight className="h-3.5 w-3.5" />
+                <LogOut className="h-3.5 w-3.5" />
+                {!collapsed && <span>Sign out</span>}
               </Button>
             </TooltipTrigger>
-            <TooltipContent side="right" className="ml-1 text-xs font-medium">
-              Switch to User Panel
-            </TooltipContent>
+            {collapsed && <TooltipContent side="right" className="text-xs">Sign out</TooltipContent>}
           </Tooltip>
-        )}
-
-        {collapsed && <div className="h-px w-8 bg-border/70" />}
-
-        {/* User info */}
-        <div
-          className={cn(
-            "flex items-center gap-3",
-            collapsed && "w-full flex-col gap-2",
-          )}
-        >
-          {collapsed ? (
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger asChild>
-                <div
-                  tabIndex={0}
-                  role="img"
-                  className="rounded-full outline-none ring-offset-background focus-visible:ring-2 focus-visible:ring-rose-500/40 focus-visible:ring-offset-2"
-                  aria-label={`${displayName}, ${displayEmail}`}
-                >
-                  {adminAvatar}
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="right" className="ml-1 max-w-56">
-                <p className="text-xs font-semibold">{displayName}</p>
-                <p className="text-[10px] text-muted-foreground">
-                  {displayEmail}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            adminAvatar
-          )}
-          {!collapsed && (
-            <div className="min-w-0 flex-1 text-left">
-              <p className="truncate text-xs font-semibold text-foreground">
-                {displayName}
-              </p>
-              <p className="truncate text-[10px] text-muted-foreground">
-                {displayEmail}
-              </p>
-            </div>
-          )}
-          {!collapsed ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0 rounded-lg text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
-              title="Sign out"
-              onClick={handleLogout}
-            >
-              <LogOut className="h-3.5 w-3.5" />
-            </Button>
-          ) : (
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-xl text-muted-foreground transition-colors hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-300 cursor-pointer"
-                  onClick={handleLogout}
-                  aria-label="Sign out"
-                >
-                  <LogOut className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="right"
-                className="ml-1 text-xs font-medium text-rose-500"
-              >
-                Sign out
-              </TooltipContent>
-            </Tooltip>
-          )}
         </div>
       </div>
     </motion.aside>

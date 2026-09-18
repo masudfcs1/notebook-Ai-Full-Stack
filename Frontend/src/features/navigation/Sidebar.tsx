@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  PanelLeftClose,
-  PanelLeft,
   Bell,
   LogOut,
   ChevronRight,
   ChevronDown,
+  ChevronsUpDown,
   Building2,
   Plus,
   Check,
@@ -27,14 +26,13 @@ import {
   setActiveWorkspace,
   setActiveTeam,
 } from "@/lib/redux/dataSlice";
-import { Logo, Wordmark } from "./Logo";
+import { SidebarHeader, SidebarProfile } from "./SidebarChrome";
 import {
   cn,
   getUserDisplayName,
   getUserInitials,
   getAvatarUrl,
 } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,57 +103,46 @@ export function Sidebar() {
     <>
       <motion.aside
         initial={false}
-        animate={{ width: collapsed ? 80 : 272 }}
+        animate={{ width: collapsed ? 72 : 256 }}
         transition={{ type: "spring", stiffness: 280, damping: 30 }}
         className={cn(
-          "dashboard-sidebar sticky top-0 z-30 hidden h-screen shrink-0 flex-col border-r lg:flex",
+          "dashboard-sidebar app-sidebar sticky top-0 z-30 hidden h-dvh shrink-0 flex-col border-r lg:flex",
         )}
       >
-        {/* Header / Logo */}
-        <div className="flex h-18 shrink-0 items-center gap-3 px-4">
-          <button
-            onClick={() => dispatch(setView("landing"))}
-            className="flex items-center gap-3 overflow-hidden text-left cursor-pointer"
-            aria-label="Go to landing"
-          >
-            <Logo size={36} className="shrink-0" />
-            {!collapsed && (
-              <div className="min-w-0 flex-1">
-                <Wordmark className="text-[15px] text-zinc-900 dark:text-white block leading-tight" />
-                <p className="text-[10px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400 font-medium truncate">
-                  Meeting Intelligence
-                </p>
-              </div>
-            )}
-          </button>
-        </div>
+        <SidebarHeader
+          collapsed={collapsed}
+          onHome={() => dispatch(setView("landing"))}
+          onToggle={() => dispatch(toggleSidebar())}
+        />
 
         {/* Workspace Switcher Component */}
-        <div className="border-b border-sidebar-border/40 px-3 pb-3 pt-1">
+        <div className="shrink-0 border-b border-sidebar-border/60 px-3 pb-4">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
+                type="button"
+                aria-label={`Switch workspace: ${activeWorkspace?.name || "Select workspace"}`}
+                title={collapsed ? activeWorkspace?.name || "Switch workspace" : undefined}
                 className={cn(
-                  "dashboard-glass-card flex w-full items-center gap-2.5 rounded-2xl p-2.5 text-left transition-all hover:-translate-y-0.5",
-                  collapsed && "justify-center p-2",
+                  "sidebar-context cursor-pointer text-left",
+                  collapsed && "is-collapsed",
                 )}
               >
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/15">
-                  <Building2 className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+                <div className="sidebar-accent-surface flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
+                  <Building2 className="h-3.5 w-3.5" />
                 </div>
                 {!collapsed && (
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-bold text-zinc-900 dark:text-white">
+                    <p className="truncate text-xs font-semibold text-foreground">
                       {activeWorkspace?.name || "Select Workspace"}
                     </p>
-                    <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400 font-medium">
-                      {teams.length} {teams.length === 1 ? "team" : "teams"}{" "}
-                      active
+                    <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                      {teams.length} {teams.length === 1 ? "team" : "teams"}
                     </p>
                   </div>
                 )}
                 {!collapsed && (
-                  <ChevronDown className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
+                  <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground/70" />
                 )}
               </button>
             </DropdownMenuTrigger>
@@ -235,7 +222,7 @@ export function Sidebar() {
                               setWsModalOpen(true);
                             }}
                             title="Edit workspace"
-                            className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                            className="p-1 text-muted-foreground hover:text-indigo-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity rounded hover:bg-muted"
                           >
                             <Edit3 className="h-3 w-3" />
                           </button>
@@ -248,7 +235,7 @@ export function Sidebar() {
                               setDeleteModalOpen(true);
                             }}
                             title="Delete workspace"
-                            className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity rounded hover:bg-muted"
+                            className="p-1 text-muted-foreground hover:text-rose-500 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity rounded hover:bg-muted"
                           >
                             <Trash2 className="h-3 w-3" />
                           </button>
@@ -275,11 +262,14 @@ export function Sidebar() {
 
           {/* Teams Selector Pill list in Sidebar (Collapsible) */}
           {!collapsed && (
-            <div className="mt-2.5 space-y-1">
-              <div className="flex items-center justify-between px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-zinc-500 dark:text-zinc-400">
+            <div className="mt-3 space-y-1.5">
+              <div className="flex h-7 items-center justify-between px-1 text-[11px] font-medium text-muted-foreground">
                 <button
+                  type="button"
+                  aria-expanded={!teamsCollapsed}
+                  aria-controls="sidebar-teams"
                   onClick={() => setTeamsCollapsed(!teamsCollapsed)}
-                  className="flex items-center gap-1 hover:text-zinc-900 dark:hover:text-white transition-colors"
+                  className="flex h-7 items-center gap-1.5 rounded-md px-1 transition-colors hover:text-foreground"
                   title={teamsCollapsed ? "Expand Teams" : "Collapse Teams"}
                 >
                   {teamsCollapsed ? (
@@ -288,7 +278,7 @@ export function Sidebar() {
                     <ChevronDown className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
                   )}
                   <span>Teams</span>
-                  <span className="font-mono text-[9px] rounded bg-zinc-200/70 dark:bg-white/5 px-1 py-0.2 text-zinc-600 dark:text-zinc-400 ml-0.5">
+                  <span className="ml-0.5 rounded-md bg-sidebar-accent px-1.5 text-[10px] tabular-nums text-muted-foreground">
                     {teams.length}
                   </span>
                 </button>
@@ -299,7 +289,7 @@ export function Sidebar() {
                       setTeamModalMode("create");
                       setTeamModalOpen(true);
                     }}
-                    className="text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors cursor-pointer"
+                    className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
                     title="Create Team"
                   >
                     <Plus className="h-3 w-3" />
@@ -310,11 +300,12 @@ export function Sidebar() {
               <AnimatePresence initial={false}>
                 {!teamsCollapsed && (
                   <motion.div
+                    id="sidebar-teams"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.2, ease: "easeInOut" }}
-                    className="space-y-1 overflow-hidden"
+                    className="ml-2 max-h-52 space-y-0.5 overflow-y-auto border-l border-sidebar-border/70 pl-2"
                   >
                     <button
                       onClick={() => {
@@ -326,8 +317,8 @@ export function Sidebar() {
                         }
                       }}
                       className={cn(
-                        "flex w-full items-center gap-2 rounded-lg px-2 py-1.5 text-xs transition-colors cursor-pointer",
-                        activeTeamId === null
+                        "flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-xs transition-colors",
+                        view === "team" && activeTeamId === null
                           ? "bg-indigo-500/12 font-semibold text-indigo-700 dark:text-indigo-300"
                           : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                       )}
@@ -360,8 +351,8 @@ export function Sidebar() {
                         <div
                           key={t.id}
                           className={cn(
-                            "group/team flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-xs transition-colors",
-                            activeTeamId === t.id
+                            "group/team flex min-h-8 w-full items-center justify-between rounded-md px-2 text-xs transition-colors",
+                            view === "team" && activeTeamId === t.id
                               ? "bg-indigo-500/12 font-semibold text-indigo-700 dark:text-indigo-300"
                               : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
                           )}
@@ -377,17 +368,14 @@ export function Sidebar() {
                                 void router.push(`/${wsSlug}/${teamSlug}`);
                               }
                             }}
-                            className="flex items-center gap-2 min-w-0 flex-1 text-left cursor-pointer"
+                            aria-current={view === "team" && activeTeamId === t.id ? "page" : undefined}
+                            title={roleBadge ? `${t.name} · ${roleBadge}` : t.name}
+                            className="flex min-h-8 min-w-0 flex-1 cursor-pointer items-center gap-2 text-left"
                           >
                             <UsersRound className="h-3 w-3 text-indigo-600 dark:text-indigo-400 shrink-0" />
                             <span className="truncate">{t.name}</span>
                           </button>
                           <div className="flex items-center gap-1 shrink-0">
-                            {roleBadge && (
-                              <span className="text-[9px] px-1 py-0.2 rounded bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium font-mono">
-                                {roleBadge}
-                              </span>
-                            )}
                             <span className="font-mono text-[9px] rounded bg-zinc-200/70 dark:bg-white/5 px-1 py-0.5 text-zinc-600 dark:text-zinc-400">
                               {t.key}
                             </span>
@@ -402,7 +390,7 @@ export function Sidebar() {
                                     setTeamModalOpen(true);
                                   }}
                                   title="Edit team"
-                                  className="p-0.5 text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                  className="p-0.5 text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 opacity-0 group-hover/team:opacity-100 group-focus-within/team:opacity-100 transition-opacity rounded cursor-pointer"
                                 >
                                   <Edit3 className="h-3 w-3" />
                                 </button>
@@ -414,7 +402,7 @@ export function Sidebar() {
                                     setDeleteTeamModalOpen(true);
                                   }}
                                   title="Delete team"
-                                  className="p-0.5 text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 opacity-0 group-hover/team:opacity-100 transition-opacity rounded cursor-pointer"
+                                  className="p-0.5 text-zinc-500 hover:text-rose-600 dark:text-zinc-400 dark:hover:text-rose-400 opacity-0 group-hover/team:opacity-100 group-focus-within/team:opacity-100 transition-opacity rounded cursor-pointer"
                                 >
                                   <Trash2 className="h-3 w-3" />
                                 </button>
@@ -432,11 +420,11 @@ export function Sidebar() {
         </div>
 
         {/* Navigation Section */}
-        <nav className="flex-1 space-y-6 overflow-y-auto scrollbar-thin px-3 py-4">
+        <nav aria-label="Main navigation" className="min-h-0 flex-1 space-y-5 overflow-y-auto scrollbar-thin px-3 py-4">
           {NAVIGATION_GROUPS.map((group) => (
-            <div key={group.section} className="space-y-1">
+            <div key={group.section} className="sidebar-nav-section space-y-1">
               {!collapsed && (
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-500 dark:text-zinc-400">
+                <p className="sidebar-section-label">
                   {group.section}
                 </p>
               )}
@@ -448,42 +436,19 @@ export function Sidebar() {
                     <TooltipTrigger asChild>
                       <button
                         onClick={() => dispatch(setView(item.key))}
-                        className={cn(
-                          "group relative flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all cursor-pointer",
-                          active
-                            ? "bg-indigo-500/12 text-zinc-950 dark:text-white font-semibold shadow-xs ring-1 ring-indigo-500/20"
-                            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-400 dark:hover:bg-white/5 dark:hover:text-white",
-                          collapsed && "justify-center",
-                        )}
+                        type="button"
+                        aria-label={item.label}
+                        aria-current={active ? "page" : undefined}
+                        className={cn("app-sidebar-link", collapsed && "is-collapsed")}
                       >
-                        {active && (
-                          <motion.span
-                            layoutId="sidebar-active"
-                            className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-linear-to-b from-indigo-500 to-violet-500"
-                            transition={{
-                              type: "spring",
-                              stiffness: 350,
-                              damping: 30,
-                            }}
-                          />
-                        )}
-                        <span
-                          className={cn(
-                            "relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg transition-all",
-                            active
-                              ? `bg-linear-to-br ${item.gradient} text-white shadow-md shadow-indigo-500/30`
-                              : "bg-zinc-100 text-zinc-700 ring-1 ring-zinc-200/80 group-hover:bg-indigo-500/10 group-hover:text-indigo-600 group-hover:ring-indigo-500/20 dark:bg-white/5 dark:text-zinc-400 dark:ring-white/10 dark:group-hover:text-indigo-300",
-                          )}
-                        >
-                          <Icon className="h-4.5 w-4.5" strokeWidth={2} />
-                        </span>
+                        <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} />
                         {!collapsed && (
-                          <span className="flex-1 text-left font-medium">{item.label}</span>
+                          <span className="flex-1 text-left">{item.label}</span>
                         )}
                         {!collapsed && item.badge && (
                           <Badge
                             variant="secondary"
-                            className="h-5 bg-rose-500/15 px-1.5 text-[10px] font-semibold text-rose-500"
+                            className="h-4 rounded-md border-0 bg-rose-500/10 px-1.5 text-[9px] font-medium text-rose-600 dark:text-rose-400"
                           >
                             {item.badge}
                           </Badge>
@@ -503,20 +468,35 @@ export function Sidebar() {
         </nav>
 
         {/* Footer */}
-        <div className="border-t border-sidebar-border/50 bg-white/20 p-3 dark:bg-white/[0.012]">
+        <div className="sidebar-footer shrink-0 p-3">
+          <SidebarProfile
+            collapsed={collapsed}
+            name={displayName}
+            email={displayEmail}
+            avatarSrc={avatarSrc}
+            initials={initials}
+            onClick={() => dispatch(setView("settings"))}
+          />
+
           <div
-            className={cn("flex items-center gap-2", collapsed && "flex-col")}
+            className={cn(
+              "mt-2 flex items-center",
+              collapsed ? "flex-col gap-1" : "justify-between gap-1",
+            )}
           >
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
-                  className="relative h-8 w-8 rounded-lg bg-sidebar-accent/50"
+                  size={collapsed ? "icon" : "sm"}
+                  aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}
+                  title="Notifications"
+                  className={cn("sidebar-utility relative h-9 gap-2 rounded-lg px-2", collapsed && "w-9 px-0")}
                 >
                   <Bell className="h-3.5 w-3.5" />
+                  {!collapsed && <span>Notifications</span>}
                   {unreadCount > 0 && (
-                    <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+                    <span className={cn("flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-500 px-1 text-[9px] font-semibold text-white", collapsed && "absolute -right-0.5 -top-0.5")}>
                       {unreadCount}
                     </span>
                   )}
@@ -569,61 +549,12 @@ export function Sidebar() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <button
-              onClick={() => dispatch(setView("settings"))}
-              className={cn(
-                "flex flex-1 items-center gap-2.5 rounded-xl p-1.5 transition-all hover:bg-sidebar-accent/80 cursor-pointer",
-                collapsed && "w-full justify-center",
-              )}
-            >
-              <Avatar className="h-8 w-8 border border-sidebar-border shadow-sm">
-                {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
-                <AvatarFallback className="bg-linear-to-br from-indigo-500 to-violet-500 text-[11px] font-semibold text-white">
-                  {initials}
-                </AvatarFallback>
-              </Avatar>
-              {!collapsed && (
-                <div className="min-w-0 flex-1 text-left">
-                  <p className="truncate text-xs font-semibold text-zinc-900 dark:text-white">
-                    {displayName}
-                  </p>
-                  <p className="truncate text-[10px] text-zinc-500 dark:text-zinc-400">
-                    {displayEmail}
-                  </p>
-                </div>
-              )}
-              {!collapsed && (
-                <ChevronRight className="h-3 w-3 text-zinc-500 dark:text-zinc-400" />
-              )}
-            </button>
-          </div>
-
-          <div
-            className={cn(
-              "mt-2 flex items-center",
-              collapsed ? "flex-col gap-2" : "justify-between",
-            )}
-          >
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => dispatch(toggleSidebar())}
-              className="h-8 gap-1.5 px-2 text-xs text-zinc-600 hover:text-zinc-950 dark:text-zinc-400 dark:hover:text-white cursor-pointer"
-            >
-              {collapsed ? (
-                <PanelLeft className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" />
-              ) : (
-                <>
-                  <PanelLeftClose className="h-3.5 w-3.5 text-zinc-600 dark:text-zinc-400" /> Collapse
-                </>
-              )}
-            </Button>
-
             <Tooltip delayDuration={collapsed ? 100 : 400}>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
+                  aria-label="Sign out"
                   onClick={() => {
                     dispatch(logout());
                     dispatch(setView("login"));
@@ -632,8 +563,8 @@ export function Sidebar() {
                     });
                   }}
                   className={cn(
-                    "h-8 gap-1.5 px-2 text-xs text-rose-600 hover:text-rose-700 hover:bg-rose-500/10 dark:text-rose-400 dark:hover:text-rose-300 transition-colors cursor-pointer",
-                    collapsed && "w-8 p-0",
+                    "sidebar-utility h-9 gap-2 rounded-lg px-2 hover:bg-rose-500/10 hover:text-rose-600 dark:hover:text-rose-400",
+                    collapsed && "w-9 px-0",
                   )}
                 >
                   <LogOut className="h-3 w-3" />
