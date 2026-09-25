@@ -161,7 +161,9 @@ export function SettingsView() {
   const [wsToDelete, setWsToDelete] = useState<any>(null);
 
   const [teamModalOpen, setTeamModalOpen] = useState(false);
-  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">("create");
+  const [teamModalMode, setTeamModalMode] = useState<"create" | "edit">(
+    "create",
+  );
   const [teamToEdit, setTeamToEdit] = useState<any>(null);
   const [targetWsIdForTeam, setTargetWsIdForTeam] = useState<string>("");
 
@@ -188,7 +190,7 @@ export function SettingsView() {
   const [role, setRole] = useState(user?.role || "Member");
   const [timezone, setTimezone] = useState("Asia/Dhaka");
   const [bio, setBio] = useState(
-    "AI Enthusiast & Product Specialist. Leading collaborative meeting intelligence."
+    "AI Enthusiast & Product Specialist. Leading collaborative meeting intelligence.",
   );
 
   // Password fields
@@ -305,7 +307,7 @@ export function SettingsView() {
             title: "Settings updated",
             description: "Your personal profile details were saved.",
             type: "success",
-          })
+          }),
         );
       } else {
         toast.error(res.message || "Failed to update profile");
@@ -370,7 +372,7 @@ export function SettingsView() {
   async function handleChangePassword() {
     if (!newPassword || !confirmPassword) {
       toast.error(
-        "Please fill in both new password and confirm password fields"
+        "Please fill in both new password and confirm password fields",
       );
       return;
     }
@@ -406,7 +408,7 @@ export function SettingsView() {
             title: "Security updated",
             description: "Your login password was changed successfully.",
             type: "warning",
-          })
+          }),
         );
         setNewPassword("");
         setConfirmPassword("");
@@ -430,7 +432,7 @@ export function SettingsView() {
         title: "Test Alert",
         description: "Your notification pipeline is working flawlessly!",
         type: "info",
-      })
+      }),
     );
     toast.info("Test Notification Delivered", {
       description: "Check your top-right notification bell to view the alert!",
@@ -450,7 +452,7 @@ export function SettingsView() {
     (w) =>
       w.name.toLowerCase().includes(workspaceSearch.toLowerCase()) ||
       w.slug?.toLowerCase().includes(workspaceSearch.toLowerCase()) ||
-      w.description?.toLowerCase().includes(workspaceSearch.toLowerCase())
+      w.description?.toLowerCase().includes(workspaceSearch.toLowerCase()),
   );
 
   return (
@@ -495,13 +497,6 @@ export function SettingsView() {
                     {activeWs.name}
                   </Badge>
                 )}
-                <Badge
-                  variant="outline"
-                  className="gap-1 border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] text-emerald-600 dark:text-emerald-400"
-                >
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  Gemini 2.5 Active
-                </Badge>
               </div>
 
               <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
@@ -521,7 +516,9 @@ export function SettingsView() {
             <div className="flex shrink-0 items-center gap-2 self-start rounded-2xl border border-border/60 bg-muted/30 p-2 backdrop-blur-md md:self-auto">
               <div className="flex items-center gap-2 px-3 py-1">
                 <Avatar className="h-9 w-9 border border-indigo-500/30 shadow-sm">
-                  {avatarSrc && <AvatarImage src={avatarSrc} alt={displayName} />}
+                  {avatarSrc && (
+                    <AvatarImage src={avatarSrc} alt={displayName} />
+                  )}
                   <AvatarFallback className="bg-linear-to-tr from-indigo-500 to-violet-500 text-xs font-bold text-white">
                     {initials}
                   </AvatarFallback>
@@ -1031,16 +1028,18 @@ export function SettingsView() {
                           "group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all cursor-pointer",
                           isSelected
                             ? "border-indigo-500 bg-indigo-500/10 shadow-md ring-2 ring-indigo-500/30"
-                            : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70"
+                            : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70",
                         )}
                       >
                         <div
                           className={cn(
                             "flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-tr shadow-md transition-transform group-hover:scale-105",
-                            accent.gradient
+                            accent.gradient,
                           )}
                         >
-                          {isSelected && <Check className="h-5 w-5 text-white" />}
+                          {isSelected && (
+                            <Check className="h-5 w-5 text-white" />
+                          )}
                         </div>
                         <span className="text-xs font-semibold text-center leading-tight">
                           {accent.name}
@@ -1243,7 +1242,8 @@ export function SettingsView() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground sm:text-sm">
-                        High-accuracy multi-speaker meeting intelligence pipeline
+                        High-accuracy multi-speaker meeting intelligence
+                        pipeline
                       </p>
                     </div>
                   </div>
@@ -1299,8 +1299,8 @@ export function SettingsView() {
                         {aiCreativity[0] < 0.4
                           ? "Precise (0.2)"
                           : aiCreativity[0] > 0.8
-                          ? "Creative (0.9)"
-                          : "Balanced (0.7)"}
+                            ? "Creative (0.9)"
+                            : "Balanced (0.7)"}
                       </Badge>
                     </div>
                     <Slider
@@ -1331,8 +1331,12 @@ export function SettingsView() {
                         <SelectItem value="auto">
                           Auto-Detect Language (100+ supported)
                         </SelectItem>
-                        <SelectItem value="en-US">English (United States)</SelectItem>
-                        <SelectItem value="en-GB">English (United Kingdom)</SelectItem>
+                        <SelectItem value="en-US">
+                          English (United States)
+                        </SelectItem>
+                        <SelectItem value="en-GB">
+                          English (United Kingdom)
+                        </SelectItem>
                         <SelectItem value="bn">Bengali (বাংলা)</SelectItem>
                         <SelectItem value="es">Spanish (Español)</SelectItem>
                         <SelectItem value="fr">French (Français)</SelectItem>
@@ -1441,7 +1445,9 @@ export function SettingsView() {
                       <Zap className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold">Need unlimited quotas?</p>
+                      <p className="text-sm font-bold">
+                        Need unlimited quotas?
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Scale to Enterprise with dedicated cluster compute and
                         zero rate limits.
@@ -1519,7 +1525,7 @@ export function SettingsView() {
                           "relative flex flex-col justify-between overflow-hidden rounded-2xl border p-5 transition-all",
                           isActive
                             ? "border-indigo-500/70 bg-indigo-500/5 shadow-xl ring-2 ring-indigo-500/30"
-                            : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70 hover:shadow-md"
+                            : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70 hover:shadow-md",
                         )}
                       >
                         {isActive && (
@@ -1546,7 +1552,9 @@ export function SettingsView() {
                                 </span>
                                 <button
                                   type="button"
-                                  onClick={() => handleCopySlug(ws.slug || ws.id)}
+                                  onClick={() =>
+                                    handleCopySlug(ws.slug || ws.id)
+                                  }
                                   className="text-muted-foreground hover:text-foreground cursor-pointer"
                                   title="Copy slug URL"
                                 >
@@ -1595,7 +1603,9 @@ export function SettingsView() {
                                     className="flex items-center gap-1.5 rounded-lg border border-border/60 bg-background/80 px-2 py-1 text-xs shadow-2xs"
                                   >
                                     <span>{t.icon || "💬"}</span>
-                                    <span className="font-medium">{t.name}</span>
+                                    <span className="font-medium">
+                                      {t.name}
+                                    </span>
                                     <span className="rounded bg-muted px-1 font-mono text-[9px] text-muted-foreground">
                                       {t.key}
                                     </span>
@@ -1642,7 +1652,9 @@ export function SettingsView() {
                               size="sm"
                               onClick={() => {
                                 dispatch(setActiveWorkspace(ws.id));
-                                toast.success(`Switched active workspace to ${ws.name}`);
+                                toast.success(
+                                  `Switched active workspace to ${ws.name}`,
+                                );
                               }}
                               className="rounded-xl border-border/80 text-xs font-semibold hover:border-indigo-500/50 cursor-pointer"
                             >
@@ -1650,7 +1662,8 @@ export function SettingsView() {
                             </Button>
                           ) : (
                             <span className="flex items-center gap-1.5 text-xs font-semibold text-indigo-500">
-                              <CheckCircle2 className="h-4 w-4" /> Current Active
+                              <CheckCircle2 className="h-4 w-4" /> Current
+                              Active
                             </span>
                           )}
 
@@ -1701,7 +1714,9 @@ export function SettingsView() {
                       <Plus className="h-6 w-6" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold">Create Another Workspace</p>
+                      <p className="text-sm font-bold">
+                        Create Another Workspace
+                      </p>
                       <p className="text-xs text-muted-foreground">
                         Keep projects, clients, or product verticals cleanly
                         isolated
@@ -1769,7 +1784,9 @@ export function SettingsView() {
                     {newPassword && (
                       <div className="mt-2 space-y-1.5">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="text-muted-foreground">Strength:</span>
+                          <span className="text-muted-foreground">
+                            Strength:
+                          </span>
                           <span className="font-semibold text-foreground">
                             {pwdStrength.text}
                           </span>
@@ -1782,7 +1799,7 @@ export function SettingsView() {
                                 "flex-1 rounded-full transition-all duration-300",
                                 step <= pwdStrength.score
                                   ? pwdStrength.color
-                                  : "bg-muted"
+                                  : "bg-muted",
                               )}
                             />
                           ))}
@@ -1909,7 +1926,9 @@ export function SettingsView() {
                         <Laptop className="h-5 w-5" />
                       </div>
                       <div>
-                        <h4 className="font-bold text-sm">Current Active Session</h4>
+                        <h4 className="font-bold text-sm">
+                          Current Active Session
+                        </h4>
                         <p className="text-xs text-muted-foreground">
                           macOS • Chrome Browser
                         </p>
@@ -1933,7 +1952,7 @@ export function SettingsView() {
                     variant="outline"
                     onClick={() =>
                       toast.success(
-                        "All other device sessions have been revoked."
+                        "All other device sessions have been revoked.",
                       )
                     }
                     className="mt-4 w-full rounded-xl text-xs cursor-pointer"
@@ -1967,7 +1986,9 @@ export function SettingsView() {
 
                 <div className="mt-5 flex flex-col justify-between gap-4 rounded-2xl border border-rose-500/20 bg-background/50 p-4 sm:flex-row sm:items-center">
                   <div>
-                    <p className="text-sm font-bold">Export Workspace Archives</p>
+                    <p className="text-sm font-bold">
+                      Export Workspace Archives
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       Download a structured JSON archive of all your notes,
                       summaries, and action items.
@@ -1977,7 +1998,7 @@ export function SettingsView() {
                     variant="outline"
                     onClick={() =>
                       toast.success(
-                        "Export generated! Your download will begin shortly."
+                        "Export generated! Your download will begin shortly.",
                       )
                     }
                     className="gap-2 rounded-xl border-border/80 text-xs font-semibold cursor-pointer shrink-0"
@@ -2081,7 +2102,7 @@ function TabPill({
         "relative flex items-center gap-2 rounded-xl px-3.5 py-2.5 text-xs font-semibold transition-all cursor-pointer",
         active
           ? "bg-linear-to-r from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-500/20"
-          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       )}
     >
       <Icon className="h-4 w-4" />
@@ -2090,7 +2111,9 @@ function TabPill({
         <span
           className={cn(
             "rounded-md px-1.5 py-0.5 text-[9px] font-bold uppercase",
-            active ? "bg-white/20 text-white" : "bg-indigo-500/10 text-indigo-500"
+            active
+              ? "bg-white/20 text-white"
+              : "bg-indigo-500/10 text-indigo-500",
           )}
         >
           {badge}
@@ -2100,7 +2123,9 @@ function TabPill({
         <span
           className={cn(
             "flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold",
-            active ? "bg-white/20 text-white" : "bg-muted text-muted-foreground"
+            active
+              ? "bg-white/20 text-white"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {count}
@@ -2247,7 +2272,7 @@ function ThemePreviewCard({
         "group relative flex flex-col items-start gap-2.5 rounded-2xl border-2 p-3.5 text-left transition-all cursor-pointer",
         active
           ? "border-indigo-500 bg-indigo-500/5 shadow-md ring-2 ring-indigo-500/25"
-          : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70"
+          : "border-border/60 bg-card/40 hover:border-border hover:bg-card/70",
       )}
     >
       <div className="w-full">{children}</div>
@@ -2293,13 +2318,15 @@ function FormatCard({
         "flex flex-col items-start gap-2 rounded-2xl border-2 p-4 text-left transition-all cursor-pointer",
         active
           ? "border-indigo-500 bg-indigo-500/10 shadow-md ring-1 ring-indigo-500/30"
-          : "border-border/60 bg-card/50 hover:border-border hover:bg-card/80"
+          : "border-border/60 bg-card/50 hover:border-border hover:bg-card/80",
       )}
     >
       <div
         className={cn(
           "flex h-8 w-8 items-center justify-center rounded-lg",
-          active ? "bg-indigo-500 text-white" : "bg-muted text-muted-foreground"
+          active
+            ? "bg-indigo-500 text-white"
+            : "bg-muted text-muted-foreground",
         )}
       >
         <Icon className="h-4 w-4" />
@@ -2364,7 +2391,7 @@ function StatPill({
       <div
         className={cn(
           "flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-white shadow-md",
-          gradient
+          gradient,
         )}
       >
         <Icon className="h-5 w-5" />
@@ -2385,13 +2412,13 @@ function CheckPill({ met, label }: { met: boolean; label: string }) {
         "flex items-center gap-1 rounded-md px-2 py-0.5 font-medium transition-colors",
         met
           ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-          : "bg-muted text-muted-foreground"
+          : "bg-muted text-muted-foreground",
       )}
     >
       <Check
         className={cn(
           "h-3 w-3",
-          met ? "text-emerald-500" : "text-muted-foreground opacity-40"
+          met ? "text-emerald-500" : "text-muted-foreground opacity-40",
         )}
       />
       {label}
