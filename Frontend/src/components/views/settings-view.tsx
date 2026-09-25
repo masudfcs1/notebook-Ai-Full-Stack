@@ -652,83 +652,48 @@ export function SettingsView() {
           className="hidden"
         />
 
-        {/* ===================== HERO HEADER BANNER ===================== */}
+        {/* ===================== CLEAN EXECUTIVE HEADER ===================== */}
         <motion.div
-          initial={{ opacity: 0, y: -16 }}
+          initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.35, ease: "easeOut" }}
-          className="relative overflow-hidden rounded-3xl border border-border/60 bg-linear-to-b from-card/90 via-card/70 to-card/50 p-6 shadow-xl backdrop-blur-2xl md:p-8"
+          transition={{ duration: 0.25 }}
+          className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pt-1"
         >
-          {/* Subtle Ambient Background Gradients */}
-          <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-indigo-500/15 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 left-1/3 h-56 w-56 rounded-full bg-violet-500/15 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 right-1/4 h-48 w-48 rounded-full bg-cyan-500/10 blur-3xl" />
-
-          {/* Top Micro Navigation & Meta Chips */}
-          <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-2">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl text-foreground">
+                Settings
+              </h1>
+              {activeWs && (
                 <Badge
                   variant="outline"
-                  className="gap-1.5 border-indigo-500/30 bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400"
+                  className="gap-1.5 rounded-lg border-indigo-500/25 bg-indigo-500/10 px-2.5 py-0.5 text-xs font-medium text-indigo-600 dark:text-indigo-400"
                 >
-                  <Sparkles className="h-3 w-3" /> Preferences & Workspace Hub
+                  <Building2 className="h-3 w-3" />
+                  {activeWs.name}
                 </Badge>
-                {activeWs && (
-                  <Badge
-                    variant="outline"
-                    className="gap-1 border-border/70 bg-muted/40 px-2 py-0.5 text-[11px] text-muted-foreground"
-                  >
-                    <Building2 className="h-3 w-3 text-indigo-400" />
-                    {activeWs.name}
-                  </Badge>
-                )}
-              </div>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-muted-foreground sm:text-sm">
+              Manage your personal account, canvas appearance, notifications, and AI intelligence
+            </p>
+          </div>
 
-              <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">
-                Account & Platform{" "}
-                <span className="bg-linear-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
-                  Settings
-                </span>
-              </h1>
-              <p className="max-w-2xl text-sm text-muted-foreground md:text-base">
-                Tailor your personal profile, intelligence models, display
-                canvas, notification frequencies, and multi-team organization
-                workspaces.
-              </p>
+          <div className="flex items-center gap-2.5 self-start sm:self-auto">
+            <div className="hidden sm:flex items-center gap-2 rounded-xl border border-border/50 bg-card/60 px-3 py-1.5 text-xs text-muted-foreground shadow-xs backdrop-blur-md">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="font-medium text-foreground text-[11px]">Real-Time Sync</span>
             </div>
 
-            {/* Quick Summary Pill Bar */}
-            <div className="flex shrink-0 items-center gap-2 self-start rounded-2xl border border-border/60 bg-muted/30 p-2 backdrop-blur-md md:self-auto">
-              <div className="flex items-center gap-2 px-3 py-1">
-                <Avatar className="h-9 w-9 border border-indigo-500/30 shadow-sm">
-                  {avatarSrc && (
-                    <AvatarImage src={avatarSrc} alt={displayName} />
-                  )}
-                  <AvatarFallback className="bg-linear-to-tr from-indigo-500 to-violet-500 text-xs font-bold text-white">
-                    {initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="text-left">
-                  <p className="text-xs font-semibold leading-tight">
-                    {displayName}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">{role}</p>
-                </div>
-              </div>
-              <Separator orientation="vertical" className="h-8" />
-              <Button
-                size="sm"
-                onClick={handleSaveProfile}
-                disabled={isUpdatingProfile || isUpdatingPrefs}
-                className="gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-md transition-all hover:opacity-95 hover:shadow-indigo-500/25 cursor-pointer"
-              >
-                <Check className="h-3.5 w-3.5" />
-                {isUpdatingProfile || isUpdatingPrefs
-                  ? "Saving..."
-                  : "Save All"}
-              </Button>
-            </div>
+            <Button
+              size="sm"
+              onClick={handleSaveProfile}
+              disabled={isUpdatingProfile || isUpdatingPrefs}
+              className="gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 px-4 text-xs font-semibold text-white shadow-sm shadow-indigo-500/20 transition-all hover:opacity-95 hover:shadow-indigo-500/30 cursor-pointer"
+            >
+              <Check className="h-3.5 w-3.5" />
+              {isUpdatingProfile || isUpdatingPrefs ? "Saving..." : "Save Changes"}
+            </Button>
           </div>
         </motion.div>
 
