@@ -198,6 +198,25 @@ export class AuthController {
 
     return sendSuccess(res, 'Login history retrieved', result.data);
   });
+
+  getSessions = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+    const userId = req.userId!;
+    const sessions = await authService.getSessions(userId);
+    return sendSuccess(res, 'Active sessions retrieved', sessions);
+  });
+
+  revokeOtherSessions = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+    const userId = req.userId!;
+    const currentToken = req.body?.currentToken || req.cookies?.refreshToken;
+    const result = await authService.revokeOtherSessions(userId, currentToken);
+    return sendSuccess(res, 'Other sessions revoked successfully', result);
+  });
+
+  getUsageStats = catchAsync(async (req: Request, res: Response, _next: NextFunction) => {
+    const userId = req.userId!;
+    const stats = await authService.getUsageStats(userId);
+    return sendSuccess(res, 'Usage statistics retrieved', stats);
+  });
 }
 
 export const authController = new AuthController();

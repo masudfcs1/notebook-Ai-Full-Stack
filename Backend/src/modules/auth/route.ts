@@ -83,5 +83,9 @@ router.delete('/profile-image', authController.deleteProfileImage);
 router.delete('/delete-account', validate(DeleteAccountSchema), authController.deleteAccount);
 
 router.get('/login-history', authController.getLoginHistory);
+router.get('/usage-stats', authController.getUsageStats);
+router.get('/sessions', authController.getSessions);
+router.delete('/sessions', authController.revokeOtherSessions);
+router.post('/sessions/revoke-others', authController.revokeOtherSessions);
 
 export default router;

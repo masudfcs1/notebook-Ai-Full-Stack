@@ -59,6 +59,14 @@ import {
   useDeleteProfileImageMutation,
   useChangePasswordMutation,
 } from "@/lib/redux/api/authApiSlice";
+import {
+  useGetPreferencesQuery,
+  useUpdatePreferencesMutation,
+  useGetUsageStatsQuery,
+  useGetSessionsQuery,
+  useRevokeOtherSessionsMutation,
+  useGetLoginHistoryQuery,
+} from "@/lib/redux/api/preferencesApiSlice";
 import { WorkspaceModal } from "@/components/modals/workspace-modal";
 import { DeleteWorkspaceModal } from "@/components/modals/delete-workspace-modal";
 import { TeamModal } from "@/components/modals/team-modal";
@@ -170,7 +178,7 @@ export function SettingsView() {
   const [deleteTeamModalOpen, setDeleteTeamModalOpen] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState<any>(null);
 
-  // Mutations
+  // Mutations & Queries
   const [updateProfile, { isLoading: isUpdatingProfile }] =
     useUpdateProfileMutation();
   const [updateProfileImage, { isLoading: isUploadingImage }] =
@@ -179,6 +187,22 @@ export function SettingsView() {
     useDeleteProfileImageMutation();
   const [changePasswordApi, { isLoading: isChangingPassword }] =
     useChangePasswordMutation();
+
+  // Dynamic API Preferences, Usage & Sessions
+  const { data: prefsResponse } = useGetPreferencesQuery();
+  const [updatePreferencesApi, { isLoading: isUpdatingPrefs }] =
+    useUpdatePreferencesMutation();
+
+  const { data: usageResponse } = useGetUsageStatsQuery();
+  const usageStats = usageResponse?.data;
+
+  const { data: sessionsResponse } = useGetSessionsQuery();
+  const [revokeOtherSessionsApi, { isLoading: isRevokingSessions }] =
+    useRevokeOtherSessionsMutation();
+
+  const { data: loginHistoryResponse } = useGetLoginHistoryQuery({ take: 5 });
+  const activeSessions = sessionsResponse?.data || [];
+  const loginHistory = loginHistoryResponse?.data || [];
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -253,21 +277,177 @@ export function SettingsView() {
     }
   }, [user]);
 
+  // Hydrate preferences from server
+  useEffect(() => {
+    if (prefsResponse?.data) {
+      const p = prefsResponse.data;
+      if (p.accentColor) setSelectedAccent(p.accentColor);
+      if (p.timezone) setTimezone(p.timezone);
+      if (p.bio !== undefined && p.bio !== null) setBio(p.bio);
+      if (p.aiSummaryStyle) setAiSummaryStyle(p.aiSummaryStyle as any);
+      if (typeof p.aiTemperature === "number")
+        setAiCreativity([p.aiTemperature]);
+      if (p.aiLanguage) setAiLanguage(p.aiLanguage);
+
+      setPrefs({
+        compactMode: !!p.compactMode,
+        ambientGlow: !!p.ambientGlow,
+        smoothMotion: !!p.smoothMotion,
+        highContrast: !!p.highContrast,
+        soundEffects: !!p.soundEffects,
+      });
+
+      setNotifChannels({
+        aiSummariesEmail: !!p.notifAiSummaryEmail,
+        aiSummariesPush: !!p.notifAiSummaryPush,
+        weeklyDigestEmail: !!p.notifWeeklyDigestEmail,
+        weeklyDigestPush: !!p.notifWeeklyDigestPush,
+        taskRemindersEmail: !!p.notifTaskReminderEmail,
+        taskRemindersPush: !!p.notifTaskReminderPush,
+        workspaceActivityEmail: !!p.notifWorkspaceEmail,
+        workspaceActivityPush: !!p.notifWorkspacePush,
+        securityAlertsEmail: !!p.notifSecurityEmail,
+        securityAlertsPush: !!p.notifSecurityPush,
+      });
+
+      setAiToggles({
+        autoSummarize: !!p.aiAutoSummarize,
+        extractActionItems: !!p.aiExtractActions,
+        sentimentAnalysis: !!p.aiSentiment,
+        smartTags: p.aiSmartTags !== undefined ? !!p.aiSmartTags : true,
+        speakerAttribution:
+          p.aiSpeakerAttribution !== undefined
+            ? !!p.aiSpeakerAttribution
+            : true,
+      });
+
+      if (
+        p.theme &&
+        (p.theme === "light" || p.theme === "dark" || p.theme === "system")
+      ) {
+        setTheme(p.theme);
+      }
+    }
+  }, [prefsResponse]);
+
   const avatarSrc = getAvatarUrl(user?.avatar);
   const displayName = getUserDisplayName(user, "User");
   const initials = getUserInitials(user?.name, user?.email);
 
-  // Toggle helper
-  function togglePref(key: keyof typeof prefs) {
-    setPrefs((p) => ({ ...p, [key]: !p[key] }));
+  // Toggle helper with dynamic backend synchronization
+  async function togglePref(key: keyof typeof prefs) {
+    const nextVal = !prefs[key];
+    setPrefs((p) => ({ ...p, [key]: nextVal }));
+    try {
+      await updatePreferencesApi({ [key]: nextVal }).unwrap();
+    } catch {
+      setPrefs((p) => ({ ...p, [key]: !nextVal }));
+      toast.error("Failed to save preference");
+    }
   }
 
-  function toggleNotif(key: keyof typeof notifChannels) {
-    setNotifChannels((p) => ({ ...p, [key]: !p[key] }));
+  const notifKeyMap: Record<keyof typeof notifChannels, string> = {
+    aiSummariesEmail: "notifAiSummaryEmail",
+    aiSummariesPush: "notifAiSummaryPush",
+    weeklyDigestEmail: "notifWeeklyDigestEmail",
+    weeklyDigestPush: "notifWeeklyDigestPush",
+    taskRemindersEmail: "notifTaskReminderEmail",
+    taskRemindersPush: "notifTaskReminderPush",
+    workspaceActivityEmail: "notifWorkspaceEmail",
+    workspaceActivityPush: "notifWorkspacePush",
+    securityAlertsEmail: "notifSecurityEmail",
+    securityAlertsPush: "notifSecurityPush",
+  };
+
+  async function toggleNotif(key: keyof typeof notifChannels) {
+    const nextVal = !notifChannels[key];
+    setNotifChannels((p) => ({ ...p, [key]: nextVal }));
+    const dbKey = notifKeyMap[key];
+    if (dbKey) {
+      try {
+        await updatePreferencesApi({ [dbKey]: nextVal }).unwrap();
+      } catch {
+        setNotifChannels((p) => ({ ...p, [key]: !nextVal }));
+        toast.error("Failed to save notification preference");
+      }
+    }
   }
 
-  function toggleAi(key: keyof typeof aiToggles) {
-    setAiToggles((p) => ({ ...p, [key]: !p[key] }));
+  const aiKeyMap: Record<keyof typeof aiToggles, string> = {
+    autoSummarize: "aiAutoSummarize",
+    extractActionItems: "aiExtractActions",
+    sentimentAnalysis: "aiSentiment",
+    smartTags: "aiSmartTags",
+    speakerAttribution: "aiSpeakerAttribution",
+  };
+
+  async function toggleAi(key: keyof typeof aiToggles) {
+    const nextVal = !aiToggles[key];
+    setAiToggles((p) => ({ ...p, [key]: nextVal }));
+    const dbKey = aiKeyMap[key];
+    if (dbKey) {
+      try {
+        await updatePreferencesApi({ [dbKey]: nextVal }).unwrap();
+      } catch {
+        setAiToggles((p) => ({ ...p, [key]: !nextVal }));
+        toast.error("Failed to save AI preference");
+      }
+    }
+  }
+
+  async function handleAccentChange(accentId: string, accentName: string) {
+    setSelectedAccent(accentId);
+    try {
+      await updatePreferencesApi({ accentColor: accentId }).unwrap();
+      toast.success(`Theme accent set to ${accentName}`);
+    } catch {
+      toast.error("Failed to save accent preference");
+    }
+  }
+
+  async function handleThemeChange(newTheme: string) {
+    setTheme(newTheme);
+    try {
+      await updatePreferencesApi({ theme: newTheme }).unwrap();
+    } catch {}
+  }
+
+  async function handleAiSummaryStyleChange(
+    style: "executive" | "action" | "comprehensive",
+  ) {
+    setAiSummaryStyle(style);
+    try {
+      await updatePreferencesApi({ aiSummaryStyle: style }).unwrap();
+      toast.success(`Default synthesis style: ${style}`);
+    } catch {
+      toast.error("Failed to update AI style");
+    }
+  }
+
+  async function handleAiCreativityChange(val: number[]) {
+    setAiCreativity(val);
+    try {
+      await updatePreferencesApi({ aiTemperature: val[0] }).unwrap();
+    } catch {}
+  }
+
+  async function handleAiLanguageChange(lang: string) {
+    setAiLanguage(lang);
+    try {
+      await updatePreferencesApi({ aiLanguage: lang }).unwrap();
+      toast.success(`Language set to ${lang}`);
+    } catch {}
+  }
+
+  async function handleRevokeOtherSessions() {
+    try {
+      const res = await revokeOtherSessionsApi().unwrap();
+      toast.success(
+        res?.message || "All other device sessions have been revoked.",
+      );
+    } catch (err: any) {
+      toast.error(err?.data?.message || "Failed to revoke other sessions");
+    }
   }
 
   // Calculate password strength
@@ -288,14 +468,20 @@ export function SettingsView() {
 
   const pwdStrength = getPasswordStrength(newPassword);
 
-  // Save profile changes
+  // Save profile changes (synchronizes profile + user preferences)
   async function handleSaveProfile() {
     try {
-      const res = await updateProfile({
-        name: name.trim(),
-        username: username.trim() || undefined,
-        phone: phone.trim() || undefined,
-      }).unwrap();
+      const [res] = await Promise.all([
+        updateProfile({
+          name: name.trim(),
+          username: username.trim() || undefined,
+          phone: phone.trim() || undefined,
+        }).unwrap(),
+        updatePreferencesApi({
+          bio: bio.trim(),
+          timezone,
+        }).unwrap(),
+      ]);
 
       if (res.success && res.data) {
         dispatch(setUser(res.data));
@@ -534,11 +720,13 @@ export function SettingsView() {
               <Button
                 size="sm"
                 onClick={handleSaveProfile}
-                disabled={isUpdatingProfile}
+                disabled={isUpdatingProfile || isUpdatingPrefs}
                 className="gap-1.5 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 text-xs font-semibold text-white shadow-md transition-all hover:opacity-95 hover:shadow-indigo-500/25 cursor-pointer"
               >
                 <Check className="h-3.5 w-3.5" />
-                {isUpdatingProfile ? "Saving..." : "Save All"}
+                {isUpdatingProfile || isUpdatingPrefs
+                  ? "Saving..."
+                  : "Save All"}
               </Button>
             </div>
           </div>
@@ -840,11 +1028,13 @@ export function SettingsView() {
                   </p>
                   <Button
                     onClick={handleSaveProfile}
-                    disabled={isUpdatingProfile}
+                    disabled={isUpdatingProfile || isUpdatingPrefs}
                     className="w-full sm:w-auto gap-2 rounded-xl bg-linear-to-r from-indigo-500 to-violet-600 px-6 font-semibold text-white shadow-md hover:opacity-95 hover:shadow-indigo-500/25 cursor-pointer"
                   >
                     <Check className="h-4 w-4" />
-                    {isUpdatingProfile ? "Saving changes..." : "Save Profile"}
+                    {isUpdatingProfile || isUpdatingPrefs
+                      ? "Saving changes..."
+                      : "Save Profile"}
                   </Button>
                 </div>
               </Card>
@@ -862,14 +1052,14 @@ export function SettingsView() {
               <StatPill
                 icon={FileText}
                 label="Meeting Notes Stored"
-                value={`${notes.length} Notes`}
+                value={`${usageStats?.notes?.total ?? notes.length} Notes`}
                 subtext="Encrypted in vault"
                 gradient="from-cyan-500 to-blue-500"
               />
               <StatPill
                 icon={Sparkles}
                 label="Summaries Synthesized"
-                value={`${summaries.length} Summaries`}
+                value={`${usageStats?.summaries?.used ?? summaries.length} Summaries`}
                 subtext="100% neural accuracy"
                 gradient="from-fuchsia-500 to-pink-500"
               />
@@ -901,7 +1091,7 @@ export function SettingsView() {
                   {/* Light Mode Preview */}
                   <ThemePreviewCard
                     active={theme === "light"}
-                    onClick={() => setTheme("light")}
+                    onClick={() => handleThemeChange("light")}
                     title="Light Canvas"
                     desc="Crisp daytime high-clarity view"
                     badge="Daylight"
@@ -937,7 +1127,7 @@ export function SettingsView() {
                   {/* Dark Mode Preview */}
                   <ThemePreviewCard
                     active={theme === "dark"}
-                    onClick={() => setTheme("dark")}
+                    onClick={() => handleThemeChange("dark")}
                     title="Obsidian Dark"
                     desc="Sleek deep contrast, easy on the eyes"
                     badge="Recommended"
@@ -973,7 +1163,7 @@ export function SettingsView() {
                   {/* System Preview */}
                   <ThemePreviewCard
                     active={theme === "system"}
-                    onClick={() => setTheme("system")}
+                    onClick={() => handleThemeChange("system")}
                     title="System Auto"
                     desc="Dynamically matches your OS schedule"
                     badge="Dynamic"
@@ -1020,10 +1210,9 @@ export function SettingsView() {
                       <button
                         key={accent.id}
                         type="button"
-                        onClick={() => {
-                          setSelectedAccent(accent.id);
-                          toast.success(`Theme accent set to ${accent.name}`);
-                        }}
+                        onClick={() =>
+                          handleAccentChange(accent.id, accent.name)
+                        }
                         className={cn(
                           "group relative flex flex-col items-center gap-2 rounded-2xl border-2 p-3 transition-all cursor-pointer",
                           isSelected
@@ -1265,21 +1454,23 @@ export function SettingsView() {
                   <div className="grid gap-3 sm:grid-cols-3">
                     <FormatCard
                       active={aiSummaryStyle === "action"}
-                      onClick={() => setAiSummaryStyle("action")}
+                      onClick={() => handleAiSummaryStyleChange("action")}
                       icon={CheckCircle2}
                       title="Action-Focused"
                       desc="Prioritizes assigned tasks, deadlines, and direct owners first"
                     />
                     <FormatCard
                       active={aiSummaryStyle === "executive"}
-                      onClick={() => setAiSummaryStyle("executive")}
+                      onClick={() => handleAiSummaryStyleChange("executive")}
                       icon={Briefcase}
                       title="Executive Brief"
                       desc="Concise bullet points and key strategic decisions for leadership"
                     />
                     <FormatCard
                       active={aiSummaryStyle === "comprehensive"}
-                      onClick={() => setAiSummaryStyle("comprehensive")}
+                      onClick={() =>
+                        handleAiSummaryStyleChange("comprehensive")
+                      }
                       icon={FileText}
                       title="Deep Transcript"
                       desc="Full contextual summaries with verbatim quotes and full timestamps"
@@ -1305,7 +1496,7 @@ export function SettingsView() {
                     </div>
                     <Slider
                       value={aiCreativity}
-                      onValueChange={setAiCreativity}
+                      onValueChange={handleAiCreativityChange}
                       min={0.1}
                       max={1.0}
                       step={0.1}
@@ -1323,7 +1514,10 @@ export function SettingsView() {
                       <Globe className="h-3.5 w-3.5 text-indigo-500" />
                       Transcription & Output Language
                     </Label>
-                    <Select value={aiLanguage} onValueChange={setAiLanguage}>
+                    <Select
+                      value={aiLanguage}
+                      onValueChange={handleAiLanguageChange}
+                    >
                       <SelectTrigger className="rounded-xl border-border/60 bg-card">
                         <SelectValue />
                       </SelectTrigger>
@@ -1404,35 +1598,45 @@ export function SettingsView() {
                     variant="outline"
                     className="gap-1 border-indigo-500/30 bg-indigo-500/10 text-xs text-indigo-500 self-start sm:self-auto"
                   >
-                    <Clock className="h-3 w-3" /> Resets in 6 days
+                    <Clock className="h-3 w-3" /> Resets in{" "}
+                    {usageStats?.period?.daysRemaining ?? 6} days
                   </Badge>
                 </div>
 
                 <div className="space-y-5">
                   <UsageBar
                     label="AI Meeting Summaries"
-                    used={summaries.length || 96}
-                    total={250}
+                    used={
+                      usageStats?.summaries?.used ?? (summaries.length || 0)
+                    }
+                    total={usageStats?.summaries?.limit ?? 250}
                     unit="summaries"
                     gradient="from-indigo-500 to-violet-600"
                   />
                   <UsageBar
                     label="Speech-to-Text Transcription Audio"
-                    used={340}
-                    total={600}
+                    used={usageStats?.transcriptionMinutes?.used ?? 0}
+                    total={usageStats?.transcriptionMinutes?.limit ?? 600}
                     unit="mins"
                     gradient="from-cyan-500 to-blue-600"
                   />
                   <UsageBar
                     label="Action Items & Tasks Synced"
-                    used={tasks.length || 243}
-                    total={500}
+                    used={usageStats?.tasks?.used ?? (tasks.length || 0)}
+                    total={usageStats?.tasks?.limit ?? 500}
                     unit="tasks"
                     gradient="from-emerald-500 to-teal-600"
                   />
                   <UsageBar
                     label="Vector Search Embeddings & Storage"
-                    used={4.3}
+                    used={
+                      usageStats?.storageBytes
+                        ? +(
+                            usageStats.storageBytes.used /
+                            (1024 * 1024 * 1024)
+                          ).toFixed(2)
+                        : 0.05
+                    }
                     total={10}
                     unit="GB"
                     gradient="from-purple-500 to-pink-600"
@@ -1921,20 +2125,27 @@ export function SettingsView() {
               >
                 <Card className="flex h-full flex-col justify-between border-border/60 bg-card/70 p-6 shadow-md backdrop-blur-xl">
                   <div>
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
-                        <Laptop className="h-5 w-5" />
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                          <Laptop className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-sm">
+                            Current Active Session
+                          </h4>
+                          <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {activeSessions[0]?.userAgent
+                              ? activeSessions[0].userAgent.slice(0, 32) + "..."
+                              : "Web Application • Active Browser"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-bold text-sm">
-                          Current Active Session
-                        </h4>
-                        <p className="text-xs text-muted-foreground">
-                          macOS • Chrome Browser
-                        </p>
-                      </div>
+                      <Badge className="bg-indigo-500/10 text-indigo-500 text-[11px] font-semibold border-indigo-500/20">
+                        {activeSessions.length || 1} Active
+                      </Badge>
                     </div>
-                    <div className="rounded-xl border border-border/40 bg-muted/20 p-3 space-y-1 text-xs">
+                    <div className="rounded-xl border border-border/40 bg-muted/20 p-3 space-y-1.5 text-xs">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Status:</span>
                         <span className="flex items-center gap-1.5 font-semibold text-emerald-500">
@@ -1943,25 +2154,122 @@ export function SettingsView() {
                         </span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Location:</span>
-                        <span className="font-mono">Dhaka, Bangladesh</span>
+                        <span className="text-muted-foreground">
+                          IP Address:
+                        </span>
+                        <span className="font-mono text-[11px]">
+                          {activeSessions[0]?.ipAddress ||
+                            "Current Device (Loopback)"}
+                        </span>
                       </div>
+                      {activeSessions[0]?.createdAt && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">
+                            Connected:
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {new Date(
+                              activeSessions[0].createdAt,
+                            ).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <Button
                     variant="outline"
-                    onClick={() =>
-                      toast.success(
-                        "All other device sessions have been revoked.",
-                      )
-                    }
-                    className="mt-4 w-full rounded-xl text-xs cursor-pointer"
+                    onClick={handleRevokeOtherSessions}
+                    disabled={isRevokingSessions}
+                    className="mt-4 w-full rounded-xl text-xs cursor-pointer border-border/60 hover:bg-rose-500/10 hover:text-rose-500 hover:border-rose-500/30 transition-all"
                   >
-                    Revoke Other Sessions
+                    {isRevokingSessions
+                      ? "Revoking..."
+                      : "Revoke Other Sessions"}
                   </Button>
                 </Card>
               </motion.div>
             </div>
+
+            {/* Recent Login History Section */}
+            {loginHistory.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.25, delay: 0.12 }}
+              >
+                <Card className="border-border/60 bg-card/70 p-6 shadow-md backdrop-blur-xl">
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500">
+                        <Clock className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-sm">
+                          Recent Login Activity
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          Audit trail of past authentication sessions
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      Last {loginHistory.length} attempts
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2">
+                    {loginHistory.map((item: any) => (
+                      <div
+                        key={item.id}
+                        className="flex items-center justify-between rounded-xl border border-border/40 bg-muted/20 px-3.5 py-2.5 text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className={cn(
+                              "h-2 w-2 rounded-full",
+                              item.successful
+                                ? "bg-emerald-500"
+                                : "bg-rose-500",
+                            )}
+                          />
+                          <div>
+                            <p className="font-semibold">
+                              {item.device ||
+                                item.browser ||
+                                item.os ||
+                                "Web Client"}
+                            </p>
+                            <p className="font-mono text-[10px] text-muted-foreground">
+                              {item.ipAddress || "Localhost"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              "text-[10px] py-0",
+                              item.successful
+                                ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5"
+                                : "border-rose-500/30 text-rose-500 bg-rose-500/5",
+                            )}
+                          >
+                            {item.successful ? "Authorized" : "Failed"}
+                          </Badge>
+                          <p className="mt-0.5 text-[10px] text-muted-foreground">
+                            {new Date(item.createdAt).toLocaleDateString()}{" "}
+                            {new Date(item.createdAt).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+              </motion.div>
+            )}
 
             {/* Danger Zone */}
             <motion.div

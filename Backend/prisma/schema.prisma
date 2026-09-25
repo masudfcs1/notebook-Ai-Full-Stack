@@ -60,6 +60,7 @@ model User {
   memberships  TeamMember[]
   workspaces   Workspace[]
   notifications Notification[]
+  preferences   UserPreferences?
 
   @@index([role])
   @@index([status])
@@ -254,5 +255,53 @@ model Notification {
   @@index([userId, createdAt])
   @@index([userId, read, createdAt])
   @@map("notifications")
+}
+
+model UserPreferences {
+  id                   String   @id @default(cuid())
+  userId               Int      @unique
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Profile bio / extra info
+  bio                  String?  @default("AI Enthusiast & Product Specialist. Leading collaborative meeting intelligence.")
+
+  // Display & Appearance preferences
+  theme                String   @default("system")    // light | dark | system
+  accentColor          String   @default("indigo")    // indigo | emerald | rose | amber | cyan | violet
+  compactMode          Boolean  @default(false)
+  ambientGlow          Boolean  @default(true)
+  smoothMotion         Boolean  @default(true)
+  highContrast         Boolean  @default(false)
+  soundEffects         Boolean  @default(false)
+
+  // Notification channel preferences (email + in-app per category)
+  notifAiSummaryEmail    Boolean @default(true)
+  notifAiSummaryPush     Boolean @default(true)
+  notifTaskReminderEmail Boolean @default(true)
+  notifTaskReminderPush  Boolean @default(true)
+  notifWeeklyDigestEmail Boolean @default(true)
+  notifWeeklyDigestPush  Boolean @default(false)
+  notifWorkspaceEmail    Boolean @default(false)
+  notifWorkspacePush     Boolean @default(true)
+  notifSecurityEmail     Boolean @default(true)
+  notifSecurityPush      Boolean @default(true)
+
+  // AI intelligence preferences
+  aiSummaryStyle       String  @default("action")   // action | executive | comprehensive
+  aiTemperature        Float   @default(0.7)
+  aiLanguage           String  @default("auto")
+  aiAutoSummarize      Boolean @default(true)
+  aiExtractActions     Boolean @default(true)
+  aiSentiment          Boolean @default(true)
+  aiSmartTags          Boolean @default(true)
+  aiSpeakerAttribution Boolean @default(true)
+
+  // Regional / Timezone
+  timezone             String   @default("UTC")
+
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@map("user_preferences")
 }
 

@@ -1,0 +1,37 @@
+import { UserPreferences } from '@prisma/client';
+
+export const toPreferencesResponse = (preferences: UserPreferences) => {
+  return {
+    id: preferences.id,
+    userId: preferences.userId,
+    bio: preferences.bio,
+    theme: preferences.theme,
+    accentColor: preferences.accentColor,
+    compactMode: preferences.compactMode,
+    ambientGlow: preferences.ambientGlow,
+    smoothMotion: preferences.smoothMotion,
+    highContrast: preferences.highContrast,
+    soundEffects: preferences.soundEffects,
+    notifAiSummaryEmail: preferences.notifAiSummaryEmail,
+    notifAiSummaryPush: preferences.notifAiSummaryPush,
+    notifTaskReminderEmail: preferences.notifTaskReminderEmail,
+    notifTaskReminderPush: preferences.notifTaskReminderPush,
+    notifWeeklyDigestEmail: preferences.notifWeeklyDigestEmail,
+    notifWeeklyDigestPush: preferences.notifWeeklyDigestPush,
+    notifWorkspaceEmail: preferences.notifWorkspaceEmail,
+    notifWorkspacePush: preferences.notifWorkspacePush,
+    notifSecurityEmail: preferences.notifSecurityEmail,
+    notifSecurityPush: preferences.notifSecurityPush,
+    aiSummaryStyle: preferences.aiSummaryStyle,
+    aiTemperature: preferences.aiTemperature,
+    aiLanguage: preferences.aiLanguage,
+    aiAutoSummarize: preferences.aiAutoSummarize,
+    aiExtractActions: preferences.aiExtractActions,
+    aiSentiment: preferences.aiSentiment,
+    aiSmartTags: preferences.aiSmartTags,
+    aiSpeakerAttribution: preferences.aiSpeakerAttribution,
+    timezone: preferences.timezone,
+    createdAt: preferences.createdAt,
+    updatedAt: preferences.updatedAt,
+  };
+};

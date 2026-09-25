@@ -467,6 +467,21 @@ export class AuthService {
 
     return { data: history };
   }
+
+  async getSessions(userId: number) {
+    const sessions = await authRepository.getActiveSessions(userId);
+    return sessions;
+  }
+
+  async revokeOtherSessions(userId: number, currentToken?: string) {
+    const result = await authRepository.revokeOtherSessions(userId, currentToken);
+    logger.info({ userId, count: result.count }, 'Revoked other sessions');
+    return result;
+  }
+
+  async getUsageStats(userId: number) {
+    return authRepository.getUsageStats(userId);
+  }
 }
 
 export const authService = new AuthService();

@@ -11,6 +11,7 @@ import { authApi } from "./api/authApiSlice";
 import { adminApi } from "./api/adminApiSlice";
 import { workspaceApi } from "./api/workspaceApiSlice";
 import { taskApi } from "./api/taskApiSlice";
+import { preferencesApi } from "./api/preferencesApiSlice";
 
 const combinedReducer = combineReducers({
   app: appReducer,
@@ -20,6 +21,7 @@ const combinedReducer = combineReducers({
   [adminApi.reducerPath]: adminApi.reducer,
   [workspaceApi.reducerPath]: workspaceApi.reducer,
   [taskApi.reducerPath]: taskApi.reducer,
+  [preferencesApi.reducerPath]: preferencesApi.reducer,
 });
 
 const WORKSPACE_CACHE_KEY = "noteflow:workspaces:v1";
@@ -127,7 +129,8 @@ export function makeStore() {
         .concat(authApi.middleware)
         .concat(adminApi.middleware)
         .concat(workspaceApi.middleware)
-        .concat(taskApi.middleware),
+        .concat(taskApi.middleware)
+        .concat(preferencesApi.middleware),
   });
 }
 

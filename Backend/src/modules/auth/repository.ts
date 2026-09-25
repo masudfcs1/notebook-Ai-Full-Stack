@@ -117,6 +117,98 @@ export class AuthRepository {
     });
   }
 
+  async getActiveSessions(userId: number) {
+    return prisma.refreshToken.findMany({
+      where: {
+        userId,
+        revoked: false,
+        expiresAt: { gt: new Date() },
+      },
+      select: {
+        id: true,
+        userAgent: true,
+        ipAddress: true,
+        createdAt: true,
+        expiresAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async revokeOtherSessions(userId: number, currentToken?: string) {
+    return prisma.refreshToken.updateMany({
+      where: {
+        userId,
+        revoked: false,
+        ...(currentToken ? { token: { not: currentToken } } : {}),
+      },
+      data: { revoked: true },
+    });
+  }
+
+  async getUsageStats(userId: number) {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const daysRemaining = Math.max(0, endOfMonth.getDate() - now.getDate());
+
+    const [notesCount, summariesCount, tasksCount, storageAgg, totalNotes] = await Promise.all([
+      prisma.meetingNote.count({
+        where: { userId, createdAt: { gte: startOfMonth } },
+      }),
+      prisma.summary.count({
+        where: { note: { userId }, createdAt: { gte: startOfMonth } },
+      }),
+      prisma.actionItem.count({
+        where: {
+          OR: [
+            { note: { userId } },
+            { team: { workspace: { userId } } },
+          ],
+          createdAt: { gte: startOfMonth },
+        },
+      }),
+      prisma.meetingNote.aggregate({
+        where: { userId },
+        _sum: { fileSize: true },
+      }),
+      prisma.meetingNote.count({
+        where: { userId },
+      }),
+    ]);
+
+    const usedBytes = storageAgg._sum.fileSize || 0;
+    const limitBytes = 10 * 1024 * 1024 * 1024; // 10 GB limit for standard tier
+
+    return {
+      period: {
+        start: startOfMonth.toISOString(),
+        end: endOfMonth.toISOString(),
+        daysRemaining,
+      },
+      summaries: {
+        used: summariesCount,
+        limit: 250,
+      },
+      transcriptionMinutes: {
+        used: Math.min(600, notesCount * 15), // estimated minutes based on notes
+        limit: 600,
+      },
+      tasks: {
+        used: tasksCount,
+        limit: 500,
+      },
+      storageBytes: {
+        used: usedBytes,
+        limitBytes,
+      },
+      notes: {
+        total: totalNotes,
+        thisMonth: notesCount,
+      },
+    };
+  }
+
   async createLoginHistory(data: {
     userId: number;
     ipAddress?: string;
